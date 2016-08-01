@@ -1,0 +1,42 @@
+#For Keil
+obj/
+lst/
+
+#For OSX
+.DS_Store
+
+#Files
+*.log
+*.dep
+*.bak
+*.uvopt
+*.old
+*.bin
+*.obj
+*.orig
+*.ok
+*~
+*.o
+*.i
+*.lst
+*.map
+*.d
+*.crf
+*.axf
+*.out
+*.pbi
+*.cout
+*.browse
+*.scc
+*.tra
+*.txt
+
+#Large stuff
+*.zip
+*.gz
+*.bz
+*.gzip
+*.7z
+*.rar
+!ThirdParty/FATFS/doc/img/mkfatimg.zip
+
