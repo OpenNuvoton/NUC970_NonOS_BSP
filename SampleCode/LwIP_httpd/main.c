@@ -98,7 +98,8 @@ static CHAR err404[] = {
     0x3c, 0x2f, 0x48, 0x54, 0x4d, 0x4c, 0x3e, 0xd, 0xa
 };
 
-unsigned char my_mac_addr0[6] = {0x00, 0x00, 0x00, 0x55, 0x66, 0x77}; // overwrite default EMAC address in driver
+unsigned char my_mac_addr0[6] = {0x00, 0x00, 0x00, 0x55, 0x66, 0x77};
+unsigned char my_mac_addr1[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x01}; // Not used in this sample, but provide a dummy avoid compilation errro
 /* recv callback function */
 static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf*p, err_t err)
 {

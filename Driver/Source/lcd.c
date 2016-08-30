@@ -513,8 +513,8 @@ void vpostOSDSetWindow(uint32_t u32XStart,uint32_t u32YStart,uint32_t u32Width,u
   */
 void vpostHCInit(uint32_t *u32CursorBMPBuff, VA_HCMODE_E ucMode)
 {
-	int bpp;
-	int BlockWidth;
+	int bpp=2;
+	int BlockWidth=32;
 	int bpw=32;
     
 	outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x003f3f00 | (0x00<<8) | (0x00<<16));//set TIP

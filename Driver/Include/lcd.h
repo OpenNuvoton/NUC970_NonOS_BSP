@@ -171,8 +171,8 @@ typedef struct
     uint32_t* pFrameBuffer;          /*!< User input, The address of OSD source image */
 }OSDFORMATEX;
 
-#define DIS_PANEL_E50A2V1   0
-
+#define DIS_PANEL_E50A2V1       0
+#define DIS_PANEL_ILI9341_MPU80 1
 typedef struct {
     uint32_t u32DevWidth;           /*!< Panel width */
 	uint32_t u32DevHeight;          /*!< Panel height */
@@ -224,6 +224,9 @@ void vpostOSDSetWindow(uint32_t u32XStart,uint32_t u32YStart,uint32_t u32Width,u
 void vpostHCInit(uint32_t *u32CursorBMPBuff, VA_HCMODE_E ucMode);
 void vpostHCPosCtrl(uint32_t u32CursorX, uint32_t u32CursorY);
 void vpostOSDSetOverlay(uint8_t u8OSDDisplayMatch, uint8_t u8OSDDisplayUnMatch, uint8_t u8OSDSynW);
+void vpostMPUWriteAddr(uint16_t uscmd);
+void vpostMPUWriteData(uint16_t usdata);
+uint32_t vpostMPUReadData(void);
 
 /*@}*/ /* end of group NUC970_LCD_EXPORTED_FUNCTIONS */
 

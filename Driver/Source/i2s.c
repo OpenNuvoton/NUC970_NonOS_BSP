@@ -443,7 +443,7 @@ void i2sSetMCLKFrequency(uint32_t u32SourceClockRate, uint32_t u32SampleRate)
   */
 void i2sSetPCMBCLKFrequency(uint32_t u32SourceClockRate, uint32_t u32Rate)
 {
-    uint32_t u32MCLK, u32BCLKDiv;
+    uint32_t u32BCLKDiv;
 
     u32BCLKDiv = (u32SourceClockRate/ (2*u32Rate) ) - 1;
     outpw(REG_ACTL_PCMCON, (inpw(REG_ACTL_PCMCON) & ~0x0000FF00) | (u32BCLKDiv << 8));

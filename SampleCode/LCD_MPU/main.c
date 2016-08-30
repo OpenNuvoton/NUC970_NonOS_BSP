@@ -150,7 +150,7 @@ void ILI9341_LCD_Init(void)
 
 int32_t main(void)
 {	
-	uint8_t *u8FrameBufPtr, i;    
+	uint8_t *u8FrameBufPtr;    
     
 	*((volatile unsigned int *)REG_AIC_MDCR)=0xFFFFFFFF;  // disable all interrupt channel
 	*((volatile unsigned int *)REG_AIC_MDCRH)=0xFFFFFFFF;  // disable all interrupt channel

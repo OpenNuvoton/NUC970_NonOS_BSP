@@ -9,6 +9,7 @@ lst/
 *.log
 *.dep
 *.bak
+*.uvgui.*
 *.uvopt
 *.old
 *.bin
