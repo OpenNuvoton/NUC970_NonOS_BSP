@@ -663,6 +663,7 @@ INT32 GPIO_EnableInt(GPIO_PORT port, GPIO_CALLBACK callback, UINT32 userData)
     }
     sysInstallISR(IRQ_LEVEL_7, GPIO_IRQn, (PVOID)GPIO_IRQHandler);
     sysEnableInterrupt(GPIO_IRQn);
+    sysSetLocalInterrupt(ENABLE_IRQ);
     return SUCCESSFUL;
 }
 
@@ -753,6 +754,7 @@ INT32 GPIO_EnableEINT(GPIO_NIRQ nIrq, GPIO_CALLBACK callback, UINT32 userData)
       sysEnableInterrupt(EINT7_IRQn);
     break;
    };
+    sysSetLocalInterrupt(ENABLE_IRQ);
     return SUCCESSFUL;
 }
 
