@@ -716,7 +716,7 @@ INT adcIoctl(ADC_CMD cmd, INT32 arg1, INT32 arg2)
        {
           ADC_CALLBACK normal_callback;
           reg = inpw(REG_ADC_CONF);
-          reg = reg | ADC_CONF_NACEN;
+          reg = reg | ADC_CONF_NACEN | ADC_CONF_REFSEL_AVDD33;
           outpw(REG_ADC_CONF, reg);
           normal_callback = (ADC_CALLBACK) arg1;
           if (normal_callback != NULL )

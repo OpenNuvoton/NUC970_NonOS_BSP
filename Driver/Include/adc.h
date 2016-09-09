@@ -72,6 +72,13 @@ typedef INT32 (*ADC_CALLBACK)(UINT32 status, UINT32 userData);
 #define ADC_CONF_CHSEL_XM		(6<<3)       /*!< ADC input channel select XM */
 #define ADC_CONF_CHSEL_XP		(7<<3)       /*!< ADC input channel select XP */
 
+#define ADC_CONF_REFSEL_Pos  6             /*!< Reference Selection Position */
+#define ADC_CONF_REFSEL_Msk     (3<<6)     /*!< Reference Selection Mask */
+#define ADC_CONF_REFSEL_VREF    (0<<6)     /*!< ADC reference select VREF input or 2.5v buffer output */
+#define ADC_CONF_REFSEL_YMYP    (1<<6)     /*!< ADC reference select YM vs YP */
+#define ADC_CONF_REFSEL_XMXP    (2<<6)     /*!< ADC reference select XM vs XP */
+#define ADC_CONF_REFSEL_AVDD33  (3<<6)     /*!< ADC reference select AGND33 vs AVDD33 */
+
 /*---------------------------------------------------------------------------------------------------------*/
 /* ADC_IER constant definitions                                                                            */
 /*---------------------------------------------------------------------------------------------------------*/
