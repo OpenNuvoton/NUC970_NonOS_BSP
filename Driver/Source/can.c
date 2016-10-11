@@ -120,7 +120,7 @@ uint32_t CAN_GetCANBitRate(UINT32  uCAN)
     UINT8 u8Tseg1,u8Tseg2;
     UINT32 u32Bpr, u32Value;
 
-	u32Value = sysGetClock(SYS_PCLK);
+	u32Value = sysGetClock(SYS_PCLK)*1000000;
 	
 	uRegAddress = REG_CAN0_BTIME + uOffset;
 	u8Tseg1 = (inpw(uRegAddress) & CAN_BTIME_TSEG1_Msk) >> CAN_BTIME_TSEG1_Pos;
@@ -780,7 +780,7 @@ void CAN_CLR_INT_PENDING_BIT(UINT32 uCAN, uint8_t u32MsgNum)
 		if((inpw(REG_CAN0_IF1_CREQ+uOffset) & CAN_IF_CREQ_BUSY_Msk) == 0) {
             u32MsgIfNum = 0;
             break;
-        }else if((inpw(REG_CAN0_IF1_CREQ+uOffset)  & CAN_IF_CREQ_BUSY_Msk) == 0) {
+        }else if((inpw(REG_CAN0_IF2_CREQ+uOffset)  & CAN_IF_CREQ_BUSY_Msk) == 0) {
             u32MsgIfNum = 1;
             break;
         }
