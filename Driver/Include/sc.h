@@ -349,17 +349,17 @@ static __inline void SC_SetTxRetry(UINT sc, uint32_t u32Count)
 {
     if(sc == 0) {
         while(inpw(REG_SC0_CTL) & SC_CTL_SYNC_Msk);
-        if(u32Count == 0) {       // disable Tx error retry
-            outpw(REG_SC0_CTL, inpw(REG_SC0_CTL) & ~(SC_CTL_TXRTY_Msk | SC_CTL_TXRTYEN_Msk));
-        } else {
-            outpw(REG_SC0_CTL, (inpw(REG_SC0_CTL) & ~SC_CTL_TXRTY_Msk) | ((u32Count - 1) << 20) | SC_CTL_TXRTYEN_Msk);
+        outpw(REG_SC0_CTL, inpw(REG_SC0_CTL) & ~(SC_CTL_TXRTY_Msk | SC_CTL_TXRTYEN_Msk));
+        if(u32Count != 0) {
+            while(inpw(REG_SC0_CTL) & SC_CTL_SYNC_Msk);
+            outpw(REG_SC0_CTL, ((u32Count - 1) << 20) | SC_CTL_TXRTYEN_Msk);
         }
     } else {
         while(inpw(REG_SC1_CTL) & SC_CTL_SYNC_Msk);
-        if(u32Count == 0) {       // disable Tx error retry
-            outpw(REG_SC1_CTL, inpw(REG_SC1_CTL) & ~(SC_CTL_TXRTY_Msk | SC_CTL_TXRTYEN_Msk));
-        } else {
-            outpw(REG_SC1_CTL, (inpw(REG_SC1_CTL) & ~SC_CTL_TXRTY_Msk) | ((u32Count - 1) << 20) | SC_CTL_TXRTYEN_Msk);
+        outpw(REG_SC1_CTL, inpw(REG_SC1_CTL) & ~(SC_CTL_TXRTY_Msk | SC_CTL_TXRTYEN_Msk));
+        if(u32Count != 0) { 
+            while(inpw(REG_SC1_CTL) & SC_CTL_SYNC_Msk);
+            outpw(REG_SC1_CTL, ((u32Count - 1) << 20) | SC_CTL_TXRTYEN_Msk);
         }
     }
 }
@@ -375,17 +375,18 @@ static __inline void  SC_SetRxRetry(UINT sc, uint32_t u32Count)
 {
     if(sc == 0) {
         while(inpw(REG_SC0_CTL) & SC_CTL_SYNC_Msk);
-        if(u32Count == 0) {       // disable Tx error retry
-            outpw(REG_SC0_CTL, inpw(REG_SC0_CTL) & ~(SC_CTL_RXRTY_Msk | SC_CTL_RXRTYEN_Msk));
-        } else {
-            outpw(REG_SC0_CTL, (inpw(REG_SC0_CTL) & ~SC_CTL_RXRTY_Msk) | ((u32Count - 1) << 16) | SC_CTL_RXRTYEN_Msk);
+        outpw(REG_SC0_CTL, inpw(REG_SC0_CTL) & ~(SC_CTL_RXRTY_Msk | SC_CTL_RXRTYEN_Msk));
+        
+        if(u32Count != 0) {
+            while(inpw(REG_SC0_CTL) & SC_CTL_SYNC_Msk);
+            outpw(REG_SC0_CTL, ((u32Count - 1) << 16) | SC_CTL_RXRTYEN_Msk);
         }
     } else {
         while(inpw(REG_SC1_CTL) & SC_CTL_SYNC_Msk);
-        if(u32Count == 0) {       // disable Tx error retry
-            outpw(REG_SC1_CTL, inpw(REG_SC1_CTL) & ~(SC_CTL_RXRTY_Msk | SC_CTL_RXRTYEN_Msk));
-        } else {
-            outpw(REG_SC1_CTL, (inpw(REG_SC1_CTL) & ~SC_CTL_RXRTY_Msk) | ((u32Count - 1) << 16) | SC_CTL_RXRTYEN_Msk);
+        outpw(REG_SC1_CTL, inpw(REG_SC1_CTL) & ~(SC_CTL_RXRTY_Msk | SC_CTL_RXRTYEN_Msk));
+        if(u32Count != 0) {
+            while(inpw(REG_SC1_CTL) & SC_CTL_SYNC_Msk);
+            outpw(REG_SC1_CTL, ((u32Count - 1) << 16) | SC_CTL_RXRTYEN_Msk);
         }
     }
 }

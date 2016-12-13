@@ -145,7 +145,7 @@ void SC_ResetReader(UINT sc)
         // Set Rx trigger level to 1 character, longest card detect debounce period, disable error retry (EMV ATR does not use error retry)
         while(inpw(REG_SC0_CTL) & SC_CTL_SYNC_Msk);
         // Enable auto convention, and all three smartcard internal timers
-        outpw(REG_SC0_CTL, (inpw(REG_SC0_CTL) & ~(SC_CTL_RXTRGLV_Msk | SC_CTL_CDDBSEL_Msk | SC_CTL_TXRTY_Msk | SC_CTL_RXRTY_Msk)) | SC_CTL_AUTOCEN_Msk | SC_CTL_TMRSEL_Msk);
+        outpw(REG_SC0_CTL, (inpw(REG_SC0_CTL) & ~(SC_CTL_RXTRGLV_Msk | SC_CTL_CDDBSEL_Msk | SC_CTL_TXRTY_Msk | SC_CTL_TXRTYEN_Msk | SC_CTL_RXRTY_Msk | SC_CTL_RXRTYEN_Msk)) | SC_CTL_AUTOCEN_Msk | SC_CTL_TMRSEL_Msk);
 
         // Disable Rx timeout
         outpw(REG_SC0_RXTOUT, 0);
