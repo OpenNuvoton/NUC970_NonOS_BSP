@@ -244,39 +244,6 @@ static ssize_t show_ep_direction(struct device *dev,
 struct device_attribute dev_attr_direction = {
 	"direction", 0, show_ep_direction, NULL };
 
-#if 0
-static struct attribute *ep_dev_attrs[] = {
-	&dev_attr_bLength.attr,
-	&dev_attr_bEndpointAddress.attr,
-	&dev_attr_bmAttributes.attr,
-	&dev_attr_bInterval.attr,
-	&dev_attr_wMaxPacketSize.attr,
-	&dev_attr_interval.attr,
-	&dev_attr_type.attr,
-	&dev_attr_direction.attr,
-	NULL,
-};
-
-static struct attribute_group ep_dev_attr_grp = {
-	.attrs = ep_dev_attrs,
-};
-static const struct attribute_group *ep_dev_groups[] = {
-	&ep_dev_attr_grp,
-	NULL
-};
-#endif
-
-#if 0
-static void ep_device_release(struct device *dev)
-{
-	struct ep_device *ep_dev;
-	
-	ep_dev = to_ep_device(dev);
-
-	kfree(ep_dev);
-}
-#endif
-
 int usb_create_ep_devs(struct device *parent,
 			struct usb_host_endpoint *endpoint,
 			struct usb_device *udev)
@@ -292,22 +259,16 @@ int usb_create_ep_devs(struct device *parent,
 
 	ep_dev->desc = &endpoint->desc;
 	ep_dev->udev = udev;
-	//ep_dev->dev.groups = ep_dev_groups;
 	ep_dev->dev.type = &usb_ep_device_type;
 	ep_dev->dev.parent = parent;
-	//ep_dev->dev.release = ep_device_release;
-	//dev_set_name(&ep_dev->dev, "ep_%02x", endpoint->desc.bEndpointAddress);
 
 	retval = device_register(&ep_dev->dev);
 	if (retval)
-		goto error_register;
+		goto exit;
 
-	//device_enable_async_suspend(&ep_dev->dev);
 	endpoint->ep_dev = ep_dev;
 	return retval;
 
-error_register:
-	//put_device(&ep_dev->dev);
 exit:
 	return retval;
 }
@@ -319,7 +280,8 @@ void usb_remove_ep_devs(struct usb_host_endpoint *endpoint)
 	ep_dev = endpoint->ep_dev;
 
 	if (ep_dev) {
-		//device_unregister(&ep_dev->dev);
+        kfree(endpoint->ep_dev->dev.p);
+        kfree(endpoint->ep_dev);
 		endpoint->ep_dev = NULL;
 	}
 }

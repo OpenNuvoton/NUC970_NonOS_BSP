@@ -77,21 +77,12 @@ struct urb *usb_alloc_urb(int iso_packets, gfp_t mem_flags)
 {
 	struct urb *urb;
 
-#if 1
 	urb = USB_malloc(sizeof(struct urb), 4);
 	if (!urb) {
 		USB_error("alloc_urb: malloc failed\n");
 		return NULL;
 	}
-#else
-	urb = kmalloc(sizeof(struct urb) +
-		iso_packets * sizeof(struct usb_iso_packet_descriptor),
-		mem_flags);
-	if (!urb) {
-		printk(KERN_ERR "alloc_urb: kmalloc failed\n");
-		return NULL;
-	}
-#endif	
+
 	usb_init_urb(urb);
 	return urb;
 }
@@ -111,8 +102,8 @@ void usb_free_urb(struct urb *urb)
 	if (urb)
 	{
 		//kref_put(&urb->kref, urb_destroy);
-			urb->kref--;
-			if (urb->kref == 0)
+		//	urb->kref--;
+		//	if (urb->kref == 0)
 				urb_destroy(urb);
 	}
 }

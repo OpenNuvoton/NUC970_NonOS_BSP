@@ -33,52 +33,11 @@ static inline int driver_match_device(struct device_driver *drv,
 
 
 /* drivers/base/dd.c */
-static void driver_bound(struct device *dev)
-{
-	if (klist_node_attached(&dev->p->knode_driver)) {
-		//printk(KERN_WARNING "%s: device %s already bound\n",
-		//	__func__, kobject_name(&dev->kobj));
-		return;
-	}
-
-	USB_vdebug("driver: '%s': bound to device '%s'\n", __func__, dev->driver->name);
-
-	klist_add_tail(&dev->p->knode_driver, &dev->driver->p->klist_devices);
-
-	//if (dev->bus)
-	//	blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
-	//				     BUS_NOTIFY_BOUND_DRIVER, dev);
-}
-
-
-/* drivers/base/dd.c */
-int device_bind_driver(struct device *dev)
-{
-	int ret;
-
-	//ret = driver_sysfs_add(dev);
-	//if (!ret)
-		driver_bound(dev);
-	return ret;
-}
-
-
-/* drivers/base/dd.c */
 static int really_probe(struct device *dev, struct device_driver *drv)
 {
 	int ret = 0;
 
-	//atomic_inc(&probe_count);
-	//USB_debug("bus: '%s': %s: probing driver %s with device 0x%x\n",
-	//	 		drv->bus->name, __func__, drv->name, (int)dev);
-	//WARN_ON(!list_empty(&dev->devres_head));
-
 	dev->driver = drv;
-	//if (driver_sysfs_add(dev)) {
-	//	printk(KERN_ERR "%s: driver_sysfs_add(%s) failed\n",
-	//		__func__, dev_name(dev));
-	//	goto probe_failed;
-	//}
 
 	if (dev->bus->probe) {
 		ret = dev->bus->probe(dev);
@@ -90,35 +49,18 @@ static int really_probe(struct device *dev, struct device_driver *drv)
 			goto probe_failed;
 	}
 
-	driver_bound(dev);
 	ret = 1;
-	//USB_vdebug("bus: '%s': %s: bound device %s to driver %s\n",
-	//	 		drv->bus->name, __func__, dev_name(dev), drv->name);
 	goto done;
 
 probe_failed:
-	//devres_release_all(dev);
-	//driver_sysfs_remove(dev);
 	dev->driver = NULL;
 
-	//if (ret != -ENODEV && ret != -ENXIO) {
-	//	/* driver matched but the probe failed */
-	//	printk(KERN_WARNING
-	//	       "%s: probe of %s failed with error %d\n",
-	//	       drv->name, dev_name(dev), ret);
-	//} else {
-	//	pr_debug("%s: probe of %s rejects match %d\n",
-	//	       drv->name, dev_name(dev), ret);
-	//}
-	//	USB_error("really_probe - probe failed!\n");
 	/*
 	 * Ignore errors returned by ->probe so that the next driver can try
 	 * its luck.
 	 */
 	ret = 0;
 done:
-	//atomic_dec(&probe_count);
-	//wake_up(&probe_waitqueue);
 	return ret;
 }
 
@@ -171,29 +113,7 @@ static int __device_attach(struct device_driver *drv, void *data)
  */
 int device_attach(struct device *dev)
 {
-	int ret = 0;
-
-	//device_lock(dev);
-	if (dev->driver) {
-		if (klist_node_attached(&dev->p->knode_driver)) {
-			ret = 1;
-			goto out_unlock;
-		}
-		ret = device_bind_driver(dev);
-		if (ret == 0)
-			ret = 1;
-		else {
-			dev->driver = NULL;
-			ret = 0;
-		}
-	} else {
-		//pm_runtime_get_noresume(dev);
-		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
-		//pm_runtime_put_sync(dev);
-	}
-out_unlock:
-	//device_unlock(dev);
-	return ret;
+	return bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
 }
 
 
@@ -215,14 +135,8 @@ static int __driver_attach(struct device *dev, void *data)
 	if (!driver_match_device(drv, dev))
 		return 0;
 
-	//if (dev->parent)	/* Needed for USB */
-	//	device_lock(dev->parent);
-	//device_lock(dev);
 	if (!dev->driver)
 		driver_probe_device(drv, dev);
-	//device_unlock(dev);
-	//if (dev->parent)
-	//	device_unlock(dev->parent);
 
 	return 0;
 }

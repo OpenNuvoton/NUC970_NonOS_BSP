@@ -2346,30 +2346,6 @@ struct usb_hcd *usb_create_hcd(const struct hc_driver *driver,
 	return usb_create_shared_hcd(driver, dev, bus_name, NULL);
 }
 
-/*
- * Roothubs that share one PCI device must also share the bandwidth mutex.
- * Don't deallocate the bandwidth_mutex until the last shared usb_hcd is
- * deallocated.
- *
- * Make sure to only deallocate the bandwidth_mutex when the primary HCD is
- * freed.  When hcd_release() is called for the non-primary HCD, set the
- * primary_hcd's shared_hcd pointer to null (since the non-primary HCD will be
- * freed shortly).
- */
-#if 0 
-static void hcd_release (struct kref *kref)
-{
-	struct usb_hcd *hcd;
-	
-	hcd = container_of (kref, struct usb_hcd, kref);
-
-	if (usb_hcd_is_primary_hcd(hcd))
-		; //kfree(hcd->bandwidth_mutex);
-	else
-		hcd->shared_hcd->shared_hcd = NULL;
-	kfree(hcd);
-}
-#endif
 
 struct usb_hcd *usb_get_hcd (struct usb_hcd *hcd)
 {
@@ -2383,10 +2359,7 @@ void usb_put_hcd (struct usb_hcd *hcd)
 {
 	if (hcd)
 	{
-		//kref_put (&hcd->kref, hcd_release);
-			hcd->kref--;
-			//if (kref == 0)
-			//	hcd_release();
+		hcd->kref--;
 	}
 }
 
@@ -2397,52 +2370,6 @@ int usb_hcd_is_primary_hcd(struct usb_hcd *hcd)
 	return hcd == hcd->primary_hcd;
 }
 
-
-#ifdef NUVOTON_PORTED
-static int usb_hcd_request_irqs(struct usb_hcd *hcd,
-		unsigned int irqnum, unsigned long irqflags)
-{
-	USB_debug("Inistall IRQ - to be done!\n");
-	return -1;
-}
-#else
-static int usb_hcd_request_irqs(struct usb_hcd *hcd,
-		unsigned int irqnum, unsigned long irqflags)
-{
-	int retval;
-
-	if (hcd->driver->irq) {
-
-		/* IRQF_DISABLED doesn't work as advertised when used together
-		 * with IRQF_SHARED. As usb_hcd_irq() will always disable
-		 * interrupts we can remove it here.
-		 */
-		if (irqflags & IRQF_SHARED)
-			irqflags &= ~IRQF_DISABLED;
-
-		snprintf(hcd->irq_descr, sizeof(hcd->irq_descr), "%s:usb%d",
-				hcd->driver->description, hcd->self.busnum);
-		retval = request_irq(irqnum, &usb_hcd_irq, irqflags,
-				hcd->irq_descr, hcd);
-		if (retval != 0) {
-			USB_error("request interrupt %d failed\n", irqnum);
-			return retval;
-		}
-		hcd->irq = irqnum;
-		USB_vdebug("irq %d, %s 0x%08llx\n", irqnum,
-				(hcd->driver->flags & HCD_MEMORY) ?	"io mem" : "io base",
-					(unsigned long long)hcd->rsrc_start);
-	} else {
-		hcd->irq = -1;
-		if (hcd->rsrc_start)
-			USB_vdebug("%s 0x%08llx\n",
-					(hcd->driver->flags & HCD_MEMORY) ?
-					"io mem" : "io base",
-					(unsigned long long)hcd->rsrc_start);
-	}
-	return 0;
-}
-#endif
 
 /**
  * usb_add_hcd - finish generic HCD structure initialization and register
@@ -2529,15 +2456,6 @@ int usb_add_hcd(struct usb_hcd *hcd,
 	//		&& device_can_wakeup(&hcd->self.root_hub->dev))
 	//	USB_debug("supports USB remote wakeup\n");
 
-	/* enable irqs just before we start the controller,
-	 * if the BIOS provides legacy PCI irqs.
-	 */
-	if (usb_hcd_is_primary_hcd(hcd) && irqnum) {
-		retval = usb_hcd_request_irqs(hcd, irqnum, irqflags);
-		if (retval)
-			goto err_request_irq;
-	}
-
 	hcd->state = HC_STATE_RUNNING;
 	retval = hcd->driver->start(hcd);
 	if (retval < 0) {
@@ -2550,12 +2468,6 @@ int usb_add_hcd(struct usb_hcd *hcd,
 	if ((retval = register_root_hub(hcd)) != 0)
 		goto err_register_root_hub;
 
-	//retval = sysfs_create_group(&rhdev->dev.kobj, &usb_bus_attr_group);
-	//if (retval < 0) {
-	//	printk(KERN_ERR "Cannot register USB bus sysfs attributes: %d\n",
-	//	       retval);
-	//	goto error_create_attr_group;
-	//}
 	if (hcd->uses_new_polling && HCD_POLL_RH(hcd))
 		usb_hcd_poll_rh_status(hcd);
 
@@ -2567,42 +2479,19 @@ int usb_add_hcd(struct usb_hcd *hcd,
 	//device_wakeup_enable(hcd->self.controller);
 	return retval;
 
-#if 0
-error_create_attr_group:
-	clear_bit(HCD_FLAG_RH_RUNNING, &hcd->flags);
-	if (HC_IS_RUNNING(hcd->state))
-		hcd->state = HC_STATE_QUIESCING;
-	spin_lock_irq(&hcd_root_hub_lock);
-	hcd->rh_registered = 0;
-	spin_unlock_irq(&hcd_root_hub_lock);
-
-#ifdef CONFIG_USB_SUSPEND
-	cancel_work_sync(&hcd->wakeup_work);
-#endif
-	mutex_lock(&usb_bus_list_lock);
-	usb_disconnect(&rhdev);		/* Sets rhdev to NULL */
-	mutex_unlock(&usb_bus_list_lock);
-#endif
-
 err_register_root_hub:
 	hcd->rh_pollable = 0;
 	clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
-	//del_timer_sync(&hcd->rh_timer);
 	hcd->driver->stop(hcd);
 	hcd->state = HC_STATE_HALT;
 	clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
-	//del_timer_sync(&hcd->rh_timer);
 err_hcd_driver_start:
-	//if (usb_hcd_is_primary_hcd(hcd) && hcd->irq >= 0)
-	//	free_irq(irqnum, hcd);
-err_request_irq:
 err_hcd_driver_setup:
 err_set_rh_speed:
 	usb_put_dev(hcd->self.root_hub);
 err_allocate_root_hub:
 	usb_deregister_bus(&hcd->self);
 err_register_bus:
-	//hcd_buffer_destroy(hcd);
 	return retval;
 } 
 

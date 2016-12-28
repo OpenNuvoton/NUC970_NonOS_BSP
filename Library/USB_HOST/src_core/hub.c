@@ -1695,6 +1695,9 @@ void usb_disconnect(struct usb_device **pdev)
 	hub_free_dev(udev);
 
 	//put_device(&udev->dev);
+    usb_deauthorize_device(udev);
+    kfree(udev->dev.p);
+    kfree(udev);
 }
 
 #if 1 //#ifdef CONFIG_USB_ANNOUNCE_NEW_DEVICES
@@ -1823,18 +1826,13 @@ static int usb_enumerate_device(struct usb_device *udev)
 			goto fail;
 		}
 	}
-	if (0) {	// (udev->wusb == 1 && udev->authorized == 0) {
-		//kstrdup("n/a (unauthorized)", GFP_KERNEL);
-		//kstrdup("n/a (unauthorized)", GFP_KERNEL);
-		//kstrdup("n/a (unauthorized)", GFP_KERNEL);
-	}
-	else {
-		/* read the standard strings and cache them if present */
-		udev->product = usb_cache_string(udev, udev->descriptor.iProduct);
-		udev->manufacturer = usb_cache_string(udev,
-						      udev->descriptor.iManufacturer);
-		udev->serial = usb_cache_string(udev, udev->descriptor.iSerialNumber);
-	}
+
+	/* read the standard strings and cache them if present */
+	udev->product = usb_cache_string(udev, udev->descriptor.iProduct);
+	udev->manufacturer = usb_cache_string(udev,
+					      udev->descriptor.iManufacturer);
+	udev->serial = usb_cache_string(udev, udev->descriptor.iSerialNumber);
+
 	err = usb_enumerate_device_otg(udev);
 fail:
 	return err;
@@ -1953,6 +1951,7 @@ int usb_deauthorize_device(struct usb_device *usb_dev)
 	kfree(usb_dev->serial);
 	usb_dev->serial = NULL;		// kstrdup("n/a (unauthorized)", GFP_KERNEL);
 
+    usb_release_bos_descriptor(usb_dev);
 	usb_destroy_configuration(usb_dev);
 	usb_dev->descriptor.bNumConfigurations = 0;
 

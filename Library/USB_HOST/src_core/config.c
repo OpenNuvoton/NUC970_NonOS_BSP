@@ -699,9 +699,6 @@ void usb_destroy_configuration(struct usb_device *dev)
 		return;
 
 	if (dev->rawdescriptors) {
-		for (i = 0; i < dev->descriptor.bNumConfigurations; i++)
-			kfree(dev->rawdescriptors[i]);
-
 		kfree(dev->rawdescriptors);
 		dev->rawdescriptors = NULL;
 	}
@@ -712,7 +709,6 @@ void usb_destroy_configuration(struct usb_device *dev)
 		kfree(cf->string);
 		for (i = 0; i < cf->desc.bNumInterfaces; i++) {
 			if (cf->intf_cache[i])
-				// kref_put(&cf->intf_cache[i]->ref, usb_release_interface_cache);
 					usb_release_interface_cache(&cf->intf_cache[i]->ref);
 		}
 	}
@@ -830,6 +826,7 @@ int usb_get_configuration(struct usb_device *dev)
 
 err:
 	kfree(desc);
+	kfree(bigbuffer);
 //out_not_authorized:
 	dev->descriptor.bNumConfigurations = cfgno;
 err2:

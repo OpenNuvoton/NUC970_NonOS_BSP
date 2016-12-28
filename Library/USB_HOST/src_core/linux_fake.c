@@ -29,24 +29,6 @@
 #define BITOP_WORD(nr)		((nr) / BITS_PER_LONG)
 
 
-#define get_device(x)		(x)
-
-
-// drivers/base/core.c
-void device_initialize(struct device *dev)
-{
-	//dev->kobj.kset = devices_kset;
-	//kobject_init(&dev->kobj, &device_ktype);
-	//INIT_LIST_HEAD(&dev->dma_pools);
-	//mutex_init(&dev->mutex);
-	//lockdep_set_novalidate_class(&dev->mutex);
-	//spin_lock_init(&dev->devres_lock);
-	//INIT_LIST_HEAD(&dev->devres_head);
-	//device_pm_init(dev);
-	//set_dev_node(dev, -1);
-}
-
-
 // Nuvoton ported
 struct usb_interface *to_usb_interface_by_dev(struct device *dev)
 {
@@ -570,7 +552,6 @@ int device_add(struct device *dev)
 	//struct class_interface *class_intf;
 	int error = -EINVAL;
 
-	dev = get_device(dev);
 	if (!dev)
 		goto done;
 
@@ -707,7 +688,6 @@ done:
 /* drivers/base/core.c */
 int device_register(struct device *dev)
 {
-	device_initialize(dev);
 	return device_add(dev);
 }
 
