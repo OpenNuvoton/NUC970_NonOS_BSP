@@ -126,17 +126,21 @@ int main(void)
             }
             else if (*ptr == 'm') {  /* rm */
                 ptr++;
-                while (*ptr == ' ') ptr++;
-                cmd_yaffs_rm(ptr);
-            }
-            else {  /* rmdir */
-                i = 0;
-                while(*ptr != ' ')
-                    buf[i++] = *ptr++;
-                ptr++;
-
-                if (!strcmp(buf, "mdir"))
+                if (*ptr == 'd')
+                {
+                    i = 0;
+                    while(*ptr != ' ')
+                        buf[i++] = *ptr++;
+                    ptr++;
+                    sysprintf("Remove dir %s ...\n\n", ptr);
                     cmd_yaffs_rmdir(ptr);
+                }
+                else
+                {
+                    while (*ptr == ' ') ptr++;
+                    sysprintf("Remove file %s ...\n\n", ptr);
+                    cmd_yaffs_rm(ptr);
+                }
             }
             break;
 
