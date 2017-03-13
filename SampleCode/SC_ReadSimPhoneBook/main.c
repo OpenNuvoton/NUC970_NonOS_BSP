@@ -174,7 +174,7 @@ void read_phoneBook(uint32_t cnt)
 int main(void)
 {
     int retval;
-    int retry = 0, cnt;
+    int retry = 0, cnt, chv1_disbled = 0;
 
     outpw(REG_AIC_MDCR, 0xFFFFFFFE);
     outpw(REG_AIC_MDCRH, 0x3FFFFFFF);
@@ -239,6 +239,11 @@ int main(void)
         }
     }
 
+    if(buf[13] & 0x80) {
+        sysprintf("CHV1 disabled\n");
+        chv1_disbled = 1;
+    }
+
     if(SCLIB_StartTransmission(0, (uint8_t *)au8SelectDF_TELECOM, 7, buf, &len) != SCLIB_SUCCESS) {
         sysprintf("Command Select DF failed\n");
         goto exit;
@@ -263,7 +268,7 @@ int main(void)
     au8ReadRec[4] = buf[14]; // Phone book record length
     cnt = ((buf[2] << 8) + buf[3]) / buf[14];   // Phone book record number
 
-    if((buf[8] & 0x10) == 0x10) {  //Protect by CHV1 ?
+    if(((buf[8] & 0x10) == 0x10) && (chv1_disbled == 0)) {  //Protect by CHV1 ?
         if(unlock_sim(retry) < 0) {
             sysprintf("Unlock SIM card failed\n");
             goto exit;
