@@ -292,7 +292,7 @@ static int nuc970_nand_correct_data(struct mtd_info *mtd, u_char *dat,
 void fmiSM_CorrectData_BCH(u8 ucFieidIndex, u8 ucErrorCnt, u8* pDAddr)
 {
     u32 uaData[24], uaAddr[24];
-    u32 uaErrorData[4];
+    u32 uaErrorData[6];
     u8  ii, jj;
     u32 uPageSize;
     u32 field_len, padding_len, parity_len;
