@@ -321,7 +321,7 @@ static UINT32  usb_stor_transfer_length(SCSI_CMD_T *srb)
 static INT  clear_halt(struct usb_device *dev, INT pipe)
 {
 	INT    result;
-	INT    endp = usb_pipeendpoint(pipe) | (usb_pipein(pipe) << 7);
+	INT    endp = usb_pipeendpoint(pipe) | usb_pipein(pipe);
 
 	UMAS_DEBUG("clear_halt!\n");
 	result = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
