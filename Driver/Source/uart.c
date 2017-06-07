@@ -153,28 +153,25 @@ static INT _uartPerformIrDA(INT nNum, UINT32 uCmd, UINT32 uCmd1);
 static INT _uartGetRegisterValue(INT nNum, PVOID pvReg);
 
 
-void RS485_HANDLE(INT nNum)  
+void RS485_HANDLE(INT nNum)
 {
-	UINT32 volatile uRegISR, uRegFSR, uRegALT_CSR;
+    UINT32 volatile uRegISR, uRegFSR, uRegALT_CSR;
 
     uRegISR = inpw(REG_UART0_ISR+(nNum*UARTOFFSET));
-	uRegFSR = inpw(REG_UART0_FSR+(nNum*UARTOFFSET));
-            
-	if((uRegISR & UART_ISR_RLS_IF_Msk) && (uRegISR & UART_ISR_RDA_IF_Msk))  /* RLS INT & RDA INT */  //For RS485 Detect Address
-    {   
-		if(uRegFSR & UART_FSR_RS485_ADD_DETF_Msk)  /* ADD_IF, RS485 mode */
-        {   
-			_uartReceiveChars(nNum);
-			outpw((REG_UART0_FSR+(nNum*UARTOFFSET)), UART_FSR_RS485_ADD_DETF_Msk);  /* clear ADD_IF flag */
-        }
-    }
-    else if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Rx Ready or Time-out INT*/   
+    uRegFSR = inpw(REG_UART0_FSR+(nNum*UARTOFFSET));
+
+    if((uRegISR & UART_ISR_RLS_IF_Msk) && (uRegISR & UART_ISR_RDA_IF_Msk))  /* RLS INT & RDA INT */  //For RS485 Detect Address
     {
+        if(uRegFSR & UART_FSR_RS485_ADD_DETF_Msk) { /* ADD_IF, RS485 mode */
+            _uartReceiveChars(nNum);
+            outpw((REG_UART0_FSR+(nNum*UARTOFFSET)), UART_FSR_RS485_ADD_DETF_Msk);  /* clear ADD_IF flag */
+        }
+    } else if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) { /* Rx Ready or Time-out INT*/
         /* Handle received data */
-		_uartReceiveChars(nNum);
+        _uartReceiveChars(nNum);
     }
 
-	if(uRegISR & UART_ISR_RLS_IF_Msk) {
+    if(uRegISR & UART_ISR_RLS_IF_Msk) {
         uRegFSR = inpw(REG_UART0_FSR+(nNum*UARTOFFSET));
         if(uRegFSR & UART_FSR_BIF_Msk)
             _uart_cBIIState_0 = 1;
@@ -185,7 +182,7 @@ void uart0ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR;
 
-    uRegISR = inpw(REG_UART0_ISR) & 0x0f;
+    uRegISR = inpw(REG_UART0_ISR) & 0xff;
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UART0);
@@ -205,132 +202,123 @@ void uart1ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR, uRegMSR, uRegFUN_SEL;
 
-    uRegISR = inpw(REG_UART1_ISR) & 0x0f;
-	uRegFUN_SEL = inpw(REG_UART1_FUN_SEL);
+    uRegISR = inpw(REG_UART1_ISR) & 0xff;
+    uRegFUN_SEL = inpw(REG_UART1_FUN_SEL);
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UART1);
 
-	if(uRegFUN_SEL == 0x3)
-	{
-		RS485_HANDLE(UART1);
-	}
-	else
-	{
-    if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
-        _uartReceiveChars(UART1);
+    if(uRegFUN_SEL == 0x3) {
+        RS485_HANDLE(UART1);
+    } else {
+        if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
+            _uartReceiveChars(UART1);
 
-    if(uRegISR & UART_ISR_MODEM_IF_Msk) {
-        if (_uart_cFlowControlMode == 0) {
-            uRegMSR = inpw(REG_UART1_MSR);
+        if(uRegISR & UART_ISR_MODEM_IF_Msk) {
+            if (_uart_cFlowControlMode == 0) {
+                uRegMSR = inpw(REG_UART1_MSR);
 
-            if (uRegMSR & 0x01)
-                _uart_cCTSState1 = 1;
-        } else
-            _uartCheckModemStatus(UART1);  /* H/W flow control */
+                if (uRegMSR & 0x01)
+                    _uart_cCTSState1 = 1;
+            } else
+                _uartCheckModemStatus(UART1);  /* H/W flow control */
+        }
+
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UART1_FSR);
+            U1DEBUG("U1 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_1 = 1;
+
+            if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+                U1DEBUG("U1 OEI!\n");
+        }
     }
-
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UART1_FSR);
-        U1DEBUG("U1 Irpt_RLS [0x%x]!\n", uRegFSR);
-
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_1 = 1;
-
-        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
-            U1DEBUG("U1 OEI!\n");
-    }
-	}
 }
 
 void uart2ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR, uRegMSR, uRegFUN_SEL;
 
-    uRegISR = inpw(REG_UART2_ISR) & 0x0f;
-	uRegFUN_SEL = inpw(REG_UART2_FUN_SEL);
+    uRegISR = inpw(REG_UART2_ISR) & 0xff;
+    uRegFUN_SEL = inpw(REG_UART2_FUN_SEL);
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UART2);
 
-	if(uRegFUN_SEL == 0x3)
-	{
-		RS485_HANDLE(UART2);
-	}
-	else
-	{
-    if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
-        _uartReceiveChars(UART2);
+    if(uRegFUN_SEL == 0x3) {
+        RS485_HANDLE(UART2);
+    } else {
+        if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
+            _uartReceiveChars(UART2);
 
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UART2_FSR);
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_2 = 1;
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UART2_FSR);
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_2 = 1;
+        }
+
+        if(uRegISR & UART_ISR_MODEM_IF_Msk) {
+            if (_uart_cFlowControlMode == 0) {
+                uRegMSR = inpw(REG_UART2_MSR);
+
+                if (uRegMSR & 0x01)
+                    _uart_cCTSState2 = 1;
+            } else
+                _uartCheckModemStatus(UART2);  /* H/W flow control */
+        }
+
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UART2_FSR);
+            U1DEBUG("U2 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_2 = 1;
+
+            if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+                U1DEBUG("U2 OEI!\n");
+        }
     }
-
-    if(uRegISR & UART_ISR_MODEM_IF_Msk) {
-        if (_uart_cFlowControlMode == 0) {
-            uRegMSR = inpw(REG_UART2_MSR);
-
-            if (uRegMSR & 0x01)
-                _uart_cCTSState2 = 1;
-        } else
-            _uartCheckModemStatus(UART2);  /* H/W flow control */
-    }
-
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UART2_FSR);
-        U1DEBUG("U2 Irpt_RLS [0x%x]!\n", uRegFSR);
-
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_2 = 1;
-
-        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
-            U1DEBUG("U2 OEI!\n");
-    }
-	}
 }
 
 void uart3ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR, uRegMSR, uRegFUN_SEL;
 
-    uRegISR = inpw(REG_UART3_ISR) & 0x0f;
-	uRegFUN_SEL = inpw(REG_UART3_FUN_SEL);
+    uRegISR = inpw(REG_UART3_ISR) & 0xff;
+    uRegFUN_SEL = inpw(REG_UART3_FUN_SEL);
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UART3);
 
-	if(uRegFUN_SEL == 0x3)
-	{
-		RS485_HANDLE(UART3);
-	}
-	else
-	{
-    if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk))
-        _uartReceiveChars(UART3);
+    if(uRegFUN_SEL == 0x3) {
+        RS485_HANDLE(UART3);
+    } else {
+        if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk))
+            _uartReceiveChars(UART3);
 
-    if(uRegISR & UART_ISR_MODEM_IF_Msk) {
-        if (_uart_cFlowControlMode == 0) {
-            uRegMSR = inpw(REG_UART3_MSR);
+        if(uRegISR & UART_ISR_MODEM_IF_Msk) {
+            if (_uart_cFlowControlMode == 0) {
+                uRegMSR = inpw(REG_UART3_MSR);
 
-            if (uRegMSR & 0x01)
-                _uart_cCTSState3 = 1;
-        } else
-            _uartCheckModemStatus(UART3);  /* H/W flow control */
+                if (uRegMSR & 0x01)
+                    _uart_cCTSState3 = 1;
+            } else
+                _uartCheckModemStatus(UART3);  /* H/W flow control */
+        }
+
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UART3_FSR);
+            U1DEBUG("U3 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_3 = 1;
+
+            if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+                U1DEBUG("U3 OEI!\n");
+        }
     }
-
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UART3_FSR);
-        U1DEBUG("U3 Irpt_RLS [0x%x]!\n", uRegFSR);
-
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_3 = 1;
-
-        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
-            U1DEBUG("U3 OEI!\n");
-    }
-	}
 
 }
 
@@ -338,42 +326,39 @@ void uart4ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR, uRegMSR, uRegFUN_SEL;
 
-    uRegISR = inpw(REG_UART4_ISR) & 0x0f;
-	uRegFUN_SEL = inpw(REG_UART4_FUN_SEL);
+    uRegISR = inpw(REG_UART4_ISR) & 0xff;
+    uRegFUN_SEL = inpw(REG_UART4_FUN_SEL);
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UART4);
 
-	if(uRegFUN_SEL == 0x3)
-	{
-		RS485_HANDLE(UART4);
-	}
-	else
-	{
-    if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
-        _uartReceiveChars(UART4);
+    if(uRegFUN_SEL == 0x3) {
+        RS485_HANDLE(UART4);
+    } else {
+        if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
+            _uartReceiveChars(UART4);
 
-    if(uRegISR & UART_ISR_MODEM_IF_Msk) {
-        if (_uart_cFlowControlMode == 0) {
-            uRegMSR = inpw(REG_UART4_MSR);
+        if(uRegISR & UART_ISR_MODEM_IF_Msk) {
+            if (_uart_cFlowControlMode == 0) {
+                uRegMSR = inpw(REG_UART4_MSR);
 
-            if (uRegMSR & 0x01)
-                _uart_cCTSState4 = 1;
-        } else
-            _uartCheckModemStatus(UART4);  /* H/W flow control */
+                if (uRegMSR & 0x01)
+                    _uart_cCTSState4 = 1;
+            } else
+                _uartCheckModemStatus(UART4);  /* H/W flow control */
+        }
+
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UART4_FSR);
+            U1DEBUG("U4 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_4 = 1;
+
+            if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+                U1DEBUG("U4 OEI!\n");
+        }
     }
-
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UART4_FSR);
-        U1DEBUG("U4 Irpt_RLS [0x%x]!\n", uRegFSR);
-
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_4 = 1;
-
-        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
-            U1DEBUG("U4 OEI!\n");
-    }
-	}
 
 }
 
@@ -381,42 +366,39 @@ void uart5ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR, uRegMSR, uRegFUN_SEL;
 
-    uRegISR = inpw(REG_UART5_ISR) & 0x0f;
-	uRegFUN_SEL = inpw(REG_UART5_FUN_SEL);
+    uRegISR = inpw(REG_UART5_ISR) & 0xff;
+    uRegFUN_SEL = inpw(REG_UART5_FUN_SEL);
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UART5);
 
-	if(uRegFUN_SEL == 0x3)
-	{
-		RS485_HANDLE(UART5);
-	}
-	else
-	{
-    if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
-        _uartReceiveChars(UART5);
+    if(uRegFUN_SEL == 0x3) {
+        RS485_HANDLE(UART5);
+    } else {
+        if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
+            _uartReceiveChars(UART5);
 
-    if(uRegISR & UART_ISR_MODEM_IF_Msk) {
-        if (_uart_cFlowControlMode == 0) {
-            uRegMSR = inpw(REG_UART5_MSR);
+        if(uRegISR & UART_ISR_MODEM_IF_Msk) {
+            if (_uart_cFlowControlMode == 0) {
+                uRegMSR = inpw(REG_UART5_MSR);
 
-            if (uRegMSR & 0x01)
-                _uart_cCTSState5 = 1;
-        } else
-            _uartCheckModemStatus(UART5);  /* H/W flow control */
+                if (uRegMSR & 0x01)
+                    _uart_cCTSState5 = 1;
+            } else
+                _uartCheckModemStatus(UART5);  /* H/W flow control */
+        }
+
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UART5_FSR);
+            U1DEBUG("U5 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_5 = 1;
+
+            if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+                U1DEBUG("U5 OEI!\n");
+        }
     }
-
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UART5_FSR);
-        U1DEBUG("U5 Irpt_RLS [0x%x]!\n", uRegFSR);
-
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_5 = 1;
-
-        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
-            U1DEBUG("U5 OEI!\n");
-    }
-	}
 
 }
 
@@ -424,42 +406,39 @@ void uart6ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR, uRegMSR, uRegFUN_SEL;
 
-    uRegISR = inpw(REG_UART6_ISR) & 0x0f;
-	uRegFUN_SEL = inpw(REG_UART6_FUN_SEL);
+    uRegISR = inpw(REG_UART6_ISR) & 0xff;
+    uRegFUN_SEL = inpw(REG_UART6_FUN_SEL);
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UART6);
 
-	if(uRegFUN_SEL == 0x3)
-	{
-		RS485_HANDLE(UART6);
-	}
-	else
-	{
-    if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
-        _uartReceiveChars(UART6);
+    if(uRegFUN_SEL == 0x3) {
+        RS485_HANDLE(UART6);
+    } else {
+        if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
+            _uartReceiveChars(UART6);
 
-    if(uRegISR & UART_ISR_MODEM_IF_Msk) {
-        if (_uart_cFlowControlMode == 0) {
-            uRegMSR = inpw(REG_UART6_MSR);
+        if(uRegISR & UART_ISR_MODEM_IF_Msk) {
+            if (_uart_cFlowControlMode == 0) {
+                uRegMSR = inpw(REG_UART6_MSR);
 
-            if (uRegMSR & 0x01)
-                _uart_cCTSState6 = 1;
-        } else
-            _uartCheckModemStatus(UART6);  /* H/W flow control */
+                if (uRegMSR & 0x01)
+                    _uart_cCTSState6 = 1;
+            } else
+                _uartCheckModemStatus(UART6);  /* H/W flow control */
+        }
+
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UART6_FSR);
+            U1DEBUG("U6 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_6 = 1;
+
+            if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+                U1DEBUG("U6 OEI!\n");
+        }
     }
-
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UART6_FSR);
-        U1DEBUG("U6 Irpt_RLS [0x%x]!\n", uRegFSR);
-
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_6 = 1;
-
-        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
-            U1DEBUG("U6 OEI!\n");
-    }
-	}
 
 }
 
@@ -467,42 +446,39 @@ void uart7ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR, uRegMSR, uRegFUN_SEL;
 
-    uRegISR = inpw(REG_UART7_ISR) & 0x0f;
-	uRegFUN_SEL = inpw(REG_UART7_FUN_SEL);
+    uRegISR = inpw(REG_UART7_ISR) & 0xff;
+    uRegFUN_SEL = inpw(REG_UART7_FUN_SEL);
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UART7);
 
-	if(uRegFUN_SEL == 0x3)
-	{
-		RS485_HANDLE(UART7);
-	}
-	else
-	{
-    if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
-        _uartReceiveChars(UART7);
+    if(uRegFUN_SEL == 0x3) {
+        RS485_HANDLE(UART7);
+    } else {
+        if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
+            _uartReceiveChars(UART7);
 
-    if(uRegISR & UART_ISR_MODEM_IF_Msk) {
-        if (_uart_cFlowControlMode == 0) {
-            uRegMSR = inpw(REG_UART7_MSR);
+        if(uRegISR & UART_ISR_MODEM_IF_Msk) {
+            if (_uart_cFlowControlMode == 0) {
+                uRegMSR = inpw(REG_UART7_MSR);
 
-            if (uRegMSR & 0x01)
-                _uart_cCTSState7 = 1;
-        } else
-            _uartCheckModemStatus(UART7);  /* H/W flow control */
+                if (uRegMSR & 0x01)
+                    _uart_cCTSState7 = 1;
+            } else
+                _uartCheckModemStatus(UART7);  /* H/W flow control */
+        }
+
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UART7_FSR);
+            U1DEBUG("U7 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_7 = 1;
+
+            if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+                U1DEBUG("U7 OEI!\n");
+        }
     }
-
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UART7_FSR);
-        U1DEBUG("U7 Irpt_RLS [0x%x]!\n", uRegFSR);
-
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_7 = 1;
-
-        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
-            U1DEBUG("U7 OEI!\n");
-    }
-	}
 
 }
 
@@ -510,42 +486,39 @@ void uart8ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR, uRegMSR, uRegFUN_SEL;
 
-    uRegISR = inpw(REG_UART8_ISR) & 0x0f;
-	uRegFUN_SEL = inpw(REG_UART8_FUN_SEL);
+    uRegISR = inpw(REG_UART8_ISR) & 0xff;
+    uRegFUN_SEL = inpw(REG_UART8_FUN_SEL);
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UART8);
 
-	if(uRegFUN_SEL == 0x3)
-	{
-		RS485_HANDLE(UART8);
-	}
-	else
-	{
-    if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
-        _uartReceiveChars(UART8);
+    if(uRegFUN_SEL == 0x3) {
+        RS485_HANDLE(UART8);
+    } else {
+        if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
+            _uartReceiveChars(UART8);
 
-    if(uRegISR & UART_ISR_MODEM_IF_Msk) {
-        if (_uart_cFlowControlMode == 0) {
-            uRegMSR = inpw(REG_UART8_MSR);
+        if(uRegISR & UART_ISR_MODEM_IF_Msk) {
+            if (_uart_cFlowControlMode == 0) {
+                uRegMSR = inpw(REG_UART8_MSR);
 
-            if (uRegMSR & 0x01)
-                _uart_cCTSState8 = 1;
-        } else
-            _uartCheckModemStatus(UART8);  /* H/W flow control */
+                if (uRegMSR & 0x01)
+                    _uart_cCTSState8 = 1;
+            } else
+                _uartCheckModemStatus(UART8);  /* H/W flow control */
+        }
+
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UART8_FSR);
+            U1DEBUG("U8 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_8 = 1;
+
+            if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+                U1DEBUG("U8 OEI!\n");
+        }
     }
-
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UART8_FSR);
-        U1DEBUG("U8 Irpt_RLS [0x%x]!\n", uRegFSR);
-
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_8 = 1;
-
-        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
-            U1DEBUG("U8 OEI!\n");
-    }
-	}
 
 }
 
@@ -553,42 +526,39 @@ void uart9ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR, uRegMSR, uRegFUN_SEL;
 
-    uRegISR = inpw(REG_UART9_ISR) & 0x0f;
-	uRegFUN_SEL = inpw(REG_UART9_FUN_SEL);
+    uRegISR = inpw(REG_UART9_ISR) & 0xff;
+    uRegFUN_SEL = inpw(REG_UART9_FUN_SEL);
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UART9);
 
-	if(uRegFUN_SEL == 0x3)
-	{
-		RS485_HANDLE(UART9);
-	}
-	else
-	{
-    if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk))  /* Received Data Available interrupt */
-        _uartReceiveChars(UART9);
+    if(uRegFUN_SEL == 0x3) {
+        RS485_HANDLE(UART9);
+    } else {
+        if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk))  /* Received Data Available interrupt */
+            _uartReceiveChars(UART9);
 
-    if(uRegISR & UART_ISR_MODEM_IF_Msk) {
-        if (_uart_cFlowControlMode == 0) {
-            uRegMSR = inpw(REG_UART9_MSR);
+        if(uRegISR & UART_ISR_MODEM_IF_Msk) {
+            if (_uart_cFlowControlMode == 0) {
+                uRegMSR = inpw(REG_UART9_MSR);
 
-            if (uRegMSR & 0x01)
-                _uart_cCTSState9 = 1;
-        } else
-            _uartCheckModemStatus(UART9);  /* H/W flow control */
+                if (uRegMSR & 0x01)
+                    _uart_cCTSState9 = 1;
+            } else
+                _uartCheckModemStatus(UART9);  /* H/W flow control */
+        }
+
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UART9_FSR);
+            U1DEBUG("U9 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_9 = 1;
+
+            if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+                U1DEBUG("U9 OEI!\n");
+        }
     }
-
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UART9_FSR);
-        U1DEBUG("U9 Irpt_RLS [0x%x]!\n", uRegFSR);
-
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_9 = 1;
-
-        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
-            U1DEBUG("U9 OEI!\n");
-    }
-	}
 
 }
 
@@ -596,42 +566,39 @@ void uart10ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR, uRegMSR, uRegFUN_SEL;
 
-    uRegISR = inpw(REG_UARTA_ISR) & 0x0f;
-	uRegFUN_SEL = inpw(REG_UARTA_FUN_SEL);
+    uRegISR = inpw(REG_UARTA_ISR) & 0xff;
+    uRegFUN_SEL = inpw(REG_UARTA_FUN_SEL);
 
     if(uRegISR & UART_ISR_THRE_IF_Msk)  /* TX empty interrupt, check LSR 4 kinds of error further */
         _uartTransmitChars(UARTA);
 
-	if(uRegFUN_SEL == 0x3)
-	{
-		RS485_HANDLE(UARTA);
-	}
-	else
-	{
-    if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
-        _uartReceiveChars(UARTA);
+    if(uRegFUN_SEL == 0x3) {
+        RS485_HANDLE(UARTA);
+    } else {
+        if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
+            _uartReceiveChars(UARTA);
 
-    if(uRegISR & UART_ISR_MODEM_IF_Msk) {
-        if (_uart_cFlowControlMode == 0) {
-            uRegMSR = inpw(REG_UARTA_MSR);
+        if(uRegISR & UART_ISR_MODEM_IF_Msk) {
+            if (_uart_cFlowControlMode == 0) {
+                uRegMSR = inpw(REG_UARTA_MSR);
 
-            if (uRegMSR & 0x01)
-                _uart_cCTSState10 = 1;
-        } else
-            _uartCheckModemStatus(UARTA);  /* H/W flow control */
+                if (uRegMSR & 0x01)
+                    _uart_cCTSState10 = 1;
+            } else
+                _uartCheckModemStatus(UARTA);  /* H/W flow control */
+        }
+
+        if(uRegISR & UART_ISR_RLS_IF_Msk) {
+            uRegFSR = inpw(REG_UARTA_FSR);
+            U1DEBUG("U10 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+            if(uRegFSR & UART_FSR_BIF_Msk)
+                _uart_cBIIState_10 = 1;
+
+            if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+                U1DEBUG("U10 OEI!\n");
+        }
     }
-
-    if(uRegISR & UART_ISR_RLS_IF_Msk) {
-        uRegFSR = inpw(REG_UARTA_FSR);
-        U1DEBUG("U10 Irpt_RLS [0x%x]!\n", uRegFSR);
-
-        if(uRegFSR & UART_FSR_BIF_Msk)
-            _uart_cBIIState_10 = 1;
-
-        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
-            U1DEBUG("U10 OEI!\n");
-    }
-	}
 
 }
 
@@ -678,7 +645,7 @@ static void _uartReceiveChars(INT nNum)
     //UINT32 volatile uRegLSR, uBuf = 0;
     UINT32 volatile uRegFSR, uRegALT_CSR, uRegFUN_SEL, uRegFCR, uRegLINSR, uRegISR;
     UINT32 volatile uBuf = 0;
-	UINT32 volatile uOffset = nNum * UARTOFFSET;
+    UINT32 volatile uOffset = nNum * UARTOFFSET;
     INT nMaxCount = 256;
     UCHAR ucChar;
 
@@ -687,36 +654,31 @@ static void _uartReceiveChars(INT nNum)
     dev = (UART_BUFFER_T *) &UART_DEV[nNum];
 
     //uRegFSR = inpw(REG_UART0_FSR+(nNum * UARTOFFSET));
-	uRegFUN_SEL = inpw(REG_UART0_FUN_SEL+uOffset);
+    uRegFUN_SEL = inpw(REG_UART0_FUN_SEL+uOffset);
 
     do {
-			uRegFSR = inpw(REG_UART0_FSR+uOffset);
-			uRegLINSR = inpw(REG_UART0_LIN_SR+uOffset);
-			uRegISR = inpw(REG_UART0_ISR+uOffset);
-			ucChar = inpb(REG_UART0_RBR+uOffset);
-		
-			if( (uRegFSR & UART_FSR_RS485_ADD_DETF_Msk) && (uRegFUN_SEL == 0x3) )
-			{		
-				uRegALT_CSR = inpw(REG_UART0_ALT_CSR+(nNum*UARTOFFSET));
-				uRegFCR = inpw(REG_UART0_FCR+(nNum*UARTOFFSET));
-				if( uRegALT_CSR & UART_ALT_CSR_RS485_NMM_Msk )
-				{
-					if ( ucChar == (uRegALT_CSR >> UART_ALT_CSR_ADDR_MATCH_Pos))
-					{				
-						uRegFCR &= ~UART_FCR_RX_DIS_Msk;  /* Enable RS485 RX */
-						outpw((REG_UART0_FCR+(nNum*UARTOFFSET)), uRegFCR);
-					}
-					else
-					{ 	
-						uRegFCR |= UART_FCR_RX_DIS_Msk;  /* Disable RS485 RX */
-						uRegFCR |= UART_FCR_RFR_Msk;  /* Clear data from RX FIFO */
-						outpw((REG_UART0_FCR+(nNum*UARTOFFSET)), uRegFCR);
-						break;
-					}
-				}
-			}
-		
-		
+        uRegFSR = inpw(REG_UART0_FSR+uOffset);
+        uRegLINSR = inpw(REG_UART0_LIN_SR+uOffset);
+        uRegISR = inpw(REG_UART0_ISR+uOffset);
+        ucChar = inpb(REG_UART0_RBR+uOffset);
+
+        if( (uRegFSR & UART_FSR_RS485_ADD_DETF_Msk) && (uRegFUN_SEL == 0x3) ) {
+            uRegALT_CSR = inpw(REG_UART0_ALT_CSR+(nNum*UARTOFFSET));
+            uRegFCR = inpw(REG_UART0_FCR+(nNum*UARTOFFSET));
+            if( uRegALT_CSR & UART_ALT_CSR_RS485_NMM_Msk ) {
+                if ( ucChar == (uRegALT_CSR >> UART_ALT_CSR_ADDR_MATCH_Pos)) {
+                    uRegFCR &= ~UART_FCR_RX_DIS_Msk;  /* Enable RS485 RX */
+                    outpw((REG_UART0_FCR+(nNum*UARTOFFSET)), uRegFCR);
+                } else {
+                    uRegFCR |= UART_FCR_RX_DIS_Msk;  /* Disable RS485 RX */
+                    uRegFCR |= UART_FCR_RFR_Msk;  /* Clear data from RX FIFO */
+                    outpw((REG_UART0_FCR+(nNum*UARTOFFSET)), uRegFCR);
+                    break;
+                }
+            }
+        }
+
+
         uBuf = _uartRxBufGetNextOne(nNum, dev->uUartRxTail);
         if(uBuf == dev->uUartRxHead) { /* Rx buffer full */
             //ucChar = inpb(REG_UART0_RBR+(nNum * UARTOFFSET));
@@ -744,25 +706,23 @@ static void _uartReceiveChars(INT nNum)
             dev->pucUARTFlag[dev->uUartRxTail] = UART_FSR_PEF_Msk;
             U1DEBUG("PEF!\n");
         } else if (uRegFSR & UART_FSR_RX_OVER_IF_Msk) {
-			dev->pucUARTFlag[dev->uUartRxTail] = UART_FSR_RX_OVER_IF_Msk;
+            dev->pucUARTFlag[dev->uUartRxTail] = UART_FSR_RX_OVER_IF_Msk;
             U1DEBUG("OVER_IF!\n");
-		}else if(uRegFSR & UART_FSR_RS485_ADD_DETF_Msk){
-			dev->pucUARTFlag[dev->uUartRxTail] = UART_FSR_RS485_ADD_DETF_Msk;
-			U1DEBUG("RS485_ADD_DET_IF!\n");			
-		}
+        } else if(uRegFSR & UART_FSR_RS485_ADD_DETF_Msk) {
+            dev->pucUARTFlag[dev->uUartRxTail] = UART_FSR_RS485_ADD_DETF_Msk;
+            U1DEBUG("RS485_ADD_DET_IF!\n");
+        }
 
-		if(uRegFUN_SEL == 0x1)
-		{
-			if(uRegISR & UART_ISR_LIN_RX_BREAK_IF_Msk)
-			{
-				dev->pucLINFlag[dev->uUartRxTail] = uRegLINSR;
-				
-				// Clear ISR and LIN Status 
-				outpw(REG_UART0_ISR, UART_ISR_LIN_RX_BREAK_IF_Msk);
-				outpw(REG_UART0_LIN_SR, 0x30F);
-			}
-		}
-		
+        if(uRegFUN_SEL == 0x1) {
+            if(uRegISR & UART_ISR_LIN_RX_BREAK_IF_Msk) {
+                dev->pucLINFlag[dev->uUartRxTail] = uRegLINSR;
+
+                // Clear ISR and LIN Status
+                outpw(REG_UART0_ISR, UART_ISR_LIN_RX_BREAK_IF_Msk);
+                outpw(REG_UART0_LIN_SR, 0x30F);
+            }
+        }
+
         dev->uUartRxTail = _uartRxBufGetNextOne(nNum, dev->uUartRxTail);
         dev->uRecCnt++;
 
@@ -1053,42 +1013,42 @@ static INT _uartConfigureUART(PVOID pvParam)
 
     /* Check the supplied parity */
     if ( (param->ucParity != PARITY_NONE) &&
-            (param->ucParity != PARITY_EVEN) &&
-            (param->ucParity != PARITY_ODD)  &&
-            (param->ucParity != (PARITY_ODD | PARITY_STICK)) &&
-            (param->ucParity != (PARITY_EVEN | PARITY_STICK)) )
+         (param->ucParity != PARITY_EVEN) &&
+         (param->ucParity != PARITY_ODD)  &&
+         (param->ucParity != (PARITY_ODD | PARITY_STICK)) &&
+         (param->ucParity != (PARITY_EVEN | PARITY_STICK)) )
         return UART_ERR_PARITY_INVALID;
 
     /* Check the supplied number of data bits */
     if ( (param->ucDataBits != DATA_BITS_5) &&
-            (param->ucDataBits != DATA_BITS_6) &&
-            (param->ucDataBits != DATA_BITS_7) &&
-            (param->ucDataBits != DATA_BITS_8) )
+         (param->ucDataBits != DATA_BITS_6) &&
+         (param->ucDataBits != DATA_BITS_7) &&
+         (param->ucDataBits != DATA_BITS_8) )
         return UART_ERR_DATA_BITS_INVALID;
 
     /* Check the supplied number of stop bits */
     if ( (param->ucStopBits != STOP_BITS_1) &&
-            (param->ucStopBits != STOP_BITS_2) )
+         (param->ucStopBits != STOP_BITS_2) )
         return UART_ERR_STOP_BITS_INVALID;
 
     /* Check the supplied number of trigger level bytes */
     if ( (param -> ucUartNo == UART1) || (param -> ucUartNo == UART2) || (param -> ucUartNo == UART4) ||
-            (param -> ucUartNo == UART6) || (param -> ucUartNo == UART8) || (param -> ucUartNo == UARTA)) {
+         (param -> ucUartNo == UART6) || (param -> ucUartNo == UART8) || (param -> ucUartNo == UARTA)) {
         /* UART1,2,4,6,8,A */
         if ( (param->ucRxTriggerLevel != UART_FCR_RFITL_1BYTE)   &&
-                (param->ucRxTriggerLevel != UART_FCR_RFITL_4BYTES)  &&
-                (param->ucRxTriggerLevel != UART_FCR_RFITL_8BYTES)  &&
-                (param->ucRxTriggerLevel != UART_FCR_RFITL_14BYTES) &&
-                (param->ucRxTriggerLevel != UART_FCR_RFITL_30BYTES) &&
-                (param->ucRxTriggerLevel != UART_FCR_RFITL_46BYTES) &&
-                (param->ucRxTriggerLevel != UART_FCR_RFITL_62BYTES) )
+             (param->ucRxTriggerLevel != UART_FCR_RFITL_4BYTES)  &&
+             (param->ucRxTriggerLevel != UART_FCR_RFITL_8BYTES)  &&
+             (param->ucRxTriggerLevel != UART_FCR_RFITL_14BYTES) &&
+             (param->ucRxTriggerLevel != UART_FCR_RFITL_30BYTES) &&
+             (param->ucRxTriggerLevel != UART_FCR_RFITL_46BYTES) &&
+             (param->ucRxTriggerLevel != UART_FCR_RFITL_62BYTES) )
             return UART_ERR_TRIGGERLEVEL_INVALID;
     } else {
         /* UART0,3,5,7,9 */
         if ( (param->ucRxTriggerLevel != UART_FCR_RFITL_1BYTE)  &&
-                (param->ucRxTriggerLevel != UART_FCR_RFITL_4BYTES) &&
-                (param->ucRxTriggerLevel != UART_FCR_RFITL_8BYTES) &&
-                (param->ucRxTriggerLevel != UART_FCR_RFITL_30BYTES) )
+             (param->ucRxTriggerLevel != UART_FCR_RFITL_4BYTES) &&
+             (param->ucRxTriggerLevel != UART_FCR_RFITL_8BYTES) &&
+             (param->ucRxTriggerLevel != UART_FCR_RFITL_30BYTES) )
             return UART_ERR_TRIGGERLEVEL_INVALID;
     }
 
@@ -1145,28 +1105,28 @@ static INT _uartPerformIrDA(INT nNum, UINT32 uCmd, UINT32 uCmd1)  /* UART2 only 
     UINT32 uOffset = nNum * UARTOFFSET;
 
     switch(uCmd) {
-    case ENABLEIrDA:
-        //_uart_bIsPerformIrDA = TRUE;
+        case ENABLEIrDA:
+            //_uart_bIsPerformIrDA = TRUE;
 
-        if(uCmd1 == IrDA_TX)
-            outpw(REG_UART0_IRCR+uOffset, _uart_IrDATxReg);
-        else if(uCmd1 == IrDA_RX)
-            outpw(REG_UART0_IRCR+uOffset, _uart_IrDARxReg);
-        else
+            if(uCmd1 == IrDA_TX)
+                outpw(REG_UART0_IRCR+uOffset, _uart_IrDATxReg);
+            else if(uCmd1 == IrDA_RX)
+                outpw(REG_UART0_IRCR+uOffset, _uart_IrDARxReg);
+            else
+                return UART_ERR_IrDA_COMMAND_INVALID;
+
+            outpw(REG_UART0_FUN_SEL+uOffset, 0x2); // Select IrDA mode
+
+            break;
+
+        case DISABLEIrDA:
+            //_uart_bIsPerformIrDA = FALSE;
+            outpw(REG_UART0_IRCR+uOffset, 0x40);  /* Set default value, INV_TX set 0, INV_RX set 1 */
+            outpw(REG_UART0_FUN_SEL+uOffset, 0x0); // Select UART mode
+            break;
+
+        default:
             return UART_ERR_IrDA_COMMAND_INVALID;
-
-        outpw(REG_UART0_FUN_SEL+uOffset, 0x2); // Select IrDA mode
-
-        break;
-
-    case DISABLEIrDA:
-        //_uart_bIsPerformIrDA = FALSE;
-        outpw(REG_UART0_IRCR+uOffset, 0x40);  /* Set default value, INV_TX set 0, INV_RX set 1 */
-        outpw(REG_UART0_FUN_SEL+uOffset, 0x0); // Select UART mode
-        break;
-
-    default:
-        return UART_ERR_IrDA_COMMAND_INVALID;
     }
 
     return 0;
@@ -1415,315 +1375,315 @@ INT uartIoctl(INT nNum, UINT32 uCmd, UINT32 uArg0, UINT32 uArg1)
     /* Check UART initial status */
     if(dev->bIsUARTInitial == FALSE) {
         if((uCmd != UART_IOC_GETERRNO) &&
-                (uCmd != UART_IOC_GETUARTREGISTERVALUE))
+           (uCmd != UART_IOC_GETUARTREGISTERVALUE))
             return UART_EIO;
     }
 
     switch(uCmd) {
-    case UART_IOC_SETTXMODE:
-        if(uArg0 == UARTINTMODE)
-            dev->bIsUseUARTTxInt = TRUE;
-        else if(uArg0 == UARTPOLLMODE)
-            dev->bIsUseUARTTxInt = FALSE;
-        else {
-            dev->nErrno = UART_ERR_OPERATE_MODE_INVALID;
-            return UART_EIO;
-        }
+        case UART_IOC_SETTXMODE:
+            if(uArg0 == UARTINTMODE)
+                dev->bIsUseUARTTxInt = TRUE;
+            else if(uArg0 == UARTPOLLMODE)
+                dev->bIsUseUARTTxInt = FALSE;
+            else {
+                dev->nErrno = UART_ERR_OPERATE_MODE_INVALID;
+                return UART_EIO;
+            }
 
-        break;
+            break;
 
-    case UART_IOC_SETRXMODE:
-        if(uArg0 == UARTINTMODE) {
-            dev->bIsUseUARTRxInt = TRUE;
+        case UART_IOC_SETRXMODE:
+            if(uArg0 == UARTINTMODE) {
+                dev->bIsUseUARTRxInt = TRUE;
+                _uartEnableInterrupt(nNum, UART_IER_RDA_IEN_Msk);
+            } else if(uArg0 == UARTPOLLMODE) {
+                dev->bIsUseUARTRxInt = FALSE;
+                _uartDisableInterrupt(nNum, UART_IER_RDA_IEN_Msk);
+            } else {
+                dev->nErrno = UART_ERR_OPERATE_MODE_INVALID;
+                return UART_EIO;
+            }
+
+            break;
+
+        case UART_IOC_GETRECCHARINFO:  // ..... not test yet
+            memcpy((PVOID) uArg0, (PVOID) dev, sizeof(struct UART_BUFFER_STRUCT));
+            break;
+
+        case UART_IOC_SETUARTPARAMETER:  // ..... not test yet
+            if((retval = _uartConfigureUART((PVOID) uArg0)) < 0) {
+                dev->nErrno = retval;
+                return UART_EIO;
+            }
+
+            break;
+
+        case UART_IOC_PERFORMIrDA:
+
+            if((retval = _uartPerformIrDA(nNum, uArg0, uArg1)) < 0) {
+                dev->nErrno = retval;
+                return UART_EIO;
+            }
+
+            break;
+
+        case UART_IOC_GETUARTREGISTERVALUE:
+            return (_uartGetRegisterValue(nNum, (PVOID) uArg0));
+        //break;
+
+        case UART_IOC_GETERRNO:
+            *(PUINT32)uArg0 = dev->nErrno;
+            break;
+
+        case UART_IOC_SETMODEMINTERRUPT:
+
+            if(uArg0 == UART_ENABLE_MODEM_INT)
+                _uartEnableInterrupt(nNum, UART_IER_MODEM_IEN_Msk);
+            else if(uArg0 == UART_DISABLE_MODEM_INT)
+                _uartDisableInterrupt(nNum, UART_IER_MODEM_IEN_Msk);
+            else
+                return UART_EIO;
+
+            break;
+
+        case UART_IOC_GETCTSSTATE:
+
+            if(nNum == UART1) {
+                *(PUINT32)uArg0 = _uart_cCTSState1;                        /* CTS state */
+                _uart_cCTSState1 = 0;
+            } else if(nNum == UART2) {
+                *(PUINT32)uArg0 = _uart_cCTSState2;                        /* CTS state */
+                _uart_cCTSState2 = 0;
+            } else if(nNum == UART3) {
+                *(PUINT32)uArg0 = _uart_cCTSState3;                        /* CTS state */
+                _uart_cCTSState3 = 0;
+            } else if(nNum == UART4) {
+                *(PUINT32)uArg0 = _uart_cCTSState4;                        /* CTS state */
+                _uart_cCTSState4 = 0;
+            } else if(nNum == UART5) {
+                *(PUINT32)uArg0 = _uart_cCTSState5;                        /* CTS state */
+                _uart_cCTSState5 = 0;
+            } else if(nNum == UART6) {
+                *(PUINT32)uArg0 = _uart_cCTSState6;                        /* CTS state */
+                _uart_cCTSState6 = 0;
+            } else if(nNum == UART7) {
+                *(PUINT32)uArg0 = _uart_cCTSState7;                        /* CTS state */
+                _uart_cCTSState7 = 0;
+            } else if(nNum == UART8) {
+                *(PUINT32)uArg0 = _uart_cCTSState8;                        /* CTS state */
+                _uart_cCTSState8 = 0;
+            } else if(nNum == UART9) {
+                *(PUINT32)uArg0 = _uart_cCTSState9;                        /* CTS state */
+                _uart_cCTSState9 = 0;
+            } else if(nNum == UARTA) {
+                *(PUINT32)uArg0 = _uart_cCTSState10;                        /* CTS state */
+                _uart_cCTSState10 = 0;
+            }
+
+            *(PUINT32)uArg1 = (inpw(REG_UART0_MSR+uOffset) & (1 << 4)) >> 4;  /* get CTS# value */
+
+            break;
+
+        case UART_IOC_SETRTSSIGNAL:
+
+            if(uArg0 == UART_RTS_HIGH)      /* set RTS signal high */
+                outpw(REG_UART0_MCR+uOffset, inpw(REG_UART0_MCR+uOffset) & ~0x02);
+            else if(uArg0 == UART_RTS_LOW)  /* set RTS signal low  */
+                outpw(REG_UART0_MCR+uOffset, inpw(REG_UART0_MCR+uOffset) | 0x02);
+            else
+                return UART_EIO;
+
+            break;
+
+        case UART_IOC_SETINTERRUPT:
+            if(uArg0 == 1)       /* enable interrupt  */
+                _uartEnableInterrupt(nNum, uArg1);
+            else if(uArg0 == 0)  /* disable interrupt */
+                _uartDisableInterrupt(nNum, uArg1);
+            else
+                return UART_EIO;
+
+            break;
+
+        case UART_IOC_SETBREAKCONTROL:
+            uReg = inpw(REG_UART0_LCR + uOffset);
+            if(uArg0 == 1) {     /* set break contorl bit  */
+                uReg |= UART_LCR_BCB_Msk;
+                outpw(REG_UART0_LCR + uOffset, uReg);
+            } else if(uArg0 == 0) { /* clear break contorl bit */
+                uReg &= ~UART_LCR_BCB_Msk;
+                outpw(REG_UART0_LCR + uOffset, uReg);
+            } else
+                return UART_EIO;
+
+            break;
+
+        case UART_IOC_GETBIISTATE:
+            switch(nNum) {
+                case UART0:
+                    *(PUINT32)uArg0 = _uart_cBIIState_0;
+                    break;
+                case UART1:
+                    *(PUINT32)uArg0 = _uart_cBIIState_1;
+                    break;
+                case UART2:
+                    *(PUINT32)uArg0 = _uart_cBIIState_2;
+                    break;
+                case UART3:
+                    *(PUINT32)uArg0 = _uart_cBIIState_3;
+                    break;
+                case UART4:
+                    *(PUINT32)uArg0 = _uart_cBIIState_4;
+                    break;
+                case UART5:
+                    *(PUINT32)uArg0 = _uart_cBIIState_5;
+                    break;
+                case UART6:
+                    *(PUINT32)uArg0 = _uart_cBIIState_6;
+                    break;
+                case UART7:
+                    *(PUINT32)uArg0 = _uart_cBIIState_7;
+                    break;
+                case UART8:
+                    *(PUINT32)uArg0 = _uart_cBIIState_8;
+                    break;
+                case UART9:
+                    *(PUINT32)uArg0 = _uart_cBIIState_9;
+                    break;
+                case UARTA:
+                    *(PUINT32)uArg0 = _uart_cBIIState_10;
+                    break;
+
+                default:
+                    break;
+            }
+            break;
+
+        /* H/W S/W flow control function */
+        case UART_IOC_ENABLEHWFLOWCONTROL:
+
+            /* H/W & S/W are alterntive */
+            if(_uart_cFlowControlMode == SWFLOWCONTROL)
+                return UART_EIO;
+
+            _uart_cFlowControlMode = HWFLOWCONTROL;
+
+            /* Implement H/W flow control on TX & RX interrupt mode. */
+            //dev->bIsUseUARTTxInt = TRUE;
+            //dev->bIsUseUARTRxInt = TRUE;
             _uartEnableInterrupt(nNum, UART_IER_RDA_IEN_Msk);
-        } else if(uArg0 == UARTPOLLMODE) {
-            dev->bIsUseUARTRxInt = FALSE;
-            _uartDisableInterrupt(nNum, UART_IER_RDA_IEN_Msk);
-        } else {
-            dev->nErrno = UART_ERR_OPERATE_MODE_INVALID;
-            return UART_EIO;
-        }
 
-        break;
+            /*
+                Set up RTS mechanism.
+                In uartReceiveChars(), if uRecCnt >= _uart_nMaxRxBuf then set RTS high to stop RX.
+                In uartReadRxBuf(), if uRecCnt <= _uart_nMinRxBuf then set RTS low to re-start RX.
+            */
+            //_uart_nMaxRxBuf = (UARTRXBUFSIZE[nNum] * 3) / 4;
+            //_uart_nMinRxBuf = UARTRXBUFSIZE[nNum] / 2;
+            //FDEBUG("max[%d] min[%d]\n", _uart_nMaxRxBuf, _uart_nMinRxBuf);
 
-    case UART_IOC_GETRECCHARINFO:  // ..... not test yet
-        memcpy((PVOID) uArg0, (PVOID) dev, sizeof(struct UART_BUFFER_STRUCT));
-        break;
+            /* Set RTS high level trigger */
+            outpw(REG_UART0_MCR+uOffset, (inpw(REG_UART0_MCR+uOffset) | UART_RTS_IS_HIGH_LEV_TRG) );
+            /* Set RTS high level trigger */
+            outpw(REG_UART0_MSR+uOffset, (inpw(REG_UART0_MSR+uOffset) | UART_CTS_IS_HIGH_LEV_TRG) );
 
-    case UART_IOC_SETUARTPARAMETER:  // ..... not test yet
-        if((retval = _uartConfigureUART((PVOID) uArg0)) < 0) {
-            dev->nErrno = retval;
-            return UART_EIO;
-        }
+            /* Set Auto CTS/RTS */
+            outpw(REG_UART0_IER+uOffset, inpw(REG_UART0_IER+uOffset) | (0x3 << 12));
 
-        break;
+            /* Enable MODEM status interrupt */
+            //_uartEnableInterrupt(nNum, UART_IER_MODEM_IEN_Msk);
 
-    case UART_IOC_PERFORMIrDA:
+            /*
+                Maintain H/W flow control flag by read Modem Status Register.
+                If CTS high, stop TX.
+                If CTS low, start TX.
+            */
+            //if( inpw(REG_UART0_MSR+uOffset) & 0x10 )  /* CTS external signal is low  */
+            //  _uart_cHWTXStopped = 0;       /* TX started                  */
+            //else                              /* CTS external signal is high */
+            //  _uart_cHWTXStopped = 1;       /* TX stopped                  */
 
-        if((retval = _uartPerformIrDA(nNum, uArg0, uArg1)) < 0) {
-            dev->nErrno = retval;
-            return UART_EIO;
-        }
+            /* Set RTS as logic 0, RX re-start */
+            //outpb(REG_UART0_MCR+uOffset, inpb(REG_UART0_MCR+uOffset) | 0x02);  /* set RTS signal low  */
+            //_uart_cHWRXStopped = 0;  // RX started
+            break;
 
-        break;
+        case UART_IOC_DISABLEHWFLOWCONTROL:
 
-    case UART_IOC_GETUARTREGISTERVALUE:
-        return (_uartGetRegisterValue(nNum, (PVOID) uArg0));
-    //break;
-
-    case UART_IOC_GETERRNO:
-        *(PUINT32)uArg0 = dev->nErrno;
-        break;
-
-    case UART_IOC_SETMODEMINTERRUPT:
-
-        if(uArg0 == UART_ENABLE_MODEM_INT)
-            _uartEnableInterrupt(nNum, UART_IER_MODEM_IEN_Msk);
-        else if(uArg0 == UART_DISABLE_MODEM_INT)
+            /* Disable MODEM status interrupt */
             _uartDisableInterrupt(nNum, UART_IER_MODEM_IEN_Msk);
-        else
-            return UART_EIO;
-
-        break;
-
-    case UART_IOC_GETCTSSTATE:
-
-        if(nNum == UART1) {
-            *(PUINT32)uArg0 = _uart_cCTSState1;                        /* CTS state */
-            _uart_cCTSState1 = 0;
-        } else if(nNum == UART2) {
-            *(PUINT32)uArg0 = _uart_cCTSState2;                        /* CTS state */
-            _uart_cCTSState2 = 0;
-        } else if(nNum == UART3) {
-            *(PUINT32)uArg0 = _uart_cCTSState3;                        /* CTS state */
-            _uart_cCTSState3 = 0;
-        } else if(nNum == UART4) {
-            *(PUINT32)uArg0 = _uart_cCTSState4;                        /* CTS state */
-            _uart_cCTSState4 = 0;
-        } else if(nNum == UART5) {
-            *(PUINT32)uArg0 = _uart_cCTSState5;                        /* CTS state */
-            _uart_cCTSState5 = 0;
-        } else if(nNum == UART6) {
-            *(PUINT32)uArg0 = _uart_cCTSState6;                        /* CTS state */
-            _uart_cCTSState6 = 0;
-        } else if(nNum == UART7) {
-            *(PUINT32)uArg0 = _uart_cCTSState7;                        /* CTS state */
-            _uart_cCTSState7 = 0;
-        } else if(nNum == UART8) {
-            *(PUINT32)uArg0 = _uart_cCTSState8;                        /* CTS state */
-            _uart_cCTSState8 = 0;
-        } else if(nNum == UART9) {
-            *(PUINT32)uArg0 = _uart_cCTSState9;                        /* CTS state */
-            _uart_cCTSState9 = 0;
-        } else if(nNum == UARTA) {
-            *(PUINT32)uArg0 = _uart_cCTSState10;                        /* CTS state */
-            _uart_cCTSState10 = 0;
-        }
-
-        *(PUINT32)uArg1 = (inpw(REG_UART0_MSR+uOffset) & (1 << 4)) >> 4;  /* get CTS# value */
-
-        break;
-
-    case UART_IOC_SETRTSSIGNAL:
-
-        if(uArg0 == UART_RTS_HIGH)      /* set RTS signal high */
-            outpw(REG_UART0_MCR+uOffset, inpw(REG_UART0_MCR+uOffset) & ~0x02);
-        else if(uArg0 == UART_RTS_LOW)  /* set RTS signal low  */
-            outpw(REG_UART0_MCR+uOffset, inpw(REG_UART0_MCR+uOffset) | 0x02);
-        else
-            return UART_EIO;
-
-        break;
-
-    case UART_IOC_SETINTERRUPT:
-        if(uArg0 == 1)       /* enable interrupt  */
-            _uartEnableInterrupt(nNum, uArg1);
-        else if(uArg0 == 0)  /* disable interrupt */
-            _uartDisableInterrupt(nNum, uArg1);
-        else
-            return UART_EIO;
-
-        break;
-
-    case UART_IOC_SETBREAKCONTROL:
-        uReg = inpw(REG_UART0_LCR + uOffset);
-        if(uArg0 == 1) {     /* set break contorl bit  */
-            uReg |= UART_LCR_BCB_Msk;
-            outpw(REG_UART0_LCR + uOffset, uReg);
-        } else if(uArg0 == 0) { /* clear break contorl bit */
-            uReg &= ~UART_LCR_BCB_Msk;
-            outpw(REG_UART0_LCR + uOffset, uReg);
-        } else
-            return UART_EIO;
-
-        break;
-
-    case UART_IOC_GETBIISTATE:
-        switch(nNum) {
-        case UART0:
-            *(PUINT32)uArg0 = _uart_cBIIState_0;
+            _uart_cFlowControlMode = 0;
+            _uart_cHWTXStopped = 0;
+            _uart_cHWRXStopped = 0;
             break;
-        case UART1:
-            *(PUINT32)uArg0 = _uart_cBIIState_1;
+
+        case UART_IOC_FLUSH_TX_BUFFER:
+            dev->uUartTxTail = 0;
+            dev->uUartTxHead = 0;
             break;
-        case UART2:
-            *(PUINT32)uArg0 = _uart_cBIIState_2;
+
+        case UART_IOC_FLUSH_RX_BUFFER:
+            dev->uUartRxTail = 0;
+            dev->uUartRxHead = 0;
+            dev->uRecCnt = 0;
             break;
-        case UART3:
-            *(PUINT32)uArg0 = _uart_cBIIState_3;
+
+        case UART_IOC_SET_RS485_MODE:
+            outpw((REG_UART0_FUN_SEL+uOffset), 0x3);
+            outpw((REG_UART0_MCR+uOffset), 0x0);
+            outpw((REG_UART0_LCR+uOffset), (UART_LCR_SPE_Msk | UART_LCR_EPE_Msk | UART_LCR_PBE_Msk | (0x3 << UART_LCR_WLS_Pos)));
+            outpw((REG_UART0_ALT_CSR+uOffset), uArg0|(uArg1 << UART_ALT_CSR_ADDR_MATCH_Pos));
             break;
-        case UART4:
-            *(PUINT32)uArg0 = _uart_cBIIState_4;
+
+        case UART_IOC_SEND_RS485_ADDRESS:
+
+            while(!((inpw(REG_UART0_FSR + uOffset)) & UART_FSR_TE_FLAG_Msk));
+            uReg = inpw(REG_UART0_LCR + uOffset);
+            outpw((REG_UART0_LCR+uOffset), (UART_LCR_SPE_Msk | UART_LCR_PBE_Msk | (0x3 << UART_LCR_WLS_Pos)));
+            outpw((REG_UART0_THR+uOffset), uArg0);
+            while(!((inpw(REG_UART0_FSR + uOffset)) & UART_FSR_TE_FLAG_Msk));
+
+            outpw((REG_UART0_LCR+uOffset), uReg);
+
             break;
-        case UART5:
-            *(PUINT32)uArg0 = _uart_cBIIState_5;
+
+        case UART_IOC_SET_RS485_RXOFF:
+            uReg = inpw(REG_UART0_FCR + uOffset);
+            if(uArg0 == 1)
+                uReg |= UART_FCR_RX_DIS_Msk;
+            else
+                uReg &= ~UART_FCR_RX_DIS_Msk;
+
+            outpw((REG_UART0_FCR + uOffset), uReg);
+
             break;
-        case UART6:
-            *(PUINT32)uArg0 = _uart_cBIIState_6;
+
+        case UART_IOC_SET_ALTCTL_REG:
+
+            outpw((REG_UART0_ALT_CSR + uOffset), uArg0);
+
             break;
-        case UART7:
-            *(PUINT32)uArg0 = _uart_cBIIState_7;
+
+        case UART_IOC_GET_ALTCTL_REG:
+
+            *(PUINT32)uArg0 = inpw(REG_UART0_ALT_CSR + uOffset);
+
             break;
-        case UART8:
-            *(PUINT32)uArg0 = _uart_cBIIState_8;
-            break;
-        case UART9:
-            *(PUINT32)uArg0 = _uart_cBIIState_9;
-            break;
-        case UARTA:
-            *(PUINT32)uArg0 = _uart_cBIIState_10;
+
+        case UART_IOC_SET_LIN_MODE:
+
+            outpw((REG_UART0_FUN_SEL+uOffset), 0x1); // Select LIN function
+
+            /* Select LIN function setting : Tx enable, Rx enable and break field length */
+            uReg = inpw(REG_UART0_ALT_CSR + uOffset);
+            uReg &= ~(UART_ALT_CSR_LIN_TX_EN_Msk | UART_ALT_CSR_LIN_RX_EN_Msk | UART_ALT_CSR_UA_LIN_BKFL_Msk);
+            uReg |= (uArg0 | (uArg1 << UART_ALT_CSR_UA_LIN_BKFL_Pos));
+            outpw((REG_UART0_ALT_CSR + uOffset), uReg);
+
             break;
 
         default:
-            break;
-        }
-        break;
-
-    /* H/W S/W flow control function */
-    case UART_IOC_ENABLEHWFLOWCONTROL:
-
-        /* H/W & S/W are alterntive */
-        if(_uart_cFlowControlMode == SWFLOWCONTROL)
-            return UART_EIO;
-
-        _uart_cFlowControlMode = HWFLOWCONTROL;
-
-        /* Implement H/W flow control on TX & RX interrupt mode. */
-        //dev->bIsUseUARTTxInt = TRUE;
-        //dev->bIsUseUARTRxInt = TRUE;
-        _uartEnableInterrupt(nNum, UART_IER_RDA_IEN_Msk);
-
-        /*
-            Set up RTS mechanism.
-            In uartReceiveChars(), if uRecCnt >= _uart_nMaxRxBuf then set RTS high to stop RX.
-            In uartReadRxBuf(), if uRecCnt <= _uart_nMinRxBuf then set RTS low to re-start RX.
-        */
-        //_uart_nMaxRxBuf = (UARTRXBUFSIZE[nNum] * 3) / 4;
-        //_uart_nMinRxBuf = UARTRXBUFSIZE[nNum] / 2;
-        //FDEBUG("max[%d] min[%d]\n", _uart_nMaxRxBuf, _uart_nMinRxBuf);
-
-        /* Set RTS high level trigger */
-        outpw(REG_UART0_MCR+uOffset, (inpw(REG_UART0_MCR+uOffset) | UART_RTS_IS_HIGH_LEV_TRG) );
-        /* Set RTS high level trigger */
-        outpw(REG_UART0_MSR+uOffset, (inpw(REG_UART0_MSR+uOffset) | UART_CTS_IS_HIGH_LEV_TRG) );
-
-        /* Set Auto CTS/RTS */
-        outpw(REG_UART0_IER+uOffset, inpw(REG_UART0_IER+uOffset) | (0x3 << 12));
-
-        /* Enable MODEM status interrupt */
-        //_uartEnableInterrupt(nNum, UART_IER_MODEM_IEN_Msk);
-
-        /*
-            Maintain H/W flow control flag by read Modem Status Register.
-            If CTS high, stop TX.
-            If CTS low, start TX.
-        */
-        //if( inpw(REG_UART0_MSR+uOffset) & 0x10 )  /* CTS external signal is low  */
-        //  _uart_cHWTXStopped = 0;       /* TX started                  */
-        //else                              /* CTS external signal is high */
-        //  _uart_cHWTXStopped = 1;       /* TX stopped                  */
-
-        /* Set RTS as logic 0, RX re-start */
-        //outpb(REG_UART0_MCR+uOffset, inpb(REG_UART0_MCR+uOffset) | 0x02);  /* set RTS signal low  */
-        //_uart_cHWRXStopped = 0;  // RX started
-        break;
-
-    case UART_IOC_DISABLEHWFLOWCONTROL:
-
-        /* Disable MODEM status interrupt */
-        _uartDisableInterrupt(nNum, UART_IER_MODEM_IEN_Msk);
-        _uart_cFlowControlMode = 0;
-        _uart_cHWTXStopped = 0;
-        _uart_cHWRXStopped = 0;
-        break;
-
-    case UART_IOC_FLUSH_TX_BUFFER:
-        dev->uUartTxTail = 0;
-        dev->uUartTxHead = 0;
-        break;
-
-    case UART_IOC_FLUSH_RX_BUFFER:
-        dev->uUartRxTail = 0;
-        dev->uUartRxHead = 0;
-        dev->uRecCnt = 0;
-        break;
-
-	case UART_IOC_SET_RS485_MODE:
-		outpw((REG_UART0_FUN_SEL+uOffset), 0x3);
-		outpw((REG_UART0_MCR+uOffset), 0x0);
-		outpw((REG_UART0_LCR+uOffset), (UART_LCR_SPE_Msk | UART_LCR_EPE_Msk | UART_LCR_PBE_Msk | (0x3 << UART_LCR_WLS_Pos)));
-		outpw((REG_UART0_ALT_CSR+uOffset), uArg0|(uArg1 << UART_ALT_CSR_ADDR_MATCH_Pos));
-		break;
-
-	case UART_IOC_SEND_RS485_ADDRESS:
-		
-		while(!((inpw(REG_UART0_FSR + uOffset)) & UART_FSR_TE_FLAG_Msk));
-		uReg = inpw(REG_UART0_LCR + uOffset);
-		outpw((REG_UART0_LCR+uOffset), (UART_LCR_SPE_Msk | UART_LCR_PBE_Msk | (0x3 << UART_LCR_WLS_Pos)));
-		outpw((REG_UART0_THR+uOffset), uArg0);
-		while(!((inpw(REG_UART0_FSR + uOffset)) & UART_FSR_TE_FLAG_Msk));
-	
-		outpw((REG_UART0_LCR+uOffset), uReg);
-	
-		break;
-	
-	case UART_IOC_SET_RS485_RXOFF:
-		uReg = inpw(REG_UART0_FCR + uOffset);
-		if(uArg0 == 1)
-			uReg |= UART_FCR_RX_DIS_Msk;
-		else
-			uReg &= ~UART_FCR_RX_DIS_Msk;
-
-		outpw((REG_UART0_FCR + uOffset), uReg);
-		
-		break;
-	
-	case UART_IOC_SET_ALTCTL_REG:
-		
-		outpw((REG_UART0_ALT_CSR + uOffset), uArg0);
-	
-		break;
-	
-	case UART_IOC_GET_ALTCTL_REG:
-		
-		*(PUINT32)uArg0 = inpw(REG_UART0_ALT_CSR + uOffset);
-	
-		break;
-	
-	case UART_IOC_SET_LIN_MODE:
-	
-		outpw((REG_UART0_FUN_SEL+uOffset), 0x1); // Select LIN function
-	
-		/* Select LIN function setting : Tx enable, Rx enable and break field length */
-		uReg = inpw(REG_UART0_ALT_CSR + uOffset);
-		uReg &= ~(UART_ALT_CSR_LIN_TX_EN_Msk | UART_ALT_CSR_LIN_RX_EN_Msk | UART_ALT_CSR_UA_LIN_BKFL_Msk);
-		uReg |= (uArg0 | (uArg1 << UART_ALT_CSR_UA_LIN_BKFL_Pos));
-		outpw((REG_UART0_ALT_CSR + uOffset), uReg);
-		
-		break;
-	
-    default:
-        return UART_ENOTTY;
+            return UART_ENOTTY;
     }
 
     return Successful;
