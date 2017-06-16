@@ -57,13 +57,30 @@ static VPOST_T DEF_ILI9341_MPU80 = {
                                 VPOSTB_MPU80,                   /*!< MPU mode */
                                 VPOSTB_COLORTYPE_64K,           /*!< Display colors */
                                 VPOSTB_DEVICE_MPU,              /*!< Type of display panel */
-								0x01600100,                     /*!< CRTCSIZE register value */
-                                0x014000F0,                     /*!< CRTCDEND register value */
-                                0x00FA00F5,                     /*!< CRTCHR register value */
-                                0x00FC00FA,                     /*!< CRTCHSYNC register value */
-                                0x01500145};                    /*!< CRTCVR register value */
+								0x0056015a,                     /*!< CRTCSIZE register value */
+                                0x00400100,                     /*!< CRTCDEND register value */
+                                0x010a0100,                     /*!< CRTCHR register value */
+                                0x01320128,                     /*!< CRTCHSYNC register value */
+                                0x004c004a};                    /*!< CRTCVR register value */
+
+static VPOST_T DEF_LSA40AT9001 = {
+								800,                            /*!< Panel width */
+                                600,                            /*!< Panel height */
+                                0,                              /*!< MPU command line low indicator */
+                                0,                              /*!< MPU command width */
+                                0,                              /*!< MPU bus width */
+                                VPOSTB_DATA16or18,              /*!< Display bus width */
+                                0,                              /*!< MPU mode */
+                                VPOSTB_COLORTYPE_16M,           /*!< Display colors */
+                                VPOSTB_DEVICE_SYNC_HIGHCOLOR,   /*!< Type of display panel */
+								0x02800425,                     /*!< CRTCSIZE register value */
+                                0x02580320,                     /*!< CRTCDEND register value */
+                                0x032F032A,                     /*!< CRTCHR register value */
+                                0x0334032A,                     /*!< CRTCHSYNC register value */
+                                0x026C0262};                    /*!< CRTCVR register value */
+
 /* LCD build-in support list */
-static VPOST_T* DisplayDevList[2] = {&DEF_E50A2V1, &DEF_ILI9341_MPU80};
+static VPOST_T* DisplayDevList[3] = {&DEF_E50A2V1, &DEF_ILI9341_MPU80, &DEF_LSA40AT9001};
 static VPOST_T curDisplayDev;
 static OSDFORMATEX curOSDDev = {0};
 static LCDFORMATEX curVADev = {0};
