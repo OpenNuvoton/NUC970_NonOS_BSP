@@ -25,7 +25,7 @@ BOOL volatile _sys_bIsAICInitial = FALSE;
 extern void SYS_Interrupt_Shell(void);
 
 /* Interrupt Handler Table */
-typedef void (*sys_pvFunPtr)();   /* function pointer */
+//typedef void (*sys_pvFunPtr)();   /* function pointer */
 sys_pvFunPtr sysIrqHandlerTable[] = { 0,                /* 0 */
                                   SYS_Interrupt_Shell,   /* 1 */
                                   SYS_Interrupt_Shell,   /* 2 */

@@ -56,8 +56,8 @@
 
 	IMPORT	vTaskSwitchContext
 	IMPORT	xTaskIncrementTick
-	;IMPORT	sysIrqHandler
-
+	IMPORT	systemIrqHandler
+	
 	EXPORT	vPortYieldProcessor
 	EXPORT	vPortStartFirstTask
 	EXPORT	vPreemptiveTick
@@ -138,6 +138,10 @@ vPreemptiveTick
 
 	CMP R1, #IRQ_TMR1					; Check the interrupt is from Timer 1 or not.
 	BEQ SkipIrqHandler
+
+	LDR R2, =systemIrqHandler			; Call to real interrupt handler of non-OS.    
+	MOV LR, PC							;
+	BX R2								;
 
 	B RestoreContext
 

@@ -209,6 +209,18 @@ void vPortEndScheduler( void )
 }
 /*-----------------------------------------------------------*/
 
+/* Interrupt Handler */
+void systemIrqHandler(UINT32 _mIPER, UINT32 _mISNR)
+{		
+    _mIPER = (_mIPER >> 2) & 0x3f;
+		
+    if (_mISNR != 0)
+        if (_mIPER == _mISNR)
+            (*sysIrqHandlerTable[_mIPER])();
+		
+    outpw(REG_AIC_EOSCR, 1);
+}
+
 #if configUSE_PREEMPTION == 0
 
 	/* 
@@ -226,11 +238,11 @@ void vPortEndScheduler( void )
 
 		_mIPER = inpw(REG_AIC_IPER);
 		_mISNR = inpw(REG_AIC_ISNR);
-		if (_mISNR != IRQ_TMR1)
-			sysIrqHandler(_mIPER, _mISNR);
+		if (_mISNR != TMR1_IRQn)
+			systemIrqHandler(_mIPER, _mISNR);
 
 		// clear TIF1
-		outpw(REG_TISR, TIF1);
+		outpw(REG_TMR_TISR, 0x2);
 		// Acknowledge the Interrupt
 		outpw(REG_AIC_EOSCR, 0x01);
 	}
@@ -277,16 +289,21 @@ uint32_t ulCompareMatch;
 	scheduler is being used. */
 	#if configUSE_PREEMPTION == 1
 	{	
-		sysInstallISR(IRQ_LEVEL_1, IRQ_TMR1, (PVOID)vPreemptiveTick);
+		sysInstallISR(IRQ_LEVEL_1, TMR1_IRQn, (PVOID)vPreemptiveTick);
 	}
 	#else
 	{
-		sysInstallISR(IRQ_LEVEL_1, IRQ_TMR1, (PVOID)vNonPreemptiveTick);
+		sysInstallISR(IRQ_LEVEL_1, TMR1_IRQn, (PVOID)vNonPreemptiveTick);
 	}
 	#endif
 	#endif
 	
+	_sys_bIsAICInitial = TRUE;
+	
+#if configUSE_PREEMPTION == 1	
 	sysInstallIrqHandler(vPreemptiveTick);
+#endif	
+
 	sysEnableInterrupt(TMR1_IRQn);
 
 	outpw(REG_TMR1_TICR, ulCompareMatch);
