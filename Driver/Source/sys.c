@@ -161,10 +161,11 @@ __irq void sysIrqHandler()
 
     _mIPER = (inpw(REG_AIC_IPER) >> 2) & 0x3f;
     _mISNR = inpw(REG_AIC_ISNR);
-    if (_mISNR != 0)
-        if (_mIPER == _mISNR)
-            (*sysIrqHandlerTable[_mISNR])();
-    outpw(REG_AIC_EOSCR, 1);
+    if (_mIPER != 0) {
+        if (_mISNR != 0)
+            (*sysIrqHandlerTable[_mIPER])();
+        outpw(REG_AIC_EOSCR, 1);
+    }
 }
 
 __irq void sysFiqHandler()
@@ -173,10 +174,11 @@ __irq void sysFiqHandler()
 
     _mIPER = (inpw(REG_AIC_IPER) >> 2) & 0x3f;
     _mISNR = inpw(REG_AIC_ISNR);
-    if (_mISNR != 0)
-        if (_mIPER == _mISNR)
-            (*sysFiqHandlerTable[_mISNR])();
-    outpw(REG_AIC_EOSCR, 1);
+    if (_mIPER != 0) {
+        if (_mISNR != 0)
+            (*sysFiqHandlerTable[_mIPER])();
+        outpw(REG_AIC_EOSCR, 1);
+    }
 }
 
 void SYS_Interrupt_Shell()
