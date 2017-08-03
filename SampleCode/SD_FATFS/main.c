@@ -250,7 +250,7 @@ void get_line (char *buff, int len)
 
 }
 
-
+unsigned int volatile gCardInit = 0; 
 void SDH_IRQHandler(void)
 {
     unsigned int volatile isr;
@@ -290,10 +290,12 @@ void SDH_IRQHandler(void)
 #else
         if (isr & SDH_INTSTS_CDSTS0_Msk) {
             SD0.IsCardInsert = FALSE;   // SDISR_CD_Card = 1 means card remove for GPIO mode
+            gCardInit = 0;
             sysprintf("\nCard Remove!\n");
             SD_Close_Disk(0);
         } else {
-            SD_Open_Disk(SD_PORT0 | CardDetect_From_GPIO);
+            gCardInit = 1;
+            //SD_Open_Disk(SD_PORT0 | CardDetect_From_GPIO);
         }
 #endif
 
@@ -441,6 +443,12 @@ int32_t main(void)
 	f_chdrive(sd_path);          /* set default path */
 
     for (;;) {
+
+        if (gCardInit) {
+            gCardInit = 0;
+            SD_Open_Disk(SD_PORT0 | CardDetect_From_GPIO);
+        }
+
         if(!(SD_CardDetection(SD_Drv)))
             continue;
 

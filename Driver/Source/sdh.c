@@ -662,10 +662,24 @@ void SD_Open(unsigned int u32CardDetSrc)
 
     outpw(REG_SDH_CTL, inpw(REG_SDH_CTL) & ~(0xFF|SDH_CTL_CLKKEEP1_Msk));    // disable SD clock output
 
-    if(u32CardDetSrc & SD_PORT0)
+    if(u32CardDetSrc & SD_PORT0) {
         memset(&SD0, 0, sizeof(SD_INFO_T));
-    else if(u32CardDetSrc & SD_PORT1)
+        if(u32CardDetSrc & CardDetect_From_GPIO) {
+            outpw(REG_SDH_INTEN, inpw(REG_SDH_INTEN) | SDH_INTEN_CDSRC0_Msk);
+        }
+        else if (u32CardDetSrc & CardDetect_From_DAT3) {
+            outpw(REG_SDH_INTEN, inpw(REG_SDH_INTEN) & ~SDH_INTEN_CDSRC0_Msk);
+        }
+    }
+    else if(u32CardDetSrc & SD_PORT1) {
         memset(&SD1, 0, sizeof(SD_INFO_T));
+        if(u32CardDetSrc & CardDetect_From_GPIO) {
+            outpw(REG_SDH_INTEN, inpw(REG_SDH_INTEN) | SDH_INTEN_CDSRC1_Msk);
+        }
+        else if (u32CardDetSrc & CardDetect_From_DAT3) {
+            outpw(REG_SDH_INTEN, inpw(REG_SDH_INTEN) & ~SDH_INTEN_CDSRC1_Msk);
+        }
+    }
 }
 
 /**
