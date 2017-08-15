@@ -51,10 +51,6 @@ INT32 sysSetExternalIO(INT extNo, UINT32 extBaseAddr, UINT32 extSize, INT extBus
             reg = (reg & 0xfffffffc) | 0x02;
             break;
 
-        case BUS_BIT_32:
-            reg = (reg & 0xfffffffc) | 0x03;
-            break;
-
         case BUS_DISABLE:
             reg = reg & 0xfffffffc;
             break;
@@ -65,34 +61,6 @@ INT32 sysSetExternalIO(INT extNo, UINT32 extBaseAddr, UINT32 extSize, INT extBus
     {
         case SIZE_256K:
             reg = reg & 0xfff8ffff;
-            break;
-
-        case SIZE_512K:
-            reg = (reg & 0xfff8ffff)|0x00010000;
-            break;
-
-        case SIZE_1M:
-            reg = (reg & 0xfff8ffff)|0x00020000;
-            break;
-
-        case SIZE_2M:
-            reg = (reg & 0xfff8ffff)|0x00030000;
-            break;
-
-        case SIZE_4M:
-            reg = (reg & 0xfff8ffff)|0x00040000;
-            break;
-
-        case SIZE_8M:
-            reg = (reg & 0xfff8ffff)|0x00050000;
-            break;
-
-        case SIZE_16M:
-            reg = (reg & 0xfff8ffff)|0x00060000;
-            break;
-
-        case SIZE_32M:
-            reg = (reg & 0xfff8ffff)|0x00070000;
             break;
     }
 

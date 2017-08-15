@@ -200,18 +200,12 @@ typedef struct datetime_t {
 #define EXT4            4
 
 #define SIZE_256K       4
-#define SIZE_512K       5
-#define SIZE_1M         6
-#define SIZE_2M         7
-#define SIZE_4M         8
-#define SIZE_8M         9
-#define SIZE_16M        10
-#define SIZE_32M        11
+
 
 #define BUS_DISABLE     12
 #define BUS_BIT_8       13
 #define BUS_BIT_16      14
-#define BUS_BIT_32      15
+
 /// @endcond HIDDEN_SYMBOLS
 
 /*@}*/ /* end of group NUC970_SYS_EXPORTED_CONSTANTS */ 
