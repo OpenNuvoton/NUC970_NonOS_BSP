@@ -418,6 +418,9 @@ typedef struct {
 #define CRPT_HMAC_CTL_OPMODE_Pos         (8)                                               /*!< CRPT HMAC_CTL: OPMODE Position          */
 #define CRPT_HMAC_CTL_OPMODE_Msk         (0x7ul << CRPT_HMAC_CTL_OPMODE_Pos)               /*!< CRPT HMAC_CTL: OPMODE Mask              */
 
+#define CRPT_HMAC_CTL_COMPEN_Pos         (15)                                              /*!< CRPT HMAC_CTL: COMPEN Position          */
+#define CRPT_HMAC_CTL_COMPEN_Msk         (0x1ul << CRPT_HMAC_CTL_COMPEN_Pos)               /*!< CRPT HMAC_CTL: COMPEN Mask              */
+
 #define CRPT_HMAC_CTL_OUTSWAP_Pos        (22)                                              /*!< CRPT HMAC_CTL: OUTSWAP Position         */
 #define CRPT_HMAC_CTL_OUTSWAP_Msk        (0x1ul << CRPT_HMAC_CTL_OUTSWAP_Pos)              /*!< CRPT HMAC_CTL: OUTSWAP Mask             */
 
@@ -432,6 +435,9 @@ typedef struct {
 
 #define CRPT_HMAC_STS_DMAERR_Pos         (8)                                               /*!< CRPT HMAC_STS: DMAERR Position          */
 #define CRPT_HMAC_STS_DMAERR_Msk         (0x1ul << CRPT_HMAC_STS_DMAERR_Pos)               /*!< CRPT HMAC_STS: DMAERR Mask              */
+
+#define CRPT_HMAC_STS_COMPRES_Pos        (15)                                              /*!< CRPT HMAC_STS: COMPRES Position         */
+#define CRPT_HMAC_STS_COMPRES_Msk        (0x1ul << CRPT_HMAC_STS_COMPRES_Pos)              /*!< CRPT HMAC_STS: COMPRES Mask             */
 
 #define CRPT_HMAC_STS_DATINREQ_Pos       (16)                                              /*!< CRPT HMAC_STS: DATINREQ Position        */
 #define CRPT_HMAC_STS_DATINREQ_Msk       (0x1ul << CRPT_HMAC_STS_DATINREQ_Pos)             /*!< CRPT HMAC_STS: DATINREQ Mask            */

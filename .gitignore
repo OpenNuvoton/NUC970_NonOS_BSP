@@ -40,4 +40,5 @@ lst/
 *.7z
 *.rar
 !ThirdParty/FATFS/doc/img/mkfatimg.zip
+!SampleCode/CRYPTO_SHA_MTP/image.bin
 
