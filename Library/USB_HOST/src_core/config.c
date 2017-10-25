@@ -733,8 +733,8 @@ int usb_get_configuration(struct usb_device *dev)
 	int ncfg;
 	int result = 0;
 	unsigned int cfgno, length;
-	unsigned char *bigbuffer;
-	struct usb_config_descriptor *desc;
+	unsigned char *bigbuffer = NULL;
+	struct usb_config_descriptor *desc = NULL;
 	
 	ncfg = dev->descriptor.bNumConfigurations;
 
@@ -825,8 +825,10 @@ int usb_get_configuration(struct usb_device *dev)
 	result = 0;
 
 err:
-	kfree(desc);
-	kfree(bigbuffer);
+    if (desc)
+		kfree(desc);
+	if (bigbuffer)
+		kfree(bigbuffer);
 //out_not_authorized:
 	dev->descriptor.bNumConfigurations = cfgno;
 err2:
