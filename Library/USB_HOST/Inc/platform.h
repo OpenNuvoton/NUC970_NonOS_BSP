@@ -145,7 +145,7 @@ static __inline __u16 le16_to_cpup(const __le16 *p)
 
 #define might_sleep()
 
-#define MAX_SCHEDULE_TIMEOUT		0x7FFFFFFF
+#define MAX_SCHEDULE_TIMEOUT		500000
 
 #define dev_name(x)				(dev->init_name)
 
