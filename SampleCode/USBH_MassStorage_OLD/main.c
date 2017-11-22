@@ -13,7 +13,6 @@
 
 #include "nuc970.h"
 #include "sys.h"
-#include "config.h"
 #include "usbh_lib.h"
 #include "ff.h"
 #include "diskio.h"
@@ -34,19 +33,6 @@ char Lfname[512];
 __align(32) BYTE Buff_Pool[BUFF_SIZE] ;       /* Working buffer */
 
 BYTE  *Buff;
-
-
-void delay_us(int usec)
-{
-	volatile int  loop = 300 * usec;
-	while (loop > 0) loop--;
-}
-
-uint32_t get_ticks(void)
-{
-    return sysGetTicks(TIMER0);
-}
-
 
 void timer_init()
 {
@@ -334,8 +320,6 @@ int32_t main(void)
 
     for (;;) {
     	
-    	sysprintf("EHCI: 0x%x, 0x%x;  OHCI: 0x%x, 0x%x\n", HSUSBH->UPSCR[0], HSUSBH->UPSCR[1], USBH->HcRhPortStatus[0], USBH->HcRhPortStatus[1]);
-    	
     	usbh_pooling_hubs();
     	
         sysprintf(_T(">"));
@@ -363,17 +347,6 @@ int32_t main(void)
         	*(ptr+2) = 0;
         	put_rc(f_chdrive((TCHAR *)ptr));
         	break;
-        	
-        case '#':
-            for (p1 = 0; p1 < 10000000; p1 += 8)
-            {
-                res = (FRESULT)disk_read(3, Buff, p1, 8);
-                sysprintf("Read sector %d, rc=%d\n", p1, (WORD)res);
-                if (res) {
-                    break;
-                }
-            }
-            break;
 
         case 'd' :
             switch (*ptr++) {

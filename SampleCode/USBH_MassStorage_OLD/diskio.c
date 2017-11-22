@@ -74,7 +74,7 @@ DRESULT disk_read (
 	if (!((UINT32)buff & 0x80000000))
 	{
 		/* Disk read buffer is not non-cachable buffer. Use my non-cachable to do disk read. */
-		sec_size = 512; // usbh_umas_disk_sector_size(pdrv);
+		sec_size = usbh_umas_disk_sector_size(pdrv);
 		if (count * sec_size > _MAX_SS)
 			return RES_ERROR;
 			
@@ -120,7 +120,7 @@ DRESULT disk_write (
 	if (!((UINT32)buff & 0x80000000))
 	{
 		/* Disk write buffer is not non-cachable buffer. Use my non-cachable to do disk write. */
-		sec_size = 512;  //usbh_umas_disk_sector_size(pdrv);
+		sec_size = usbh_umas_disk_sector_size(pdrv);
 		if (count * sec_size > _MAX_SS)
 			return RES_ERROR;
 			

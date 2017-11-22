@@ -9,6 +9,63 @@
 #endif
 
 
+/*---------------------- USB Host Controller -------------------------*/
+/**
+    @addtogroup USBH USB Host Controller(USBH)
+    Memory Mapped Structure for USBH Controller
+@{ */
+
+/*
+    USB 2.0 EHCI Controller Registers
+*/
+#define     EHCVNR          (USBH_BA+0x000)  /*!< EHCI Version Number Register                    */
+#define     EHCSPR          (USBH_BA+0x004)  /*!< EHCI Structural Parameters Register             */
+#define     EHCCPR          (USBH_BA+0x008)  /*!< EHCI Capability Parameters Register             */
+#define     UCMDR           (USBH_BA+0x020)  /*!< EHCI Version Number Register                    */
+#define     USTSR           (USBH_BA+0x024)  /*!< USB Status Register                             */
+#define     UIENR           (USBH_BA+0x028)  /*!< USB Interrupt Enable Register                   */
+#define     UFINDR          (USBH_BA+0x02C)  /*!< USB Frame Index Register                        */
+#define     UPFLBAR         (USBH_BA+0x034)  /*!< USB Periodic Frame List Base Address Register   */
+#define     UCALAR          (USBH_BA+0x038)  /*!< USB Current Asynchronous List Address           */
+#define     UASSTR          (USBH_BA+0x03C)  /*!< USB Asynchronous Schedule Sleep Timer Register  */
+#define     UCFGR           (USBH_BA+0x060)  /*!< USB Configure Flag Register                     */
+#define     UPSCR0          (USBH_BA+0x064)  /*!< USB Port 0 Status and Control Register          */
+#define     UPSCR1          (USBH_BA+0x068)  /*!< USB Port 1 Status and Control Register          */
+#define     UHCBIST         (USBH_BA+0x0C0)  /*!< USB Host Controller BIST Register               */
+#define     USBPCR0         (USBH_BA+0x0C4)  /*!< USB PHY 0 Control Register                      */
+#define     USBPCR1         (USBH_BA+0x0C8)  /*!< USB PHY 1 Control Register                      */
+
+/*
+    USB 1.1 OHCI Controller Registers
+*/
+#define     HcRev           (USBO_BA+0x000)  /*!< Host Controller Revision Register               */
+#define     HcControl       (USBO_BA+0x004)  /*!< Host Controller Control Register                */
+#define     HcComSts        (USBO_BA+0x008)  /*!< Host Controller Command Status Register         */
+#define     HcIntSts        (USBO_BA+0x00C)  /*!< Host Controller Interrupt Status Register       */
+#define     HcIntEn         (USBO_BA+0x010)  /*!< Host Controller Interrupt Enable Register       */
+#define     HcIntDis        (USBO_BA+0x014)  /*!< Host Controller Interrupt Disable Register      */
+#define     HcHCCA          (USBO_BA+0x018)  /*!< Host Controller Communication Area Register     */
+#define     HcPerCED        (USBO_BA+0x01C)  /*!< Host Controller Period Current ED Register      */
+#define     HcCtrHED        (USBO_BA+0x020)  /*!< Host Controller Control Head ED Register        */
+#define     HcCtrCED        (USBO_BA+0x024)  /*!< Host Controller Control Current ED Register     */
+#define     HcBlkHED        (USBO_BA+0x028)  /*!< Host Controller Bulk Head ED Register           */
+#define     HcBlkCED        (USBO_BA+0x02C)  /*!< Host Controller Revision Register               */
+#define     HcDoneH         (USBO_BA+0x030)  /*!< Host Controller Done Head Register              */
+#define     HcFmIntv        (USBO_BA+0x034)  /*!< Host Controller Frame Interval Register         */
+#define     HcFmRem         (USBO_BA+0x038)  /*!< Host Controller Frame Remaining Register        */
+#define     HcFNum          (USBO_BA+0x03C)  /*!< Host Controller Frame Number Register           */
+#define     HcPerSt         (USBO_BA+0x040)  /*!< Host Controller Periodic Start Register         */
+#define     HcLSTH          (USBO_BA+0x044)  /*!< Host Controller Low Speed Threshold Register    */
+#define     HcRhDeA         (USBO_BA+0x048)  /*!< Host Controller Root Hub Descriptor A Register  */
+#define     HcRhDeB         (USBO_BA+0x04C)  /*!< Host Controller Root Hub Descriptor B Register  */
+#define     HcRhSts         (USBO_BA+0x050)  /*!< Host Controller Root Hub Status Register        */
+#define     HcRhPrt1        (USBO_BA+0x054)  /*!< Host Controller Root Hub Port Status [1]        */
+#define     HcRhPrt2        (USBO_BA+0x058)  /*!< Host Controller Root Hub Port Status [2]        */
+#define     OpModEn         (USBO_BA+0x204)  /*!< USB Operational Mode Enable Register            */
+
+/**@}*/ /* end of USBH register group */
+
+
 #define DISABLE_USB_INT()       sysDisableInterrupt(EHCI_IRQn); \
 								sysDisableInterrupt(OHCI_IRQn)
 #define ENABLE_USB_INT()		sysEnableInterrupt(EHCI_IRQn); \
@@ -145,7 +202,7 @@ static __inline __u16 le16_to_cpup(const __le16 *p)
 
 #define might_sleep()
 
-#define MAX_SCHEDULE_TIMEOUT		500000
+#define MAX_SCHEDULE_TIMEOUT		500000      /* 5 seconds */
 
 #define dev_name(x)				(dev->init_name)
 
