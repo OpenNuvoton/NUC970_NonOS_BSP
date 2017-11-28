@@ -2,8 +2,8 @@
  * @file     main.c
  * @version  V1.00
  * $Revision: 1 $
- * $Date: 15/05/18 4:02p $
- * @brief    This sample shows how to manage several USB HID class devices.
+ * $Date: 15/05/18 4:03p $
+ * @brief    This sample shows how to manage USB keyboard devices.
  *
  * @note
  * Copyright (C) 2015 Nuvoton Technology Corp. All rights reserved.
@@ -16,20 +16,12 @@
 #include "usbh_lib.h"
 #include "usbh_hid.h"
 
-
 __align(32) uint32_t   g_buff_pool[1024];
 
+extern int  kbd_parse_report(HID_DEV_T *hdev, uint8_t *buf, int len);
 
-void delay_us(int usec)
-{
-	volatile int  loop = 300 * usec;
-	while (loop > 0) loop--;
-}
-
-uint32_t get_ticks(void)
-{
-    return sysGetTicks(TIMER0);
-}
+static HID_DEV_T  *hdev_ToDo = NULL;
+static uint8_t    data_ToDo[8];
 
 
 void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
@@ -37,8 +29,7 @@ void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
     int     nIdx, i;
 
     nIdx = 0;
-    while (nBytes > 0) 
-    {
+    while (nBytes > 0) {
         sysprintf("0x%04X  ", nIdx);
         for (i = 0; (i < 16) && (nBytes > 0); i++)
         {
@@ -52,42 +43,27 @@ void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
 }
 
 
-void  int_read_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t *rdata, uint32_t data_len)
+void  int_read_callback(HID_DEV_T *hdev, uint16_t ep_addr, uint8_t *rdata, uint32_t data_len)
 {
-    /*
-     *  USB host HID driver notify user the transfer status via <status> parameter. If the
-     *  If <status> is 0, the USB transfer is fine. If <status> is not zero, this interrupt in
-     *  transfer failed and HID driver will stop this pipe. It can be caused by USB transfer error
-     *  or device disconnected.
-     */
-    if (status < 0) {
-        sysprintf("Interrupt in transfer failed! status: %d\n", status);
-        return;
-    }
-    sysprintf("Device [0x%x,0x%x] ep 0x%x, %d bytes received =>\n",
-           hdev->idVendor, hdev->idProduct, ep_addr, data_len);
-    dump_buff_hex(rdata, data_len);
+	/*
+	 *  This callback is in interrupt context.
+	 *  Copy the device and data and then handle it somewhere not in interrupt context.
+	 */
+	//dump_buff_hex(rdata, data_len);
+	hdev_ToDo = hdev;
+	memcpy(data_ToDo, rdata, sizeof(data_ToDo));
 }
 
-#if 0
-static uint8_t  _write_data_buff[4];
-
-void  int_write_callback(HID_DEV_T *hdev, uint16_t ep_addr, uint8_t **wbuff, uint32_t *buff_size)
-{
-    sysprintf("INT-out pipe request to write data.\n");
-
-    *wbuff = &_write_data_buff[0];
-    *buff_size = 4;
-}
-#endif
 
 int  init_hid_device(HID_DEV_T *hdev)
 {
 	uint8_t   *data_buff;
-	int       i, ret;
+	int       ret;
 	
 	data_buff = (uint8_t *)((uint32_t)g_buff_pool | 0x80000000);   // get non-cachable buffer address
 
+	memset(hdev->client, 0, sizeof(hdev->client));
+	
 	sysprintf("\n\n==================================\n");
 	sysprintf("  Init HID device : 0x%x\n", (int)hdev);
 	sysprintf("  VID: 0x%x, PID: 0x%x\n\n", hdev->idVendor, hdev->idProduct);
@@ -97,44 +73,15 @@ int  init_hid_device(HID_DEV_T *hdev)
     {
     	sysprintf("\nDump report descriptor =>\n");
     	dump_buff_hex(data_buff, ret);
-	}
-
-	/*
-	 *  Example: GET_PROTOCOL request. 
-	 */
-	ret = usbh_hid_get_protocol(hdev, data_buff);
-	sysprintf("[GET_PROTOCOL] ret = %d, protocol = %d\n", ret, data_buff[0]);
-
-	/*
-	 *  Example: SET_PROTOCOL request. 
-	 */
-	ret = usbh_hid_set_protocol(hdev, data_buff[0]);
-	sysprintf("[SET_PROTOCOL] ret = %d, protocol = %d\n", ret, data_buff[0]);
-
-	/*
-	 *  Example: GET_REPORT request on report ID 0x1, report type FEATURE. 
-	 */
-	ret = usbh_hid_get_report(hdev, RT_FEATURE, 0x1, data_buff, 64);
-	if (ret > 0)
-	{
-		sysprintf("[GET_REPORT] Data => ");
-		for (i = 0; i < ret; i++)
-		    sysprintf("%02x ", data_buff[i]);
-		sysprintf("\n");
-	}
+    }
     
     sysprintf("\nUSBH_HidStartIntReadPipe...\n");
     ret = usbh_hid_start_int_read(hdev, 0, int_read_callback);
-    if (ret != HID_RET_OK)
+    if ((ret != HID_RET_OK) && (ret != HID_RET_EP_USED))
     	sysprintf("usbh_hid_start_int_read failed!\n");
     else
     	sysprintf("Interrupt in transfer started...\n");
 
-    //if (usbh_hid_start_int_write(hdev, 0, int_write_callback) == HID_RET_OK) 
-    //{
-    //	sysprintf("Interrupt out transfer started...\n");
-    //}
-    
     return 0;
 }
 
@@ -189,6 +136,12 @@ int32_t main(void)
             		hdev = hdev->next;
         	}
         }
+
+        if (hdev_ToDo != NULL)
+        {
+			kbd_parse_report(hdev_ToDo, data_ToDo, 8);
+			hdev_ToDo = NULL;
+		}
     }
 }
 

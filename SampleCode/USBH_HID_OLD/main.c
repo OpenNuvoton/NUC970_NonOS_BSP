@@ -20,17 +20,6 @@
 __align(32) uint32_t   g_buff_pool[1024];
 
 
-void delay_us(int usec)
-{
-	volatile int  loop = 300 * usec;
-	while (loop > 0) loop--;
-}
-
-uint32_t get_ticks(void)
-{
-    return sysGetTicks(TIMER0);
-}
-
 
 void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
 {
@@ -52,20 +41,10 @@ void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
 }
 
 
-void  int_read_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t *rdata, uint32_t data_len)
+void  int_read_callback(HID_DEV_T *hdev, uint16_t ep_addr, uint8_t *rdata, uint32_t data_len)
 {
-    /*
-     *  USB host HID driver notify user the transfer status via <status> parameter. If the
-     *  If <status> is 0, the USB transfer is fine. If <status> is not zero, this interrupt in
-     *  transfer failed and HID driver will stop this pipe. It can be caused by USB transfer error
-     *  or device disconnected.
-     */
-    if (status < 0) {
-        sysprintf("Interrupt in transfer failed! status: %d\n", status);
-        return;
-    }
-    sysprintf("Device [0x%x,0x%x] ep 0x%x, %d bytes received =>\n",
-           hdev->idVendor, hdev->idProduct, ep_addr, data_len);
+    sysprintf("Device [0x%x,0x%x] ep 0x%x, %d bytes received =>\n", 
+              hdev->idVendor, hdev->idProduct, ep_addr, data_len);
     dump_buff_hex(rdata, data_len);
 }
 
@@ -125,7 +104,7 @@ int  init_hid_device(HID_DEV_T *hdev)
     
     sysprintf("\nUSBH_HidStartIntReadPipe...\n");
     ret = usbh_hid_start_int_read(hdev, 0, int_read_callback);
-    if (ret != HID_RET_OK)
+    if ((ret != HID_RET_OK) && (ret != HID_RET_EP_USED))
     	sysprintf("usbh_hid_start_int_read failed!\n");
     else
     	sysprintf("Interrupt in transfer started...\n");

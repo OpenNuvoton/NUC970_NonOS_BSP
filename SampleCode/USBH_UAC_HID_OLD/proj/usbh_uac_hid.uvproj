@@ -7,11 +7,9 @@
 
   <Targets>
     <Target>
-      <TargetName>usbh_hid_kbd</TargetName>
+      <TargetName>usbh_uac_hid</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060528::V5.06 update 5 (build 528)::ARMCC</pCCUsed>
-      <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
           <Device>TMPA900CMXBG</Device>
@@ -32,7 +30,6 @@
           <SLE66AMisc></SLE66AMisc>
           <SLE66LinkerMisc></SLE66LinkerMisc>
           <SFDFile></SFDFile>
-          <bCustSvd>0</bCustSvd>
           <UseEnv>0</UseEnv>
           <BinPath></BinPath>
           <IncludePath></IncludePath>
@@ -47,7 +44,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\obj\</OutputDirectory>
-          <OutputName>usbh_hid_kbd</OutputName>
+          <OutputName>usbh_uac_hid</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -74,8 +71,6 @@
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
-            <nStopB1X>0</nStopB1X>
-            <nStopB2X>0</nStopB2X>
           </BeforeMake>
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
@@ -84,8 +79,6 @@
             <UserProg2Name>fromelf --text -c ".\obj\@L.axf" --output ".\obj\@L.txt"</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
-            <nStopA1X>0</nStopA1X>
-            <nStopA2X>0</nStopA2X>
           </AfterMake>
           <SelectedForBatchBuild>1</SelectedForBatchBuild>
           <SVCSIdString></SVCSIdString>
@@ -104,7 +97,6 @@
           <StopOnExitCode>3</StopOnExitCode>
           <CustomArgument></CustomArgument>
           <IncludeLibraryModules></IncludeLibraryModules>
-          <ComprImg>1</ComprImg>
         </CommonProperty>
         <DllOption>
           <SimDllName>SARM.DLL</SimDllName>
@@ -134,7 +126,6 @@
             <RestoreFunctions>1</RestoreFunctions>
             <RestoreToolbox>1</RestoreToolbox>
             <LimitSpeedToRealTime>0</LimitSpeedToRealTime>
-            <RestoreSysVw>1</RestoreSysVw>
           </Simulator>
           <Target>
             <UseTarget>1</UseTarget>
@@ -146,10 +137,9 @@
             <RestoreFunctions>0</RestoreFunctions>
             <RestoreToolbox>0</RestoreToolbox>
             <RestoreTracepoints>0</RestoreTracepoints>
-            <RestoreSysVw>1</RestoreSysVw>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
-          <TargetSelection>16</TargetSelection>
+          <TargetSelection>0</TargetSelection>
           <SimDlls>
             <CpuDll></CpuDll>
             <CpuDllArguments></CpuDllArguments>
@@ -175,14 +165,9 @@
             <Capability>1</Capability>
             <DriverSelection>4096</DriverSelection>
           </Flash1>
-          <bUseTDR>0</bUseTDR>
           <Flash2>BIN\UL2ARM.DLL</Flash2>
           <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
-          <pFcarmOut></pFcarmOut>
-          <pFcarmGrp></pFcarmGrp>
-          <pFcArmRoot></pFcArmRoot>
-          <FcArmLst>0</FcArmLst>
         </Utilities>
         <TargetArmAds>
           <ArmAdsMisc>
@@ -229,7 +214,6 @@
             <useUlib>0</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
-            <nSecure>0</nSecure>
             <RoSelD>3</RoSelD>
             <RwSelD>5</RwSelD>
             <CodeSel>0</CodeSel>
@@ -362,20 +346,11 @@
             <wLevel>0</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
-            <uC99>0</uC99>
-            <useXO>0</useXO>
-            <v6Lang>1</v6Lang>
-            <v6LangP>1</v6LangP>
-            <vShortEn>1</vShortEn>
-            <vShortWch>1</vShortWch>
-            <v6Lto>0</v6Lto>
-            <v6WtE>0</v6WtE>
-            <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--diag_suppress=4017</MiscControls>
               <Define>NO_TIMER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\Driver\Include;..\..\..\Library\UsbHostLib\inc</IncludePath>
+              <IncludePath>..\..\..\Driver\Include;..\..\..\Library\USB_Host\Inc;..\..\..\Library\USB_Host\Inc\usb_uac;..\..\..\Library\USB_Host\Inc\usb_hid</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -387,8 +362,6 @@
             <SwStkChk>0</SwStkChk>
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
-            <useXO>0</useXO>
-            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -405,7 +378,6 @@
             <useFile>0</useFile>
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x00080000</DataAddressRange>
-            <pXoBase></pXoBase>
             <ScatterFile>..\..\..\Script\nuc970.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
@@ -424,50 +396,85 @@
               <FileType>1</FileType>
               <FilePath>..\main.c</FilePath>
             </File>
-            <File>
-              <FileName>usbh_hid_kbd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\usbh_hid_kbd.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>src_usb_core</GroupName>
           <Files>
             <File>
-              <FileName>ehci.c</FileName>
+              <FileName>urb.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\Library\UsbHostLib\src_core\ehci.c</FilePath>
+              <FilePath>..\..\..\Library\USB_Host\src_core\urb.c</FilePath>
             </File>
             <File>
-              <FileName>ehci_iso.c</FileName>
+              <FileName>usb.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\Library\UsbHostLib\src_core\ehci_iso.c</FilePath>
+              <FilePath>..\..\..\Library\USB_Host\src_core\usb.c</FilePath>
+            </File>
+            <File>
+              <FileName>usb_main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_core\usb_main.c</FilePath>
+            </File>
+            <File>
+              <FileName>hcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_core\hcd.c</FilePath>
             </File>
             <File>
               <FileName>hub.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\Library\UsbHostLib\src_core\hub.c</FilePath>
+              <FilePath>..\..\..\Library\USB_Host\src_core\hub.c</FilePath>
             </File>
             <File>
-              <FileName>mem_alloc.c</FileName>
+              <FileName>message.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\Library\UsbHostLib\src_core\mem_alloc.c</FilePath>
+              <FilePath>..\..\..\Library\USB_Host\src_core\message.c</FilePath>
             </File>
             <File>
-              <FileName>ohci.c</FileName>
+              <FileName>config.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\Library\UsbHostLib\src_core\ohci.c</FilePath>
+              <FilePath>..\..\..\Library\USB_Host\src_core\config.c</FilePath>
+            </File>
+            <File>
+              <FileName>driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_core\driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>endpoint.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_core\endpoint.c</FilePath>
+            </File>
+            <File>
+              <FileName>generic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_core\generic.c</FilePath>
+            </File>
+            <File>
+              <FileName>linux_bus_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_core\linux_bus_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>linux_fake.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_core\linux_fake.c</FilePath>
             </File>
             <File>
               <FileName>support.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\Library\UsbHostLib\src_core\support.c</FilePath>
+              <FilePath>..\..\..\Library\USB_Host\src_core\support.c</FilePath>
             </File>
             <File>
-              <FileName>usb_core.c</FileName>
+              <FileName>ehci-hcd.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\Library\UsbHostLib\src_core\usb_core.c</FilePath>
+              <FilePath>..\..\..\Library\USB_Host\src_core\host\ehci-hcd.c</FilePath>
+            </File>
+            <File>
+              <FileName>ohci-hcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_core\host\ohci-hcd.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -517,12 +524,32 @@
             <File>
               <FileName>hid_core.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\Library\UsbHostLib\src_hid\hid_core.c</FilePath>
+              <FilePath>..\..\..\Library\USB_Host\src_hid\hid_core.c</FilePath>
             </File>
             <File>
               <FileName>hid_driver.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\Library\UsbHostLib\src_hid\hid_driver.c</FilePath>
+              <FilePath>..\..\..\Library\USB_Host\src_hid\hid_driver.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>src_uac</GroupName>
+          <Files>
+            <File>
+              <FileName>uac_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_uac\uac_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>uac_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_uac\uac_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>uac_parser.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Library\USB_Host\src_uac\uac_parser.c</FilePath>
             </File>
           </Files>
         </Group>

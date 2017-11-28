@@ -24,6 +24,17 @@ static HID_DEV_T  *hdev_ToDo = NULL;
 static uint8_t    data_ToDo[8];
 
 
+void delay_us(int usec)
+{
+	volatile int  loop = 300 * usec;
+	while (loop > 0) loop--;
+}
+
+uint32_t get_ticks(void)
+{
+    return sysGetTicks(TIMER0);
+}
+
 void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
 {
     int     nIdx, i;
@@ -43,7 +54,7 @@ void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
 }
 
 
-void  int_read_callback(HID_DEV_T *hdev, uint16_t ep_addr, uint8_t *rdata, uint32_t data_len)
+void  int_read_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t *rdata, uint32_t data_len)
 {
 	/*
 	 *  This callback is in interrupt context.
@@ -62,8 +73,6 @@ int  init_hid_device(HID_DEV_T *hdev)
 	
 	data_buff = (uint8_t *)((uint32_t)g_buff_pool | 0x80000000);   // get non-cachable buffer address
 
-	memset(hdev->client, 0, sizeof(hdev->client));
-	
 	sysprintf("\n\n==================================\n");
 	sysprintf("  Init HID device : 0x%x\n", (int)hdev);
 	sysprintf("  VID: 0x%x, PID: 0x%x\n\n", hdev->idVendor, hdev->idProduct);
@@ -77,7 +86,7 @@ int  init_hid_device(HID_DEV_T *hdev)
     
     sysprintf("\nUSBH_HidStartIntReadPipe...\n");
     ret = usbh_hid_start_int_read(hdev, 0, int_read_callback);
-    if ((ret != HID_RET_OK) && (ret != HID_RET_EP_USED))
+    if (ret != HID_RET_OK)
     	sysprintf("usbh_hid_start_int_read failed!\n");
     else
     	sysprintf("Interrupt in transfer started...\n");

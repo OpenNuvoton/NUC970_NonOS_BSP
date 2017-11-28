@@ -1060,12 +1060,12 @@ static int ehci_rh_port_reset(int port)
         reset_time += PORT_RESET_RETRY_INC_MS;
     }
 
-    USB_debug("EHCI port %d - port reset failed!\n", port+1);
     return USBH_ERR_PORT_RESET;
 
 port_reset_done:
     if ((_ehci->UPSCR[port] & HSUSBH_UPSCR_CCS_Msk) == 0) { /* check again if device disconnected */
         _ehci->UPSCR[port] |= HSUSBH_UPSCR_CSC_Msk;         /* clear CSC                          */
+        USB_debug("EHCI port %d, status 0x%x - port reset failed!\n", port+1, _ehci->UPSCR[port]);
         return USBH_ERR_DISCONNECTED;
     }
     _ehci->UPSCR[port] |= HSUSBH_UPSCR_PEC_Msk;            /* clear port enable change status    */
@@ -1089,7 +1089,7 @@ static int ehci_rh_polling(void)
         /*  connect status change                                                             */
         /*------------------------------------------------------------------------------------*/
         _ehci->UPSCR[port] |= HSUSBH_UPSCR_CSC_Msk;      /* clear all status change bits      */
-    
+
         if (_ehci->UPSCR[port] & HSUSBH_UPSCR_CCS_Msk) {
             /*--------------------------------------------------------------------------------*/
             /*  First of all, check if there's any previously connected device.               */
