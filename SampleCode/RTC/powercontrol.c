@@ -16,14 +16,46 @@ BOOL volatile g_bPowerKeyPress = FALSE;
 
 __asm void __wfi()
 {
-	MCR p15, 0, r1, c7, c0, 4			  
+	MCR p15, 0, r1, c7, c0, 4
 	BX			  lr
       
 }
 
+void Entry_PowerDown(void){
+  int i,r0,r1,r2;
+  outp32(REG_CLK_PLLSTBCNTR,0xFFFF);
+  outp32(REG_SDIC_MR,  inpw(REG_SDIC_MR)|0x100); //Enable Reset DLL(bit[8]) of DDR2 
+  __asm
+  {/*  Delay a moment until the escape self-refresh command reached to DDR/SDRAM */
+      mov r2, #1000
+      mov r1, #0
+      mov r0, #1
+  loop1:  add   r1, r1, r0
+      cmp r1, r2
+      bne loop1
+  }
+  outp32(REG_SDIC_MR,  inpw(REG_SDIC_MR)&~0x100); //Disabe Reset DLL(bit[8]) of DDR2
+  __asm
+  {/*  Delay a moment until the escape self-refresh command reached to DDR/SDRAM */
+      mov r2, #1000
+      mov r1, #0
+      mov r0, #1
+  loop2:  add r1, r1, r0
+      cmp r1, r2
+      bne loop2
+  }
+  i = *(volatile unsigned int *)(0xB0000200);
+  i = i & (0xFFFFFFFE);
+  *(volatile unsigned int *)(0xB0000200)=i;
+  outp32(REG_SDIC_OPMCTL, (inp32(REG_SDIC_OPMCTL) & ~0x10000));         // set SDIC_OPMCTL[16] low to disable auto power down mode
+  outp32(REG_SDIC_CMD, (inp32(REG_SDIC_CMD) & ~0x20));
+  __wfi();
+  outp32(REG_SDIC_CMD, inp32(REG_SDIC_CMD) | 0x20);
+  outp32(REG_SDIC_OPMCTL, (inp32(REG_SDIC_OPMCTL) | 0x10000));         // set SDIC_OPMCTL[16] high to enable auto power down mode;  
+}
+
 void Smpl_RTC_Powerdown_Wakeup_Relative(void)
 {
-	unsigned int i;
 	RTC_TIME_DATA_T sCurTime;	
 			
 	sysprintf("\n2. RTC Powerdown Wakeup Test (Wakeup after 10 seconds)\n");
@@ -47,11 +79,7 @@ void Smpl_RTC_Powerdown_Wakeup_Relative(void)
 	outpw(REG_SYS_WKUPSER , (1 << 24) ); // wakeup source select RTC
 	
 	//enter power down mode
-	i = *(volatile unsigned int *)(0xB0000200);
-	i = i & (0xFFFFFFFE);
-	*(volatile unsigned int *)(0xB0000200)=i; 	
-	
-	__wfi();
+	Entry_PowerDown();
 
 	sysprintf("   Wake up!!!\n");	
 			

@@ -203,10 +203,36 @@ __asm void __wfi(void)
 void EnterPowerDown(void)
 {
   UINT32 reg;
+  int r0,r1,r2;
+  outp32(REG_CLK_PLLSTBCNTR,0xFFFF);
+  outp32(REG_SDIC_MR,  inpw(REG_SDIC_MR)|0x100); //Enable Reset DLL(bit[8]) of DDR2 
+  __asm
+  {/*  Delay a moment until the escape self-refresh command reached to DDR/SDRAM */
+      mov r2, #1000
+      mov r1, #0
+      mov r0, #1
+  loop1:  add   r1, r1, r0
+      cmp r1, r2
+      bne loop1
+  }
+  outp32(REG_SDIC_MR,  inpw(REG_SDIC_MR)&~0x100); //Disabe Reset DLL(bit[8]) of DDR2
+  __asm
+  {/*  Delay a moment until the escape self-refresh command reached to DDR/SDRAM */
+      mov r2, #1000
+      mov r1, #0
+      mov r0, #1
+  loop2:  add r1, r1, r0
+      cmp r1, r2
+      bne loop2
+  }
   reg=inpw(REG_CLK_PMCON);   //Enable NUC970 to enter power down mode
   reg = reg & (0xFFFFFFFE); 
   outpw(REG_CLK_PMCON,reg);
+  outp32(REG_SDIC_OPMCTL, (inp32(REG_SDIC_OPMCTL) & ~0x10000));         // set SDIC_OPMCTL[16] low to disable auto power down mode
+  outp32(REG_SDIC_CMD, (inp32(REG_SDIC_CMD) & ~0x20));
   __wfi();
+  outp32(REG_SDIC_CMD, inp32(REG_SDIC_CMD) | 0x20);
+  outp32(REG_SDIC_OPMCTL, (inp32(REG_SDIC_OPMCTL) | 0x10000));         // set SDIC_OPMCTL[16] high to enable auto power down mode;  
 }
 
 volatile int touchwakeup_complete=0;
