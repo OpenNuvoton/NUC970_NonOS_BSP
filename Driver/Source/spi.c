@@ -55,7 +55,7 @@ static spi_dev spi_device[SPI_NUMBER];
 static void spi0ISR(void)
 {
     // clear interrupt flag
-    outpw(REG_SPI0_CNTRL, 0x1 << 16);
+    outpw(REG_SPI0_CNTRL, spi_in((spi_dev *)((uint32_t)&spi_device[0]), CNTRL) | 0x1 << 16);
     spi_device[0].intflag = 1;
 }
 
@@ -67,7 +67,7 @@ static void spi0ISR(void)
 static void spi1ISR(void)
 {
     // clear interrupt flag
-    outpw(REG_SPI1_CNTRL, 0x1 << 16);
+    outpw(REG_SPI1_CNTRL, spi_in((spi_dev *)((uint32_t)&spi_device[1]), CNTRL) | 0x1 << 16);
     spi_device[1].intflag = 1;
 }
 
@@ -137,6 +137,7 @@ int32_t spiIoctl(int32_t fd, uint32_t cmd, uint32_t arg0, uint32_t arg1)
     
     switch(cmd){
         case SPI_IOC_TRIGGER:            
+            dev->intflag = 0;
             spi_out(dev, spi_in(dev, CNTRL) | 0x1 ,CNTRL);
             break;
         
@@ -293,7 +294,7 @@ uint8_t spiGetBusyStatus(int32_t fd)
     dev = (spi_dev *)((uint32_t)&spi_device[fd]);
     
     if(spi_in(dev, CNTRL) & (0x1 << 17))
-        return dev->intflag;
+        return (!dev->intflag);
     else
         return (( spi_in(dev, CNTRL) & 0x1) == 0x1 ? 1:0);
 }
