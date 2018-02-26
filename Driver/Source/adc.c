@@ -370,8 +370,9 @@ int adcReadZ(short *bufZ1, short *bufZ2, int dataCnt)
  * @details     This function is used to ioctl of ADC device library.
  *              Valid parameter combinations listed in following table:
  * |cmd                   |arg1                               |arg2                         |
- * | :------------------- | :-------------------------------  | :-------------------------  |
+ * | :---------------------| :-------------------------------  | :-------------------------  |
  * |\ref START_MST        | NULL                              | NULL                        |
+ * |\ref START_MST_POLLING | NULL                              | NULL                        |
  * |\ref VBPOWER_ON       | NULL                              | NULL                        |
  * |\ref VBPOWER_OFF      | NULL                              | NULL                        |
  * |\ref VBAT_ON          | Callback function                 | UserData                    |
@@ -422,6 +423,18 @@ INT adcIoctl(ADC_CMD cmd, INT32 arg1, INT32 arg2)
           while(!mst_complete);
        }
        break;
+       case START_MST_POLLING:             //Menu Start Conversion
+       {
+          reg = inpw(REG_ADC_IER);
+          reg = reg & ~ADC_IER_MIEN;
+          outpw(REG_ADC_IER, reg);
+          reg = inpw(REG_ADC_CTL);
+          reg = reg | ADC_CTL_MST;
+          outpw(REG_ADC_CTL, reg);
+          while((inpw(REG_ADC_ISR)&ADC_ISR_MF)==0);
+          adcISR();
+       }
+       break;			 
        case VBPOWER_ON:           //Enable ADC Internal Bandgap Power 
        {
           reg = inpw(REG_ADC_CTL);
