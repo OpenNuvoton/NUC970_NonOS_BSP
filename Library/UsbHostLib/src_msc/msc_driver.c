@@ -132,11 +132,10 @@ void msc_reset(MSC_T *msc)
 
     msc_debug_msg("Reset MSC device...\n");
 
-    ret = usbh_ctrl_xfer(udev, REQ_TYPE_OUT | REQ_TYPE_STD_DEV | REQ_TYPE_TO_IFACE,
-                         0xFF, 0, 0, 0, NULL, &read_len, 200);
+    ret = usbh_ctrl_xfer(udev, REQ_TYPE_OUT | REQ_TYPE_CLASS_DEV | REQ_TYPE_TO_IFACE,
+                         0xFF, 0, msc->iface->if_num, 0, NULL, &read_len, 100);
     if (ret < 0) {
         msc_debug_msg("UAMSS reset request failed!\n");
-        return;
     }
 
     usbh_clear_halt(udev, msc->ep_bulk_out->bEndpointAddress);
@@ -265,10 +264,11 @@ int  usbh_umas_read(int drv_no, uint32_t sec_no, int sec_cnt, uint8_t *buff)
     cmd_blk->CDB[7]  = (sec_cnt >> 8) & 0xFF;
     cmd_blk->CDB[8]  = sec_cnt & 0xFF;
 
-    ret = run_scsi_command(msc, buff, sec_cnt * 512, 1, 1000);
-    if (ret < 0) {
+  	ret = run_scsi_command(msc, buff, sec_cnt * 512, 1, 500);
+  	if (ret != 0)
+  	{
         msc_debug_msg("usbh_umas_read failed! [%d]\n", ret);
-        return UMAS_ERR_IO;
+    	return ret; 
     }
     return 0;
 }
@@ -311,7 +311,7 @@ int  usbh_umas_write(int drv_no, uint32_t sec_no, int sec_cnt, uint8_t *buff)
     cmd_blk->CDB[7]  = (sec_cnt >> 8) & 0xFF;
     cmd_blk->CDB[8]  = sec_cnt & 0xFF;
 
-    ret = run_scsi_command(msc, buff, sec_cnt * 512, 0, 1000);
+    ret = run_scsi_command(msc, buff, sec_cnt * 512, 0, 500);
     if (ret < 0) {
         msc_debug_msg("usbh_umas_write failed!\n");
         return UMAS_ERR_IO;
@@ -370,6 +370,30 @@ int  usbh_umas_disk_status(int drv_no)
 {
     if (find_msc_by_drive(drv_no) == NULL)
         return STA_NODISK;
+    return 0;
+}
+
+/**
+ *  @brief    Reset a connected USB mass storage device.
+ *  @param[in] drv_no    USB disk drive number.
+ *  @retval    0          Succes
+ *  @retval    Otherwise  Failed
+ */
+int  usbh_umas_reset_disk(int drv_no)
+{
+    MSC_T      *msc;
+    UDEV_T     *udev;
+    
+    sysprintf("usbh_umas_reset_disk ...\n");
+    
+    msc = find_msc_by_drive(drv_no);
+    if (msc == NULL)
+        return UMAS_ERR_DRIVE_NOT_FOUND;
+
+    udev = msc->iface->udev;
+    
+    usbh_reset_device(udev);
+
     return 0;
 }
 
