@@ -131,8 +131,8 @@ typedef enum
  */
 typedef enum
 {
-   START_MST,						/*!<Menu Start Conversion */
-
+   START_MST,					/*!<Menu Start Conversion with interrupt */
+   START_MST_POLLING,                           /*!<Menu Start Conversion with polling */
    VBPOWER_ON,					/*!<Enable ADC Internal Bandgap Power */
    VBPOWER_OFF,					/*!<Disable ADC Internal Bandgap Power */
    VBAT_ON,							/*!<Enable Voltage Battery conversion function */
