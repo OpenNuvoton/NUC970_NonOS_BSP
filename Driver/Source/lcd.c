@@ -48,7 +48,7 @@ static VPOST_T DEF_E50A2V1 = {  800,                            /*!< Panel width
                                 0x01f001ed};                    /*!< CRTCVR register value */
 
 static VPOST_T DEF_ILI9341_MPU80 = {  
-								240,                            /*!< Panel width */
+                                240,                            /*!< Panel width */
                                 320,                            /*!< Panel height */
                                 VPOSTB_CMDLOW,                  /*!< MPU command line low indicator */
                                 VPOSTB_CM16t18HIGH,             /*!< MPU command width */ 
@@ -57,14 +57,14 @@ static VPOST_T DEF_ILI9341_MPU80 = {
                                 VPOSTB_MPU80,                   /*!< MPU mode */
                                 VPOSTB_COLORTYPE_64K,           /*!< Display colors */
                                 VPOSTB_DEVICE_MPU,              /*!< Type of display panel */
-								0x0056015a,                     /*!< CRTCSIZE register value */
-                                0x00400100,                     /*!< CRTCDEND register value */
-                                0x010a0100,                     /*!< CRTCHR register value */
-                                0x01320128,                     /*!< CRTCHSYNC register value */
-                                0x004c004a};                    /*!< CRTCVR register value */
+                                0x01600100,                     /*!< CRTCSIZE register value */
+                                0x014000F0,                     /*!< CRTCDEND register value */
+                                0x00FA00F5,                     /*!< CRTCHR register value */
+                                0x00FC00FA,                     /*!< CRTCHSYNC register value */
+                                0x01500145};                    /*!< CRTCVR register value */
 
 static VPOST_T DEF_LSA40AT9001 = {
-								800,                            /*!< Panel width */
+                                800,                            /*!< Panel width */
                                 600,                            /*!< Panel height */
                                 0,                              /*!< MPU command line low indicator */
                                 0,                              /*!< MPU command width */
@@ -73,7 +73,7 @@ static VPOST_T DEF_LSA40AT9001 = {
                                 0,                              /*!< MPU mode */
                                 VPOSTB_COLORTYPE_16M,           /*!< Display colors */
                                 VPOSTB_DEVICE_SYNC_HIGHCOLOR,   /*!< Type of display panel */
-								0x02800425,                     /*!< CRTCSIZE register value */
+                                0x02800425,                     /*!< CRTCSIZE register value */
                                 0x02580320,                     /*!< CRTCDEND register value */
                                 0x032F032A,                     /*!< CRTCHR register value */
                                 0x0334032A,                     /*!< CRTCHSYNC register value */
@@ -97,17 +97,17 @@ static LCDFORMATEX curVADev = {0};
 /* For align 32 */
 static uint32_t shift_pointer(uint32_t ptr, uint32_t align)   
 {
-	uint32_t alignedPTR;
-	uint32_t remain;
-	
-	//printf("pointer position is %x\n",ptr);
-	if( (ptr%align)!=0)
-	{
-		remain = ptr % align;
-		alignedPTR = ptr + (align - remain);
-		return alignedPTR;
-	}
-	return ptr;
+    uint32_t alignedPTR;
+    uint32_t remain;
+    
+    //printf("pointer position is %x\n",ptr);
+    if( (ptr%align)!=0)
+    {
+        remain = ptr % align;
+        alignedPTR = ptr + (align - remain);
+        return alignedPTR;
+    }
+    return ptr;
 }
 
 static void vpostIntHandler(void)
@@ -144,11 +144,11 @@ void vpostLCMInit(uint32_t u32DisplayPanelID)
     
     outpw(REG_LCM_DEV_CTRL,   curDisplayDev.u32CmdLow 
                             | curDisplayDev.u32Cmd16t18
-						    | curDisplayDev.u32CmdBusWidth
-						    | curDisplayDev.u32DataBusWidth
-						    | curDisplayDev.u32MPU_Mode
-							| curDisplayDev.u32DisplayColors
-							| curDisplayDev.u32DevType );
+                            | curDisplayDev.u32CmdBusWidth
+                            | curDisplayDev.u32DataBusWidth
+                            | curDisplayDev.u32MPU_Mode
+                            | curDisplayDev.u32DisplayColors
+                            | curDisplayDev.u32DevType );
                                                    
     outpw(REG_LCM_CRTC_SIZE,    curDisplayDev.u32Reg_CRTCSIZE);
     outpw(REG_LCM_CRTC_DEND,    curDisplayDev.u32Reg_CRTCDEND);
@@ -186,7 +186,7 @@ void vpostLCMDeinit(void)
 uint8_t* vpostGetFrameBuffer(void)
 {
     uint8_t* u8BufPtr;
-	uint8_t u32BytePerPixel;
+    uint8_t u32BytePerPixel;
     
     if((curDisplayDev.u32DevWidth == 0) || (curDisplayDev.u32DevHeight == 0))
         return NULL;
@@ -241,10 +241,10 @@ void vpostSetActiveWindow(uint16_t u16StartY, uint16_t u16EndY, uint8_t u8BGColo
   */
 void vpostSetDisplayMode(uint8_t u8DisplayMode)
 {
-	if (u8DisplayMode==0)
-		outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) & ~(1<<7));//clear setting
-	else		
-    	outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | (u8DisplayMode) << 7);
+    if (u8DisplayMode==0)
+        outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) & ~(1<<7));//clear setting
+    else        
+        outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | (u8DisplayMode) << 7);
 }
 
 /**
@@ -266,15 +266,15 @@ void vpostSetVASrc(uint32_t u32VASrcType)
     curVADev.ucVASrcFormat = u32VASrcType;
     
     outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) & ~(7<<8));
-	if (u32VASrcType != 0)
-		outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | u32VASrcType);
-	else
-		outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) & ~(7<<8));
+    if (u32VASrcType != 0)
+        outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | u32VASrcType);
+    else
+        outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) & ~(7<<8));
     
     if ((u32VASrcType==VA_SRC_RGB888)||(u32VASrcType==VA_SRC_RGB666))
         outpw(REG_LCM_VA_FBCTRL,inpw(REG_LCM_VA_FBCTRL) &~0x7ff07ff | (curDisplayDev.u32DevWidth << 16) | curDisplayDev.u32DevWidth);
-	else
-		outpw(REG_LCM_VA_FBCTRL,inpw(REG_LCM_VA_FBCTRL) &~0x7ff07ff | ((curDisplayDev.u32DevWidth/2) << 16) | (curDisplayDev.u32DevWidth/2)); 
+    else
+        outpw(REG_LCM_VA_FBCTRL,inpw(REG_LCM_VA_FBCTRL) &~0x7ff07ff | ((curDisplayDev.u32DevWidth/2) << 16) | (curDisplayDev.u32DevWidth/2)); 
     
     switch(u32VASrcType)
     {
@@ -294,7 +294,7 @@ void vpostSetVASrc(uint32_t u32VASrcType)
     }
     
     /* set video stream frame buffer control */
-	VA_FF = curDisplayDev.u32DevWidth * u32BytePerPixel / 4;
+    VA_FF = curDisplayDev.u32DevWidth * u32BytePerPixel / 4;
     VA_Sride = curDisplayDev.u32DevWidth * u32BytePerPixel / 4;
     outpw(REG_LCM_VA_FBCTRL,inpw(REG_LCM_VA_FBCTRL) &~0x7ff07ff | (VA_FF<<16) | VA_Sride);
 }
@@ -307,7 +307,7 @@ void vpostSetVASrc(uint32_t u32VASrcType)
 void vpostVAStartTrigger(void)
 {
     if((inpw(REG_LCM_DCCS) & VPOSTB_SINGLE) == VPOSTB_SINGLE)
-    	while((inpw(REG_LCM_DCCS) & VPOSTB_VA_EN) == VPOSTB_VA_EN);//wait VA_EN low
+        while((inpw(REG_LCM_DCCS) & VPOSTB_VA_EN) == VPOSTB_VA_EN);//wait VA_EN low
     outpw(REG_LCM_DCCS,inpw(REG_LCM_DCCS) | VPOSTB_DISP_OUT_EN); //display_out-enable
     outpw(REG_LCM_DCCS,inpw(REG_LCM_DCCS) | VPOSTB_VA_EN); //va-enable
 }
@@ -335,8 +335,8 @@ void vpostVAStopTrigger(void)
   */
 void vpostVAScalingCtrl(uint8_t u8HIntegral, uint16_t u16HDecimal, uint8_t u8VIntegral, uint16_t u16VDecimal, uint32_t u32Mode)
 {
-	outpw(REG_LCM_VA_SCALE,((((uint32_t)u8VIntegral << 10) + ((uint32_t)ceil((double)1024/10)*u16VDecimal)) << 16)
-							| (((uint32_t)u8HIntegral << 10) + ((uint32_t)ceil((double)1024/10)*u16HDecimal)) | u32Mode);
+    outpw(REG_LCM_VA_SCALE,((((uint32_t)u8VIntegral << 10) + ((uint32_t)ceil((double)1024/10)*u16VDecimal)) << 16)
+                            | (((uint32_t)u8HIntegral << 10) + ((uint32_t)ceil((double)1024/10)*u16HDecimal)) | u32Mode);
 }
 
 /**
@@ -401,8 +401,8 @@ void vpostOSDDisableBlinking(void)
   * @return none
   */
 void vpostSetOSDSrc(uint32_t u32OSDSrcType)
-{	
-	uint32_t u32BytePerPixel, VA_FF, VA_Sride;
+{   
+    uint32_t u32BytePerPixel, VA_FF, VA_Sride;
     
     outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) &~(7<<12) | u32OSDSrcType);
     curOSDDev.ucOSDSrcFormat = u32OSDSrcType;
@@ -425,7 +425,7 @@ void vpostSetOSDSrc(uint32_t u32OSDSrcType)
     }
     
     /* set video stream frame buffer control */
-	VA_FF = curOSDDev.nOSDWidth * u32BytePerPixel / 4;
+    VA_FF = curOSDDev.nOSDWidth * u32BytePerPixel / 4;
     VA_Sride = curOSDDev.nOSDWidth * u32BytePerPixel / 4;
     outpw(REG_LCM_OSD_FBCTRL, inpw(REG_LCM_OSD_FBCTRL) &~0x7ff07ff | (VA_FF<<16) | VA_Sride);
 }
@@ -439,12 +439,12 @@ void vpostSetOSDSrc(uint32_t u32OSDSrcType)
   */
 uint8_t* vpostGetOSDBuffer(void)
 {
-	uint32_t u32BytePerPixel;
+    uint32_t u32BytePerPixel;
     uint8_t* u8BufPtr;
     
     if ((curOSDDev.nOSDWidth == 0) || (curOSDDev.nOSDHeight == 0)){
-		return NULL; 
-	}
+        return NULL; 
+    }
     
     switch(curOSDDev.ucOSDSrcFormat)
     {
@@ -466,9 +466,9 @@ uint8_t* vpostGetOSDBuffer(void)
     u8BufPtr = (uint8_t *)malloc((curOSDDev.nOSDWidth * curOSDDev.nOSDHeight * u32BytePerPixel)+32);
     u8BufPtr = (uint8_t *)shift_pointer((uint32_t)u8BufPtr, 32);
     
-	outpw(REG_LCM_OSD_BADDR, (uint32_t)((uint32_t)u8BufPtr | 0x80000000));
-	
-	return (uint8_t *)((uint32_t)u8BufPtr | 0x80000000);
+    outpw(REG_LCM_OSD_BADDR, (uint32_t)((uint32_t)u8BufPtr | 0x80000000));
+    
+    return (uint8_t *)((uint32_t)u8BufPtr | 0x80000000);
 }
 
 /**
@@ -495,7 +495,7 @@ void vpostOSDScalingCtrl(uint8_t u8HIntegral, uint16_t u16HDecimal,uint8_t u8VSc
 {
     outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS)&0xfff0ffff); //clear OSD scaling setting
     if (u8VScall!=0)
-    	outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | (u8VScall<<16));   
+        outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | (u8VScall<<16));   
     outpw(REG_LCM_OSD_SCALE, ((uint32_t)u8HIntegral<<10) | ((uint32_t)ceil((double)1024/10*u16HDecimal))<<6);
 }
 
@@ -530,52 +530,52 @@ void vpostOSDSetWindow(uint32_t u32XStart,uint32_t u32YStart,uint32_t u32Width,u
   */
 void vpostHCInit(uint32_t *u32CursorBMPBuff, VA_HCMODE_E ucMode)
 {
-	int bpp=2;
-	int BlockWidth=32;
-	int bpw=32;
+    int bpp=2;
+    int BlockWidth=32;
+    int bpw=32;
     
-	outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x003f3f00 | (0x00<<8) | (0x00<<16));//set TIP
-	if (ucMode == HC_MODE0)
-	{
-		bpp=2;
-		BlockWidth=32;
-		outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7);//set mode 0 32X32X2bpp 4 color
-		
-	}
-	else if (ucMode == HC_MODE1)
-	{
-		bpp=2;
-		BlockWidth=32;
-		outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x1);//set mode 1 32X32X2bpp 3 color and 1 transparent
-	}
-	else if (ucMode == HC_MODE2)
-	{
-		bpp=2;
-		BlockWidth=64;
-		outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x2);//set mode 2 64X64X2bpp 4 color
-	}
-	else if (ucMode == HC_MODE3)
-	{
-		bpp=2;
-		BlockWidth=64;
-		outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x3);//set mode 3 64X64X2bpp 3 color and 1 transparent
-	}
-	else if (ucMode == HC_MODE4)
-	{
-		bpp=1;
-		BlockWidth=128;
-		outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x4);//set mode 4 128X128X1bpp 2 color
-	}
-	else if (ucMode == HC_MODE5)
-	{
-		bpp=1;
-		BlockWidth=128;
-		outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x5);//set mode 5 128X128X1bpp 1 color and 1 transparent
-	}
-	
-	outpw(REG_LCM_HC_WBCTRL,((bpp*BlockWidth/bpw)<<16) | (bpp*BlockWidth/bpw) );
-	outpw(REG_LCM_HC_BADDR,(uint32_t)u32CursorBMPBuff);
-	outpw(REG_LCM_HC_COLOR0, 0x00ff0000);       // RED color
+    outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x003f3f00 | (0x00<<8) | (0x00<<16));//set TIP
+    if (ucMode == HC_MODE0)
+    {
+        bpp=2;
+        BlockWidth=32;
+        outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7);//set mode 0 32X32X2bpp 4 color
+        
+    }
+    else if (ucMode == HC_MODE1)
+    {
+        bpp=2;
+        BlockWidth=32;
+        outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x1);//set mode 1 32X32X2bpp 3 color and 1 transparent
+    }
+    else if (ucMode == HC_MODE2)
+    {
+        bpp=2;
+        BlockWidth=64;
+        outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x2);//set mode 2 64X64X2bpp 4 color
+    }
+    else if (ucMode == HC_MODE3)
+    {
+        bpp=2;
+        BlockWidth=64;
+        outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x3);//set mode 3 64X64X2bpp 3 color and 1 transparent
+    }
+    else if (ucMode == HC_MODE4)
+    {
+        bpp=1;
+        BlockWidth=128;
+        outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x4);//set mode 4 128X128X1bpp 2 color
+    }
+    else if (ucMode == HC_MODE5)
+    {
+        bpp=1;
+        BlockWidth=128;
+        outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x5);//set mode 5 128X128X1bpp 1 color and 1 transparent
+    }
+    
+    outpw(REG_LCM_HC_WBCTRL,((bpp*BlockWidth/bpw)<<16) | (bpp*BlockWidth/bpw) );
+    outpw(REG_LCM_HC_BADDR,(uint32_t)u32CursorBMPBuff);
+    outpw(REG_LCM_HC_COLOR0, 0x00ff0000);       // RED color
     outpw(REG_LCM_HC_COLOR1, 0x0000ff00);       // GREEN color                
     outpw(REG_LCM_HC_COLOR2, 0x000000ff);       // BLUE color                                
     outpw(REG_LCM_HC_COLOR3, 0x00ffff00);       // YELLOW color
@@ -590,7 +590,7 @@ void vpostHCInit(uint32_t *u32CursorBMPBuff, VA_HCMODE_E ucMode)
   */
 void vpostHCPosCtrl(uint32_t u32CursorX, uint32_t u32CursorY)
 {
-	outpw(REG_LCM_HC_POS, (u32CursorY <<16) | u32CursorX);  //set Cursor position
+    outpw(REG_LCM_HC_POS, (u32CursorY <<16) | u32CursorX);  //set Cursor position
 }
 
 /**
@@ -613,17 +613,17 @@ void vpostOSDSetOverlay(uint8_t u8OSDDisplayMatch, uint8_t u8OSDDisplayUnMatch, 
     
     /* match condition */
     if (u8OSDDisplayMatch != 0){
-    	outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY) | (u8OSDDisplayMatch<<2));
+        outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY) | (u8OSDDisplayMatch<<2));
     }
     
     /* unmatch condition */
     if (u8OSDDisplayUnMatch != 0){
-    	outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY) | (u8OSDDisplayUnMatch));
+        outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY) | (u8OSDDisplayUnMatch));
     }
     
     /* synthesized weight */
     if (u8OSDDisplayMatch == DISPLAY_SYNTHESIZED || u8OSDDisplayUnMatch == DISPLAY_SYNTHESIZED){
-    	outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY) | (u8OSDSynW<<4));
+        outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY) | (u8OSDSynW<<4));
     }
 }
 
@@ -655,7 +655,7 @@ void vpostMPUWriteData(uint16_t usdata)
     outpw(REG_LCM_DCCS,(inpw(REG_LCM_DCCS) | (1<<5)));              //CMD ON
     outpw(REG_LCM_MPU_CMD,inpw(REG_LCM_MPU_CMD) & 0xffff0000 |usdata);
     while(inpw(REG_LCM_MPU_CMD) & (1UL<<31));
-	outpw(REG_LCM_DCCS,(inpw(REG_LCM_DCCS) & ~(1<<5)));             //CMD OFF
+    outpw(REG_LCM_DCCS,(inpw(REG_LCM_DCCS) & ~(1<<5)));             //CMD OFF
 }
 
 /**
