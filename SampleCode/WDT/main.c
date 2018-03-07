@@ -22,10 +22,6 @@ void WDT_IRQHandler(void)
 
 int main(void)
 {
-    // Disable all interrupts.
-    outpw(REG_AIC_MDCR, 0xFFFFFFFE);
-    outpw(REG_AIC_MDCRH, 0x3FFFFFFF);
-
     sysDisableCache();
     sysFlushCache(I_D_CACHE);
     sysEnableCache(CACHE_WRITE_BACK);

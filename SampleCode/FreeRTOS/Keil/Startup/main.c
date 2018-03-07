@@ -228,10 +228,6 @@ static void prvSetupHardware( void )
     /* Perform the hardware setup required.  This is minimal as most of the
     setup is managed by the settings in the project file. */
 
-    // Disable all interrupts.
-    outpw(REG_AIC_MDCR, 0xFFFFFFFE);
-    outpw(REG_AIC_MDCRH, 0x3FFFFFFF);
-
     sysDisableCache();
     sysFlushCache(I_D_CACHE);
     sysEnableCache(CACHE_WRITE_BACK);

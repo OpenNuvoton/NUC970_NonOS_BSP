@@ -34,6 +34,8 @@ SVC_Stack       EQU     RAM_Limit-1024      ; SVC stack at top of memory
 IRQ_Stack       EQU     RAM_Limit-10240     ; followed by IRQ stack
 USR_Stack       EQU     RAM_Limit-20480
 
+REG_AIC_MDCR    EQU     0xB8002138  ; Mask disable command register
+REG_AIC_MDCRH   EQU     0xB800213C  ; Mask disable command register (High)
 
     ENTRY
     EXPORT  Reset_Go
@@ -82,7 +84,12 @@ FIQ_Handler
 
 
 Reset_Go
-
+    ; Disable Interrupt in case code is load by ICE while other firmware is executing
+    LDR    r0, =REG_AIC_MDCR
+    LDR    r1, =0xFFFFFFFF
+    STR    r1, [r0]
+    LDR    r0, =REG_AIC_MDCRH
+    STR    r1, [r0]
     ;--------------------------------
     ; Initial Stack Pointer register
     ;--------------------------------

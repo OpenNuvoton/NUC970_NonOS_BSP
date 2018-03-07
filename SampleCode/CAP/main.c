@@ -149,8 +149,7 @@ int main(void)
 {
   uint8_t *u8FrameBufPtr;
   UINT32 u32Item;
-  *((volatile unsigned int *)REG_AIC_MDCR)=0xFFFFFFFF;  // disable all interrupt channel
-  *((volatile unsigned int *)REG_AIC_MDCRH)=0xFFFFFFFF;  // disable all interrupt channel;
+
   *(volatile unsigned int *)(CLK_BA+0x18) |= (1<<16); /* Enable UART0 */
   sysDisableCache();
   sysFlushCache(I_D_CACHE);
