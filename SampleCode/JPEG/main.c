@@ -159,11 +159,10 @@ void SYS_Init(void)
 	
 	outpw(REG_SDH_ECTL, 0);
 
-    /* initial SD1 pin -> PE2~9 */
-    outpw(REG_SYS_GPE_MFPL, inpw(REG_SYS_GPE_MFPL) & ~0xffffff00 | 0x66666600);
-    outpw(REG_SYS_GPE_MFPH, inpw(REG_SYS_GPE_MFPH) & ~0x000000ff | 0x00000066);
+    /* SD Port 0 -> PD0~7 */
+    outpw(REG_SYS_GPD_MFPL, 0x66666666);
 
-    SD_Drv = 1;
+    SD_Drv = 0;
     
 }
 
@@ -189,7 +188,7 @@ INT32 main()
 {	
 	UINT8 u8Item;
 	BOOL bLoop = TRUE;
-	TCHAR		sd_path[] = { '1', ':', 0 };    /* SD drive started from 0 */
+	TCHAR		sd_path[] = { '0', ':', 0 };    /* SD drive started from 0 */
 	
     sysInitializeUART();
 	
@@ -217,7 +216,7 @@ INT32 main()
 	sysEnableInterrupt(SDH_IRQn);
 	
 	SD_SetReferenceClock(300000);
-	SD_Open_(SD_PORT1 | CardDetect_From_GPIO);
+	SD_Open_(SD_PORT0 | CardDetect_From_GPIO);
 	f_chdrive(sd_path);          /* set default path */
 	   	
 	/* JPEG Open */
