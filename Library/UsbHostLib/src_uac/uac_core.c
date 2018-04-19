@@ -630,7 +630,7 @@ int usbh_uac_start_audio_in(UAC_DEV_T *uac, UAC_CB_FUNC *func)
     ep = asif->ep;
 
 #ifdef UAC_DEBUG
-    UAC_DBGMSG("Actived isochronous-in endpoint =>");
+    UAC_DBGMSG("Active isochronous-in endpoint =>");
     usbh_dump_ep_info(ep);
 #endif
 
@@ -843,7 +843,7 @@ int usbh_uac_start_audio_out(UAC_DEV_T *uac, UAC_CB_FUNC *func)
         if (((ep->bEndpointAddress & EP_ADDR_DIR_MASK) == EP_ADDR_DIR_OUT) &&
                 ((ep->bmAttributes & EP_ATTR_TT_MASK) == EP_ATTR_TT_ISO)) {
             asif->ep = ep;
-            UAC_DBGMSG("Aduio in endpoint 0x%x found, size: %d\n", ep->bEndpointAddress, ep->wMaxPacketSize);
+            UAC_DBGMSG("Audio in endpoint 0x%x found, size: %d\n", ep->bEndpointAddress, ep->wMaxPacketSize);
             break;
         }
     }
@@ -852,7 +852,7 @@ int usbh_uac_start_audio_out(UAC_DEV_T *uac, UAC_CB_FUNC *func)
     ep = asif->ep;
 
 #ifdef UAC_DEBUG
-    UAC_DBGMSG("Actived isochronous-out endpoint =>");
+    UAC_DBGMSG("Active isochronous-out endpoint =>");
     usbh_dump_ep_info(ep);
 #endif
 

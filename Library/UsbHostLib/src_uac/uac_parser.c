@@ -256,7 +256,7 @@ static int  uac_parse_as_interface(AS_IF_T *asif, uint8_t *bptr)
             }
         }
         if (i >= aif->ifd->bNumEndpoints) {
-            UAC_ERRMSG("Ednpoint 0x%x parsing error!\n", ((DESC_EP_T *)bptr)->bEndpointAddress);
+            UAC_ERRMSG("Endpoint 0x%x parsing error!\n", ((DESC_EP_T *)bptr)->bEndpointAddress);
             return UAC_RET_PARSER;
         }
         return 0;
@@ -521,7 +521,7 @@ int uac_parse_streaming_interface(UAC_DEV_T *uac, IFACE_T *iface, uint8_t bAlter
         }
         memcpy(&uac->asif_out, &asif, sizeof(asif));
     } else {
-        UAC_ERRMSG("Interface cannot find iso enpoints!\n");
+        UAC_ERRMSG("Interface cannot find iso endpoints!\n");
         return UAC_RET_PARSER;
     }
 

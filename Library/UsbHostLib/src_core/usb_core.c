@@ -397,7 +397,7 @@ void usbh_dump_interface_descriptor(DESC_IF_T *if_desc)
 
 void usbh_dump_endpoint_descriptor(DESC_EP_T *ep_desc)
 {
-    USB_debug("\n        [Endoint Descriptor]\n");
+    USB_debug("\n        [Endpoint Descriptor]\n");
     USB_debug("        ----------------------------------------------\n");
     USB_debug("          Length              = %2d\n",  ep_desc->bLength);
     USB_debug("          DescriptorType      = %02x\n", ep_desc->bDescriptorType);
@@ -880,7 +880,7 @@ static int  usbh_parse_configuration(UDEV_T *udev, uint8_t *desc_buff)
 
         desc_buff += ret;
         len -= ret;
-        USB_vdebug("IFACE parse remaning %d\n", len);
+        USB_vdebug("IFACE parse remaining %d\n", len);
     }
 
     if (len > 0) {
@@ -963,7 +963,7 @@ int  connect_device(UDEV_T *udev)
     if (udev->descriptor.iManufacturer != 0) 
     {
         usbh_get_string_descriptor(udev, udev->descriptor.iManufacturer, str_buff, MAX_DESC_BUFF_SIZE);  
-        print_usb_string("Manufactor: ", str_buff);	
+        print_usb_string("Manufacturer: ", str_buff);	
 	}
     if (udev->descriptor.iProduct != 0) 
     {
@@ -1210,7 +1210,7 @@ void usbh_dump_iface(IFACE_T *iface)
 
 void usbh_dump_ep_info(EP_INFO_T *ep)
 {
-    USB_debug("\n  [Endoint Info] (0x%x)\n", (int)ep);
+    USB_debug("\n  [Endpoint Info] (0x%x)\n", (int)ep);
     USB_debug("  ----------------------------------------------\n");
     USB_debug("  bEndpointAddress    = 0x%02x\n", ep->bEndpointAddress);
     USB_debug("  bmAttributes        = 0x%02x\n", ep->bmAttributes);

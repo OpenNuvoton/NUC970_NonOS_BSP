@@ -130,7 +130,7 @@ static int  uac_probe(IFACE_T *iface)
                 return UAC_RET_IO_ERR;
             }
         } else {
-            UAC_ERRMSG("Cannot find audio stream ednpoints!\n");
+            UAC_ERRMSG("Cannot find audio stream endpoints!\n");
             return UAC_RET_DEV_NOT_FOUND;
         }
 

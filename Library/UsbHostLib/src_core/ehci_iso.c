@@ -232,7 +232,7 @@ void scan_isochronous_list(void)
                     }
 
                     if (sp == NULL) {                 /* link list out of control!         */
-                        USB_error("An siTD lost refernece to periodic frame list! 0x%x -> %d\n", (int)sitd, frnidx);
+                        USB_error("An siTD lost reference to periodic frame list! 0x%x -> %d\n", (int)sitd, frnidx);
                     } else {                          /* remove iTD from list              */
                         sp->Next_Link = sitd->Next_Link;
                     }
@@ -743,7 +743,7 @@ int ehci_quit_iso_xfer(UTR_T *utr, EP_INFO_T *ep)
             }
 
             if (p == NULL) {                /* link list out of control!                  */
-                USB_error("ehci_quit_iso_xfer - An iTD lost refernece to periodic frame list! 0x%x -> %d\n", (int)itd, frnidx);
+                USB_error("ehci_quit_iso_xfer - An iTD lost reference to periodic frame list! 0x%x -> %d\n", (int)itd, frnidx);
             } else {                        /* remove iTD from list                       */
                 p->Next_Link = itd->Next_Link;
             }

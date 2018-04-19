@@ -279,7 +279,7 @@ void  USB_free(void *alloc_addr)
 	}
 	if (pMblk->magic != USB_MEM_ALLOC_MAGIC)
 	{
-		sysprintf("USB_free(), warning - try to free an unknow block at address:%x.\n", addr);
+		sysprintf("USB_free(), warning - try to free an unknown block at address:%x.\n", addr);
 		if (!_IsInUsbInterrupt)
 		{
 			ENABLE_OHCI_IRQ();
