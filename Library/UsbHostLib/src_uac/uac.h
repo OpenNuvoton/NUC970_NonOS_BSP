@@ -16,7 +16,8 @@
 #define UAC_DBGMSG(...)
 #endif
 
-typedef enum {
+typedef enum
+{
     UAC_STATE_CONNECTING,
     UAC_STATE_READY,
     UAC_STATE_RUNNING,
@@ -159,7 +160,8 @@ typedef enum {
 /*-----------------------------------------------------------------------------------
  *  Audio Class Control Interface Descriptor header
  */
-typedef struct cs_hdr_t {                   /*! Audio Class-Specific AC Interface Header Descriptor   */
+typedef struct cs_hdr_t                     /*! Audio Class-Specific AC Interface Header Descriptor   */
+{
     __packed uint8_t  bLength;              /*!< Size of this descriptor in bytes                     */
     __packed uint8_t  bDescriptorType;      /*!< CS_INTERFACE descriptor type 0x24                    */
     __packed uint8_t  bDescriptorSubtype;   /*!< HEADER descriptor subtype                            */
@@ -169,7 +171,8 @@ typedef struct cs_hdr_t {                   /*! Audio Class-Specific AC Interfac
 /*-----------------------------------------------------------------------------------
  *  Class-Specific AC Interface Header Descriptor (4.3.2)
  */
-typedef struct ac_if_header {               /*! Audio Class-Specific AC Interface Header Descriptor   */
+typedef struct ac_if_header                 /*! Audio Class-Specific AC Interface Header Descriptor   */
+{
     __packed uint8_t  bLength;              /*!< Size of this descriptor, in bytes: 8+n               */
     __packed uint8_t  bDescriptorType;      /*!< CS_INTERFACE descriptor type; 0x24                   */
     __packed uint8_t  bDescriptorSubtype;   /*!< HEADER descriptor subtype; 0x1                       */
@@ -185,7 +188,8 @@ typedef struct ac_if_header {               /*! Audio Class-Specific AC Interfac
 /*-----------------------------------------------------------------------------------
  *  UAC Input Terminal Descriptor
  */
-typedef struct ac_itd_t {                   /*! Audio Class-Specific Input Terminal Descriptor        */
+typedef struct ac_itd_t                     /*! Audio Class-Specific Input Terminal Descriptor        */
+{
     __packed uint8_t  bLength;              /*!< Size of this descriptor, in bytes: 12                */
     __packed uint8_t  bDescriptorType;      /*!< CS_INTERFACE descriptor type; 0x24                   */
     __packed uint8_t  bDescriptorSubtype;   /*!< INPUT_TERMINAL descriptor subtype; 0x2               */
@@ -202,7 +206,8 @@ typedef struct ac_itd_t {                   /*! Audio Class-Specific Input Termi
 /*-----------------------------------------------------------------------------------
  *  UAC Output Terminal Descriptor
  */
-typedef struct ac_otd_t {
+typedef struct ac_otd_t
+{
     __packed uint8_t  bLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bDescriptorSubtype;
@@ -264,7 +269,8 @@ typedef struct ac_otd_t {
 /*----------------------------------------------------------------------------------------*/
 /*  UAC Mixer Unit Descriptor                                                             */
 /*----------------------------------------------------------------------------------------*/
-typedef struct ac_mxr_t {
+typedef struct ac_mxr_t
+{
     __packed uint8_t  bLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bDescriptorSubtype;
@@ -276,7 +282,8 @@ typedef struct ac_mxr_t {
 /*-----------------------------------------------------------------------------------
  *  UAC Selector Unit Descriptor
  */
-typedef struct ac_su_t {
+typedef struct ac_su_t
+{
     __packed uint8_t  bLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bDescriptorSubtype;
@@ -288,7 +295,8 @@ typedef struct ac_su_t {
 /*-----------------------------------------------------------------------------------
  *  UAC Feature Unit Descriptor
  */
-typedef struct ac_fu_t {
+typedef struct ac_fu_t
+{
     __packed uint8_t  bLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bDescriptorSubtype;
@@ -314,7 +322,8 @@ typedef struct ac_fu_t {
 /*-----------------------------------------------------------------------------------
  *  UAC AS Isochronous Audio Data Endpoint Descriptor
  */
-typedef struct as_gen_t {
+typedef struct as_gen_t
+{
     __packed uint8_t  bLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bDescriptorSubtype;
@@ -327,7 +336,8 @@ typedef struct as_gen_t {
 /*-----------------------------------------------------------------------------------
  *  UAC Processing Unit Descriptor
  */
-typedef struct ac_pu_t {
+typedef struct ac_pu_t
+{
     __packed uint8_t  bLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bDescriptorSubtype;
@@ -340,7 +350,8 @@ typedef struct ac_pu_t {
 /*-----------------------------------------------------------------------------------
  *  Class-Specific AS Isochronous Audio Data Endpoint Descriptor
  */
-typedef struct cs_ep_t {
+typedef struct cs_ep_t
+{
     __packed uint8_t  bLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bDescriptorSubtype;
@@ -353,7 +364,8 @@ typedef struct cs_ep_t {
 /*-----------------------------------------------------------------------------------
  *  UAC Type I Format Type Descriptor
  */
-typedef struct ac_ft1_t {
+typedef struct ac_ft1_t
+{
     __packed uint8_t  bLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bDescriptorSubtype;
@@ -368,7 +380,8 @@ typedef struct ac_ft1_t {
 /*-----------------------------------------------------------------------------------
  *  UAC Type 2 Format Type Descriptor
  */
-typedef struct ac_ft2_t {
+typedef struct ac_ft2_t
+{
     __packed uint8_t  bLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bDescriptorSubtype;
@@ -381,7 +394,8 @@ typedef struct ac_ft2_t {
 /*-----------------------------------------------------------------------------------
  *  UAC Type 3 Format Type Descriptor
  */
-typedef struct ac_ft3_t {
+typedef struct ac_ft3_t
+{
     __packed uint8_t  bLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bDescriptorSubtype;

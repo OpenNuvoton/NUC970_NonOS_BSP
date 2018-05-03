@@ -25,12 +25,16 @@
 
 #define ENABLE_OHCI_IRQ()      sysEnableInterrupt(OHCI_IRQn)
 #define DISABLE_OHCI_IRQ()     sysDisableInterrupt(OHCI_IRQn)
+#define IS_OHCI_IRQ_ENABLED()  ((inpw(REG_AIC_IMR)>>OHCI_IRQn) & 0x1)
 #define ENABLE_EHCI_IRQ()      sysEnableInterrupt(EHCI_IRQn)
 #define DISABLE_EHCI_IRQ()     sysDisableInterrupt(EHCI_IRQn)
+#define IS_EHCI_IRQ_ENABLED()  ((inpw(REG_AIC_IMR)>>EHCI_IRQn) & 0x1)
 
 #define ENABLE_OHCI                         /* Enable OHCI host controller                */
 #define ENABLE_EHCI                         /* Enable EHCI host controller                */
 
+#define EHCI_PORT_CNT          2            /* Number of EHCI roothub ports               */
+#define OHCI_PORT_CNT          2            /* Number of OHCI roothub ports               */
 //#define OHCI_PER_PORT_POWER               /* OHCI root hub per port powered             */
 
 #define OHCI_ISO_DELAY         4            /* preserved number frames while scheduling 
@@ -43,7 +47,7 @@
                                                unconditionally reclaim iTD/isTD scheduled
                                                in just elapsed EHCI_ISO_RCLM_RANGE ms.    */
 
-#define MAX_DESC_BUFF_SIZE     512          /* To hold the configuration descriptor, USB 
+#define MAX_DESC_BUFF_SIZE     1024         /* To hold the configuration descriptor, USB 
                                                core will allocate a buffer with this size
                                                for each connected device. USB core does 
                                                not release it until device disconnected.  */
@@ -82,7 +86,7 @@
 #define ENABLE_ERROR_MSG                    /* enable debug messages                      */
 #define ENABLE_DEBUG_MSG                    /* enable debug messages                      */
 //#define ENABLE_VERBOSE_DEBUG              /* verbos debug messages                      */
-#define DUMP_DESCRIPTOR                     /* dump descriptors                           */
+//#define DUMP_DESCRIPTOR                   /* dump descriptors                           */
 
 #ifdef ENABLE_ERROR_MSG
 #define USB_error            sysprintf
@@ -107,9 +111,9 @@
 #define   __IO    volatile             /*!< Defines 'read / write' permissions */
 
 
-typedef unsigned int     uint32_t;   
-typedef unsigned short   uint16_t;   
-typedef unsigned char    uint8_t;   
+typedef unsigned int     uint32_t;
+typedef unsigned short   uint16_t;
+typedef unsigned char    uint8_t;
 
 
 
@@ -119,7 +123,8 @@ typedef unsigned char    uint8_t;
     Memory Mapped Structure for USBH Controller
 @{ */
 
-typedef struct {
+typedef struct
+{
 
     /**
      * @var USBH_T::HcRevision
@@ -891,7 +896,8 @@ typedef struct {
     Memory Mapped Structure for HSUSBH Controller
 @{ */
 
-typedef struct {
+typedef struct
+{
 
 
     /**

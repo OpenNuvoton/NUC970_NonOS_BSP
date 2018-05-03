@@ -105,6 +105,18 @@ extern "C"
 #define UAC_RET_PARSER              -2013  /*!< Failed to parse UAC descriptor                  */
 #define UAC_RET_IS_STREAMING        -2015  /*!< Audio pipe is on streaming.                     */
 
+#define UVC_RET_OK                   0     /*!< Return with no errors.                          */
+#define UVC_RET_DEV_NOT_FOUND       -3001  /*!< Video Class device not found or removed.        */
+#define UVC_RET_FUNC_NOT_FOUND      -3002  /*!< video device has no this function.              */
+#define UVC_RET_IO_ERR              -3003  /*!< USB transfer failed.                            */
+#define UVC_RET_DATA_LEN            -3004  /*!< Unexpected transfer length                      */
+#define UVC_RET_INVALID             -3005  /*!< Invalid parameter or usage.                     */
+#define UVC_RET_OUT_OF_MEMORY       -3007  /*!< Out of memory.                                  */
+#define UVC_RET_DRV_NOT_SUPPORTED   -3009  /*!< Function not supported by this UVC driver.      */
+#define UVC_RET_DEV_NOT_SUPPORTED   -3011  /*!< Function not supported by the UVC device.       */
+#define UVC_RET_NOT_SUPPORT         -3012  /*!< Not supported.                                  */
+#define UVC_RET_PARSER              -3013  /*!< Failed to parse UVC descriptor                  */
+#define UVC_RET_IS_STREAMING        -3015  /*!< Video pipe is on streaming.                     */
 
 /*@}*/ /* end of group NUC980_USBH_EXPORTED_CONSTANTS */
 
@@ -121,6 +133,19 @@ typedef void (HID_IW_FUNC)(struct usbhid_dev *hdev, uint16_t ep_addr, int status
 
 struct uac_dev_t;
 typedef int (UAC_CB_FUNC)(struct uac_dev_t *dev, uint8_t *data, int len);    /*!< audio in callback function \hideinitializer */
+
+struct uvc_dev_t;
+typedef int (UVC_CB_FUNC)(struct uvc_dev_t *dev, uint8_t *data, int len);    /*!< video callback function \hideinitializer */
+
+typedef enum image_format_e
+{
+    UVC_FORMAT_INVALID = 0,
+    UVC_FORMAT_YUY2    = 1,
+    UVC_FORMAT_NV12    = 2,
+    UVC_FORMAT_M420    = 3,
+    UVC_FORMAT_I420    = 4,
+    UVC_FORMAT_MJPEG   = 11,
+}  IMAGE_FORMAT_E;
 
 /*@}*/ /* end of group NUC980_USBH_EXPORTED_STRUCT */
 
@@ -195,6 +220,18 @@ extern int usbh_uac_stop_audio_in(struct uac_dev_t *audev);
 extern int usbh_uac_start_audio_out(struct uac_dev_t *uac, UAC_CB_FUNC *func);
 extern int usbh_uac_stop_audio_out(struct uac_dev_t *audev);
 
+/*------------------------------------------------------------------*/
+/*                                                                  */
+/*  USB Video Class Library APIs                                    */
+/*                                                                  */
+/*------------------------------------------------------------------*/
+extern void usbh_uvc_init(void);
+extern struct uvc_dev_t * usbh_uvc_get_device_list(void);
+extern int  usbh_get_video_format(struct uvc_dev_t *vdev, int index, IMAGE_FORMAT_E *format, int *width, int *height);
+extern int  usbh_set_video_format(struct uvc_dev_t *vdev, IMAGE_FORMAT_E format, int width, int height);
+extern void usbh_uvc_set_video_buffer(struct uvc_dev_t *vdev, uint8_t *image_buff, int img_buff_size);
+extern int usbh_uvc_start_streaming(struct uvc_dev_t *vdev, UVC_CB_FUNC *func);
+extern int usbh_uvc_stop_streaming(struct uvc_dev_t *vdev);
 
 /// @cond HIDDEN_SYMBOLS
 

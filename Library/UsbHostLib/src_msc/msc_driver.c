@@ -39,8 +39,10 @@ static int fatfs_drive_alloc()
 {
     int  i;
 
-    for (i = 0; i < USBDRV_CNT; i++) {
-        if (g_fat_drv_used[i] == 0) {
+    for (i = 0; i < USBDRV_CNT; i++)
+    {
+        if (g_fat_drv_used[i] == 0)
+        {
             g_fat_drv_used[i] = 1;
             return USBDRV_0+i;
         }
@@ -60,7 +62,8 @@ static MSC_T * find_msc_by_drive(int drv_no)
 {
     MSC_T  *msc = g_msc_list;
 
-    while (msc != NULL) {
+    while (msc != NULL)
+    {
         if (msc->drv_no == drv_no)
             return msc;
         msc = msc->next;
@@ -70,10 +73,13 @@ static MSC_T * find_msc_by_drive(int drv_no)
 
 static void msc_list_add(MSC_T *msc)
 {
-    if (g_msc_list == NULL) {
+    if (g_msc_list == NULL)
+    {
         msc->next = NULL;
         g_msc_list = msc;
-    } else {
+    }
+    else
+    {
         msc->next = g_msc_list;
         g_msc_list = msc;
     }
@@ -83,15 +89,20 @@ static void msc_list_remove(MSC_T *msc)
 {
     MSC_T   *p;
 
-    if (g_msc_list == msc) {
+    if (g_msc_list == msc)
+    {
         g_msc_list = msc->next;
-    } else {
+    }
+    else
+    {
         p = g_msc_list;
-        while ((p->next != msc) && (p->next != NULL)) {
+        while ((p->next != msc) && (p->next != NULL))
+        {
             p = p->next;
         }
 
-        if (p->next == msc) {
+        if (p->next == msc)
+        {
             p->next = msc->next;
         }
     }
@@ -113,7 +124,8 @@ static void get_max_lun(MSC_T *msc)
     /*------------------------------------------------------------------------------------*/
     ret = usbh_ctrl_xfer(udev, REQ_TYPE_IN | REQ_TYPE_CLASS_DEV | REQ_TYPE_TO_IFACE,
                          0xFE, 0, 0, 1, nbuff, &read_len, 200);
-    if (ret < 0) {
+    if (ret < 0)
+    {
         msc_debug_msg("Get Max Lun command failed! Assign 0...\n");
         msc->max_lun = 0;
         if (ret == USBH_ERR_STALL)
@@ -134,7 +146,8 @@ void msc_reset(MSC_T *msc)
 
     ret = usbh_ctrl_xfer(udev, REQ_TYPE_OUT | REQ_TYPE_CLASS_DEV | REQ_TYPE_TO_IFACE,
                          0xFF, 0, msc->iface->if_num, 0, NULL, &read_len, 100);
-    if (ret < 0) {
+    if (ret < 0)
+    {
         msc_debug_msg("UAMSS reset request failed!\n");
     }
 
@@ -156,13 +169,16 @@ static int  msc_inquiry(MSC_T *msc)
     cmd_blk->CDB[0]  = INQUIRY;         /* INQUIRY */
     cmd_blk->CDB[1]  = msc->lun << 5;
     cmd_blk->CDB[4]  = 36;
-    
+
     scsi_buff = (uint8_t *)((uint32_t)msc->scsi_buff | NON_CACHE_MASK);
     ret = run_scsi_command(msc, scsi_buff, 36, 1, 100);
-    if (ret < 0) {
+    if (ret < 0)
+    {
         msc_debug_msg("INQUIRY command failed. [%d]\n", ret);
         return ret;
-    } else {
+    }
+    else
+    {
         msc_debug_msg("INQUIRY command success.\n");
     }
     return ret;
@@ -185,14 +201,18 @@ static int  msc_request_sense(MSC_T *msc)
 
     scsi_buff = (uint8_t *)((uint32_t)msc->scsi_buff | NON_CACHE_MASK);
     ret = run_scsi_command(msc, scsi_buff, 18, 1, 100);
-    if (ret < 0) {
+    if (ret < 0)
+    {
         msc_debug_msg("REQUEST_SENSE command failed.\n");
         if (ret == USBH_ERR_STALL)
             msc_reset(msc);
         return ret;
-    } else {
+    }
+    else
+    {
         msc_debug_msg("REQUEST_SENSE command success.\n");
-        if (scsi_buff[2] != 0x6) {
+        if (scsi_buff[2] != 0x6)
+        {
             msc_debug_msg("Device is still not attention. 0x%x\n", scsi_buff[2]);
             return -1;
         }
@@ -214,11 +234,14 @@ static int  msc_test_unit_ready(MSC_T *msc)
     cmd_blk->CDB[1]  = msc->lun << 5;
 
     ret = run_scsi_command(msc, msc->scsi_buff, 0, 1, 100);
-    if (ret < 0) {
+    if (ret < 0)
+    {
         if (ret == USBH_ERR_STALL)
             msc_reset(msc);
         return ret;
-    } else {
+    }
+    else
+    {
         msc_debug_msg("TEST_UNIT_READY command success.\n");
     }
     return ret;
@@ -264,11 +287,11 @@ int  usbh_umas_read(int drv_no, uint32_t sec_no, int sec_cnt, uint8_t *buff)
     cmd_blk->CDB[7]  = (sec_cnt >> 8) & 0xFF;
     cmd_blk->CDB[8]  = sec_cnt & 0xFF;
 
-  	ret = run_scsi_command(msc, buff, sec_cnt * 512, 1, 500);
-  	if (ret != 0)
-  	{
+    ret = run_scsi_command(msc, buff, sec_cnt * 512, 1, 500);
+    if (ret != 0)
+    {
         msc_debug_msg("usbh_umas_read failed! [%d]\n", ret);
-    	return ret; 
+        return ret;
     }
     return 0;
 }
@@ -312,7 +335,8 @@ int  usbh_umas_write(int drv_no, uint32_t sec_no, int sec_cnt, uint8_t *buff)
     cmd_blk->CDB[8]  = sec_cnt & 0xFF;
 
     ret = run_scsi_command(msc, buff, sec_cnt * 512, 0, 500);
-    if (ret < 0) {
+    if (ret < 0)
+    {
         msc_debug_msg("usbh_umas_write failed!\n");
         return UMAS_ERR_IO;
     }
@@ -338,7 +362,8 @@ int  usbh_umas_ioctl(int drv_no, int cmd, void *buff)
     if (msc == NULL)
         return UMAS_ERR_DRIVE_NOT_FOUND;
 
-    switch (cmd) {
+    switch (cmd)
+    {
     case CTRL_SYNC:
         return RES_OK;
 
@@ -383,15 +408,15 @@ int  usbh_umas_reset_disk(int drv_no)
 {
     MSC_T      *msc;
     UDEV_T     *udev;
-    
+
     sysprintf("usbh_umas_reset_disk ...\n");
-    
+
     msc = find_msc_by_drive(drv_no);
     if (msc == NULL)
         return UMAS_ERR_DRIVE_NOT_FOUND;
 
     udev = msc->iface->udev;
-    
+
     usbh_reset_device(udev);
 
     return 0;
@@ -406,29 +431,30 @@ static int  umass_init_device(MSC_T *msc)
     uint8_t   *scsi_buff;
     int       ret = USBH_ERR_NOT_FOUND;
 
-    for (lun = 0; lun <= msc->max_lun; lun++) 
+    for (lun = 0; lun <= msc->max_lun; lun++)
     {
         msc_debug_msg("\n******* Read lun %d ******\n\n", lun);
 
         try_msc->lun = lun;
         cmd_blk = &try_msc->cmd_blk;
 
-        for (retries = 0; retries < 3; retries++) 
+        for (retries = 0; retries < 3; retries++)
         {
             ret = msc_inquiry(try_msc);
             if (ret == 0)
                 break;
-                
+
             msc_debug_msg("msc_inquiry failed!!  %d\n", ret);
             delay_us(100000);       /* dealy 100ms, retry later       */
         }
 
-        for (retries = 0; retries < 3; retries++) 
+        for (retries = 0; retries < 3; retries++)
         {
             if (msc_test_unit_ready(try_msc) == 0)
                 goto disk_found;
 
-            if (msc_request_sense(try_msc) == 0) {
+            if (msc_request_sense(try_msc) == 0)
+            {
                 goto disk_found;
             }
 
@@ -441,7 +467,8 @@ disk_found:
         /*
          *  Valid disk found in this lun. Go...
          */
-        for (retries = 0; retries < 3; retries++) {
+        for (retries = 0; retries < 3; retries++)
+        {
             msc_debug_msg("READ CAPACITY ==>\n");
 
             memset(cmd_blk, 0, sizeof(*cmd_blk));
@@ -453,12 +480,14 @@ disk_found:
 
             scsi_buff = (uint8_t *)((uint32_t)try_msc->scsi_buff | NON_CACHE_MASK);
             ret = run_scsi_command(try_msc, scsi_buff, 8, 1, 100);
-            if (ret < 0) {
+            if (ret < 0)
+            {
                 msc_debug_msg("READ_CAPACITY failed!\n");
                 if (ret == USBH_ERR_STALL)
                     msc_reset(try_msc);
                 continue;
-            } else
+            }
+            else
                 break;
         }
 
@@ -471,7 +500,8 @@ disk_found:
                                (scsi_buff[6] << 8) | scsi_buff[7];
 
         try_msc->drv_no = fatfs_drive_alloc();
-        if (try_msc->drv_no < 0) {      /* should be failed, unless drive free slot is empty    */
+        if (try_msc->drv_no < 0)        /* should be failed, unless drive free slot is empty    */
+        {
             ret = USBH_ERR_MEMORY_OUT;
             break;
         }
@@ -489,14 +519,16 @@ disk_found:
          *  duplicate another MSC for next try
          */
         try_msc = usbh_alloc_mem(sizeof(*try_msc));
-        if (try_msc == NULL) {
+        if (try_msc == NULL)
+        {
             ret = USBH_ERR_MEMORY_OUT;
             break;
         }
         memcpy(try_msc, msc, sizeof(*msc));
     }
 
-    if (bHasMedia) {
+    if (bHasMedia)
+    {
         if (try_msc)
             usbh_free_mem(try_msc, sizeof(*try_msc));
         return 0;
@@ -523,7 +555,8 @@ static int msc_probe(IFACE_T *iface)
         return USBH_ERR_NOT_SUPPORTED;
 
     /* Is bulk-only protocl? */
-    if (ifd->bInterfaceProtocol != MSC_SPROTO_BULK) {
+    if (ifd->bInterfaceProtocol != MSC_SPROTO_BULK)
+    {
         msc_debug_msg("Not bulk-only MSC device!\n");
         return USBH_ERR_NOT_SUPPORTED;
     }
@@ -534,8 +567,10 @@ static int msc_probe(IFACE_T *iface)
     msc->uid = get_ticks();
 
     /* Find the bulk in and out endpoints */
-    for (i = 0; i < aif->ifd->bNumEndpoints; i++) {
-        if ((aif->ep[i].bmAttributes & EP_ATTR_TT_MASK) == EP_ATTR_TT_BULK) {
+    for (i = 0; i < aif->ifd->bNumEndpoints; i++)
+    {
+        if ((aif->ep[i].bmAttributes & EP_ATTR_TT_MASK) == EP_ATTR_TT_BULK)
+        {
             if ((aif->ep[i].bEndpointAddress & EP_ADDR_DIR_MASK) == EP_ADDR_DIR_IN)
                 msc->ep_bulk_in = &aif->ep[i];
             else
@@ -543,7 +578,8 @@ static int msc_probe(IFACE_T *iface)
         }
     }
 
-    if ((msc->ep_bulk_in == NULL) || (msc->ep_bulk_out == NULL)) {
+    if ((msc->ep_bulk_in == NULL) || (msc->ep_bulk_out == NULL))
+    {
         usbh_free_mem(msc, sizeof(*msc));
         return USBH_ERR_NOT_EXPECTED;
     }
@@ -553,7 +589,7 @@ static int msc_probe(IFACE_T *iface)
     msc_debug_msg("USB Mass Storage device found. Iface:%d, Alt Iface:%d, bep_in:0x%x, bep_out:0x%x\n", ifd->bInterfaceNumber, ifd->bAlternateSetting, msc->ep_bulk_in->bEndpointAddress, msc->ep_bulk_out->bEndpointAddress);
 
     get_max_lun(msc);
-    
+
     return umass_init_device(msc);
 }
 
@@ -566,7 +602,8 @@ static void msc_disconnect(IFACE_T *iface)
      *  Remove any hardware EP/QH from Host Controller hardware list.
      *  This will finally result in all transfers aborted.
      */
-    for (i = 0; i < iface->aif->ifd->bNumEndpoints; i++) {
+    for (i = 0; i < iface->aif->ifd->bNumEndpoints; i++)
+    {
         iface->udev->hc_driver->quit_xfer(NULL, &(iface->aif->ep[i]));
     }
 
@@ -574,9 +611,11 @@ static void msc_disconnect(IFACE_T *iface)
      *  unmount drive and remove it from MSC device list
      */
     msc = g_msc_list;
-    while (msc != NULL) {
+    while (msc != NULL)
+    {
         msc_p = msc->next;
-        if (msc->iface == iface) {
+        if (msc->iface == iface)
+        {
             fatfs_drive_free(msc->drv_no);
             msc_list_remove(msc);
             usbh_free_mem(msc, sizeof(*msc));
@@ -585,7 +624,8 @@ static void msc_disconnect(IFACE_T *iface)
     }
 }
 
-UDEV_DRV_T  msc_driver = {
+UDEV_DRV_T  msc_driver =
+{
     msc_probe,
     msc_disconnect,
     NULL,

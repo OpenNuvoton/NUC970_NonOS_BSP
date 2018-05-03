@@ -61,7 +61,8 @@
 /*--------------------------------------------------------------------------*/
 /*   Hub descriptor                                                         */
 /*--------------------------------------------------------------------------*/
-typedef struct {
+typedef struct
+{
     __packed uint8_t  bDescLength;
     __packed uint8_t  bDescriptorType;
     __packed uint8_t  bNbrPorts;
@@ -91,6 +92,7 @@ typedef struct {
 /*--------------------------------------------------------------------------*/
 /*   Port reset retry and time-out settings                                 */
 /*--------------------------------------------------------------------------*/
+#define HUB_DEBOUNCE_TIME              800      /* Hub connect/disconnect de-bounce time in ms     */
 #define PORT_RESET_RETRY               3        /* port reset retry times                          */
 #define PORT_RESET_TIME_MS             50       /* port reset time (ms)                            */
 #define PORT_RESET_RETRY_INC_MS        250      /* increased reset time (ms) after reset failed    */
@@ -101,7 +103,8 @@ typedef struct {
 /* 4 can support up to 32 port hubs                */
 /* Note!! If modeifed to 4, "uint16_t sc_bitmap"   */
 /*        MUST be changed as "uint32_t sc_bitmap"  */
-typedef struct hub_dev_t {
+typedef struct hub_dev_t
+{
     IFACE_T    *iface;                 /*!< Interface device of this hub          \hideinitializer */
     UTR_T      *utr;                   /*!< Interrupt in UTR of this hub          \hideinitializer */
     // uint8_t    buff[HUB_STATUS_MAX_BYTE];   /*!< Interrupt in buffer              \hideinitializer */
