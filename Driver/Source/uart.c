@@ -74,12 +74,6 @@ static UART_BUFFER_T UART_DEV[UART_NUM];
 static UINT32 UARTTXBUFSIZE[UART_NUM] = {500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500};  /* UART0~10 Tx buffer size */
 static UINT32 UARTRXBUFSIZE[UART_NUM] = {500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500};    /* UART0~10 Rx buffer size */
 
-/*
-    IrDA register settings
-*/
-//static BOOL _uart_bIsPerformIrDA = FALSE;  /* Default IrDA function disable */
-static UINT32 _uart_IrDATxReg = (UART_IRCR_TX_SELECT_Msk | UART_IRCR_INV_RX_Msk);
-static UINT32 _uart_IrDARxReg = (UART_IRCR_INV_RX_Msk);
 
 /*
     UART flag declarations.
@@ -1099,15 +1093,24 @@ static INT _uartConfigureUART(PVOID pvParam)
 static INT _uartPerformIrDA(INT nNum, UINT32 uCmd, UINT32 uCmd1)  /* UART2 only */
 {
     UINT32 uOffset = nNum * UARTOFFSET;
+    UINT32 baud;
 
     switch(uCmd) {
         case ENABLEIrDA:
             //_uart_bIsPerformIrDA = TRUE;
 
+            baud = inpw(REG_UART0_BAUD+uOffset);
+            baud = baud & (0x0000ffff);
+            baud = baud + 2;
+            baud = baud / 16;
+            baud = baud - 2;
+
+            outpw(REG_UART0_BAUD+uOffset, baud);
+
             if(uCmd1 == IrDA_TX)
-                outpw(REG_UART0_IRCR+uOffset, _uart_IrDATxReg);
+                outpw(REG_UART0_IRCR+uOffset, UART_IRCR_TX_SELECT_Msk);
             else if(uCmd1 == IrDA_RX)
-                outpw(REG_UART0_IRCR+uOffset, _uart_IrDARxReg);
+                outpw(REG_UART0_IRCR+uOffset, 0x0);
             else
                 return UART_ERR_IrDA_COMMAND_INVALID;
 

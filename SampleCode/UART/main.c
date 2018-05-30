@@ -193,6 +193,140 @@ void uartExample (void)
 	return;	
 }
 
+void IrDAExample (void)
+{
+	int ch, retval, len, reccnt = 0, i, err = 0;
+	
+	uartprintf("\n\nMake sure the H/W configuration of different UART channel!\n");
+
+	/* configure UART */
+	param.uFreq = 12000000;
+	param.uBaudRate = 57600; //115200; 
+	param.ucUartNo = UART1;
+	param.ucDataBits = DATA_BITS_8;
+	param.ucStopBits = STOP_BITS_1;
+	param.ucParity = PARITY_NONE;
+	param.ucRxTriggerLevel = UART_FCR_RFITL_1BYTE;	
+	retval = uartOpen(&param); 
+	if(retval != 0) 
+	{
+		uartprintf("Open UART error!\n");
+		return;
+	}
+	
+	/* set TX interrupt mode */
+	retval = uartIoctl(param.ucUartNo, UART_IOC_SETTXMODE, UARTINTMODE, 0);
+	if (retval != 0) 
+	{
+		uartprintf("Set TX interrupt mode fail!\n");
+		return;	
+	}
+	
+	/* set RX interrupt mode */
+	retval = uartIoctl(param.ucUartNo, UART_IOC_SETRXMODE, UARTINTMODE, 0);
+	if (retval != 0) 
+	{
+		uartprintf("Set RX interrupt mode fail!\n");
+		return;	
+	}
+	
+	while(1)
+	{
+		uartprintf("\n Select IrDA TX/RX test [0/1]\n");
+		ch = uartgetchar();
+		if ( (ch == '1') || (ch == '0') ) 
+			break;	
+	}
+		
+	if (ch == '0')	
+	{
+		/* TX test */
+		
+		retval = uartIoctl(param.ucUartNo, UART_IOC_PERFORMIrDA, ENABLEIrDA, IrDA_TX);
+		if (retval != 0) 
+		{
+			uartprintf("Set IrDA Mode fail!\n");
+			return;	
+		}
+		
+		uartprintf("\n Any key start to TX test\n");
+		ch = uartgetchar();			
+		len = strlen((PINT8) TX_Test);
+		while(1)
+		{
+			retval = uartWrite(param.ucUartNo, TX_Test, len);
+			if(retval < 0)
+			{
+                /* buffer full case */                				
+#ifdef UARTMSG                
+				UART_ShowErrInfo(retval);  /* ..... it affects the TX process ? */
+#endif				
+            }
+			else //if (retval == len)
+			{
+				reccnt += retval;
+
+#ifndef UARTMSG 				
+				uartprintf(" TX[%d]\r", reccnt);  /* if printf this message, the TX speed will slow */
+#endif				
+				
+				if (reccnt >= TXSIZE)
+				{
+					uartprintf("\n\n TX test complete [%d] bytes transmitted\n", reccnt);	
+					break;	
+				}
+			}
+		}		
+	}
+	else
+	{
+		/* RX test */
+		retval = uartIoctl(param.ucUartNo, UART_IOC_PERFORMIrDA, ENABLEIrDA, IrDA_RX);
+		if (retval != 0) 
+		{
+			uartprintf("Set IrDA Mode fail!\n");
+			return;	
+		}
+	
+		uartprintf("\n Any key start to RX test ...\n");
+		uartprintf("    Should receive [%d] bytes\n", RXSIZE);
+		ch = uartgetchar();		
+		while(1)
+		{
+			/* 
+				Don't printf any message that occur data lost. The RX buffer full will be occurred. 
+			*/
+			retval = uartRead(param.ucUartNo, RX_Test, 500);
+			if(retval <= RXSIZE) 
+			{
+				
+				if (retval != 0)
+				{
+					for (i = 0; i < retval; i++)
+					{
+						if (RX_Test[i] != 0x31)	
+							uartprintf("%d[%x]\n", i, RX_Test[i]);
+					}	
+				}
+				
+				reccnt += retval;
+				
+				if (reccnt >= RXSIZE)
+				{
+					uartprintf("\n RX test complete [%d] bytes received\n", reccnt);	
+					break;	
+				}	
+			}
+			else
+				err++;
+		}		
+	}
+	
+	return;	
+}
+
+
+
 void RS485_Tx_Test()
 {
 	int retval, cnt = 0;
@@ -493,6 +627,7 @@ int main (void)
 		uartprintf("  1. UART Example \n");
 		uartprintf("  2. RS485 Example \n");
 		uartprintf("  3. LIN Example \n\n");
+		uartprintf("  4. IrDA Example \n\n");
 		ch = uartgetchar();
 	
 		if (ch == '1')
@@ -501,6 +636,8 @@ int main (void)
 			RS485Example();
 		else if(ch == '3')
 			LINExample();
+		else if(ch == '4')
+			IrDAExample();
 	}
 	
 	//while(1);
