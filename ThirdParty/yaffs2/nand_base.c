@@ -2894,14 +2894,17 @@ int nand_scan_ident(struct mtd_info *mtd, int maxchips,
 int nand_scan_tail(struct mtd_info *mtd)
 {
 	int volatile i;
+    void *ptr;
 	struct nand_chip *chip = mtd->priv;
 
 	if (!(chip->options & NAND_OWN_BUFFERS))
 	{
 		//chip->buffers = memalign(ARCH_DMA_MINALIGN,
 		//			 sizeof(*chip->buffers));
-		chip->buffers = (struct nand_buffers *)0x1000000; //CWWeng
-		memset((void*)chip->buffers,0,sizeof(*chip->buffers)); //CWWeng
+		//chip->buffers = (struct nand_buffers *)0x100000; //CWWeng
+		ptr = malloc (sizeof(*chip->buffers) + 31);
+        chip->buffers = (struct nand_buffers *) ((unsigned int)((char *)ptr+31) & (~0x1f));
+        memset((void*)chip->buffers,0,sizeof(*chip->buffers)); //CWWeng
 	}
 
 	if (!chip->buffers)
