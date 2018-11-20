@@ -8,7 +8,7 @@
  *           and memory mapping for NuMicro NUC970 MCU.
  *
  * @note
- * Copyright (C) 2015 Nuvoton Technology Corp. All rights reserved.
+ * Copyright (C) 2018 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 /**
    \mainpage NuMicro NUC970 Family Driver Reference Guide
@@ -47,19 +47,9 @@
    *
    * <b>Copyright Notice</b>
    *
-   * Copyright (C) 2015 Nuvoton Technology Corp. All rights reserved.
+   * Copyright (C) 2018 Nuvoton Technology Corp. All rights reserved.
    */
-/**
-  * \page pg1 Revision History
-  *
-  * <b>Revision 1.00.000</b>
-  * \li Added 2D, CAN, CAP, JPEG, KPI, LCD, NAND, RTC, SC, SCUART drivers and sample codes
-  * \li Added USBH UAC class support
-  * \li Fixed compilation warnings
-  *
-  * <b>Revision 0.09.000</b>
-  * \li Preliminary release.
-*/
+
 #ifndef __NUC970_H__
 #define __NUC970_H__
 
@@ -123,7 +113,6 @@
 #define    SPI0_BA   0xB8006200  /*!< Serial Peripheral Interface 0 */
 #define    SPI1_BA   0xB8006300  /*!< Serial Peripheral Interface 1 */
 #define    PWM_BA    0xB8007000  /*!< Pulse Width Modulation (PWM) Control */
-#define    KPI_BA    0xB8008000  /*!< Keypad Interface Control */
 #define    ADC_BA    0xB800A000  /*!< ADC Control */
 #define    CAN0_BA   0xB800B000  /*!< CAN 0 Control */
 #define    CAN1_BA   0xB800B400  /*!< CAN 1 Control */
@@ -1576,26 +1565,6 @@
 #define     REG_PWM_PIIR    (PWM_BA+0x40)  /*!< PWM Timer Interrupt Identification Register */
 
 /**@}*/ /* end of PWM register group */
-
-
-/*---------------------- Keypad Interface -------------------------*/
-/**
-    @addtogroup KPI Keypad Interface(KPI)
-    Memory Mapped Structure for KPI Controller
-@{ */
-
-#define     REG_KPI_CONF    (KPI_BA+0x00)  /*!< Keypad controller configuration Register */
-#define     REG_KPI_3KCONF  (KPI_BA+0x04)  /*!< Keypad controller 3-keys configuration register */
-#define     REG_KPI_STATUS  (KPI_BA+0x08)  /*!< Keypad status register */
-#define     REG_KPI_RSTC    (KPI_BA+0x0C)  /*!< Keypad  Reset Period Controller register */
-#define     REG_KPI_KEST        (KPI_BA+0x10)  /*!< Keypad Key State Indicator */
-#define     REG_KPI_KPE         (KPI_BA+0x18)  /*!< Press Key Event Indicator */
-#define     REG_KPI_KRE         (KPI_BA+0x20)  /*!< Release Key Event Indicator */
-#define     REG_KPI_PRESCALDIV  (KPI_BA+0x28)  /*!< Pre-Scale Divider */
-
-/**@}*/ /* end of KPI register group */
-
-
 
 
 /*---------------------- Analog to Digital Converter -------------------------*/

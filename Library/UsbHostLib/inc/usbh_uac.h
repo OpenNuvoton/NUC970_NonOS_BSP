@@ -17,15 +17,15 @@
 #include "usbh_lib.h"
 #include "..\src_uac\uac.h"
 
-/** @addtogroup NUC980_Device_Driver NUC980 Device Driver
+/** @addtogroup NUC970_Library NUC970 Library
   @{
 */
 
-/** @addtogroup NUC980_USBH_Library USB Host Library
+/** @addtogroup NUC970_USBH_Library USB Host Library
   @{
 */
 
-/** @addtogroup NUC980_USBH_EXPORTED_CONSTANTS USB Host Exported Constants
+/** @addtogroup NUC970_USBH_EXPORTED_CONSTANTS USB Host Exported Constants
   @{
 */
 
@@ -67,11 +67,11 @@
 #define UAC_CH_SIDE_RIGHT            11     /*!< Select Side Right (SR) channel.      \hideinitializer */
 #define UAC_CH_TOP                   12     /*!< Select Top (T) channel.              \hideinitializer */
 
-/*@}*/ /* end of group NUC980_USBH_EXPORTED_CONSTANTS */
+/*@}*/ /* end of group NUC970_USBH_EXPORTED_CONSTANTS */
 
 
 
-/** @addtogroup NUC980_USBH_EXPORTED_STRUCTURES USB Host Exported Structures
+/** @addtogroup NUC970_USBH_EXPORTED_STRUCTURES USB Host Exported Structures
   @{
 */
 
@@ -122,7 +122,7 @@ typedef struct uac_dev_t
 } UAC_DEV_T;                                /*! audio class device structure              */
 
 
-/*@}*/ /* end of group NUC980_USBH_EXPORTED_STRUCTURES */
+/*@}*/ /* end of group NUC970_USBH_EXPORTED_STRUCTURES */
 
 
 /// @cond HIDDEN_SYMBOLS
@@ -139,9 +139,9 @@ extern int usbh_uac_find_max_alt(IFACE_T *iface, uint8_t dir, uint8_t attr, uint
 extern "C" {
 #endif
 
-/*@}*/ /* end of group NUC980_USBH_Library */
+/*@}*/ /* end of group NUC970_USBH_Library */
 
-/*@}*/ /* end of group NUC980_Device_Driver */
+/*@}*/ /* end of group NUC970_Device_Driver */
 
 
 #ifdef __cplusplus

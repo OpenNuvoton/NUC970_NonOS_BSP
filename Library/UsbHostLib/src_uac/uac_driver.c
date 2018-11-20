@@ -3,7 +3,7 @@
  * @version  V1.00
  * $Revision: 2 $
  * $Date: 15/06/12 10:12a $
- * @brief    NUC980 MCU USB Host Audio Class driver
+ * @brief    NUC970 MCU USB Host Audio Class driver
  *
  * @note     Support mono and stero audio input and output.
  * Copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.
@@ -20,15 +20,15 @@
 #include "uac.h"
 
 
-/** @addtogroup NUC980_Device_Driver NUC980 Device Driver
+/** @addtogroup NUC970_Library NUC970 Library
   @{
 */
 
-/** @addtogroup NUC980_USBH_Library USB Host Library
+/** @addtogroup NUC970_USBH_Library USB Host Library
   @{
 */
 
-/** @addtogroup NUC980_USBH_EXPORTED_FUNCTIONS USB Host Exported Functions
+/** @addtogroup NUC970_USBH_EXPORTED_FUNCTIONS USB Host Exported Functions
   @{
 */
 
@@ -270,11 +270,11 @@ UAC_DEV_T * usbh_uac_get_device_list(void)
 }
 
 
-/*@}*/ /* end of group NUC980_USBH_EXPORTED_FUNCTIONS */
+/*@}*/ /* end of group NUC970_USBH_EXPORTED_FUNCTIONS */
 
-/*@}*/ /* end of group NUC980_USBH_Library */
+/*@}*/ /* end of group NUC970_USBH_Library */
 
-/*@}*/ /* end of group NUC980_Device_Driver */
+/*@}*/ /* end of group NUC970_Library */
 
 /*** (C) COPYRIGHT 2016 Nuvoton Technology Corp. ***/
 

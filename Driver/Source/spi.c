@@ -28,14 +28,15 @@
 */
 /// @cond HIDDEN_SYMBOLS
 
-#define spi_out(dev, byte, addr)		outpw((dev)->base + addr, byte)
-#define spi_in(dev, addr)				inpw((dev)->base + addr)
+#define spi_out(dev, byte, addr)        outpw((dev)->base + addr, byte)
+#define spi_in(dev, addr)               inpw((dev)->base + addr)
 
-typedef struct{
-	uint32_t base;		/* spi bus number */
-	uint8_t openflag;
+typedef struct
+{
+    uint32_t base;      /* spi bus number */
+    uint8_t openflag;
     uint8_t intflag;
-}spi_dev;
+} spi_dev;
 
 /// @endcond HIDDEN_SYMBOLS
 /*@}*/ /* end of group NUC970_EMAC_EXPORTED_CONSTANTS */
@@ -80,8 +81,8 @@ static void spi1ISR(void)
 static uint32_t spiSetSpeed(spi_dev * dev, uint32_t speed)
 {
     uint16_t div = (uint16_t)(SPI_INPUT_CLOCK / (2 * speed)) - 1;
-    
-    spi_out(dev, div, DIVIDER);    
+
+    spi_out(dev, div, DIVIDER);
     return ( SPI_INPUT_CLOCK /  (2*(div+1)));
 }
 
@@ -92,24 +93,24 @@ static uint32_t spiSetSpeed(spi_dev * dev, uint32_t speed)
   * @return always 0.
   * @retval 0 Success.
   */
-int32_t  spiInit(int32_t fd)  
-{	
+int32_t  spiInit(int32_t fd)
+{
     if(fd == 0)
-    {        
-        sysInstallISR(IRQ_LEVEL_1, SPI0_IRQn, (PVOID)spi0ISR);	
+    {
+        sysInstallISR(IRQ_LEVEL_1, SPI0_IRQn, (PVOID)spi0ISR);
         sysEnableInterrupt(SPI0_IRQn);
-        memset((void *)&spi_device[0], 0, sizeof(spi_dev));	
+        memset((void *)&spi_device[0], 0, sizeof(spi_dev));
     }
     else
-    {   
-        sysInstallISR(IRQ_LEVEL_1, SPI1_IRQn, (PVOID)spi1ISR);	
+    {
+        sysInstallISR(IRQ_LEVEL_1, SPI1_IRQn, (PVOID)spi1ISR);
         sysEnableInterrupt(SPI1_IRQn);
         memset((void *)&spi_device[1], 0, sizeof(spi_dev));
     }
-    
-	sysSetLocalInterrupt(ENABLE_IRQ);
-	
-	return(0);
+
+    sysSetLocalInterrupt(ENABLE_IRQ);
+
+    return(0);
 }
 
 /**
@@ -119,7 +120,7 @@ int32_t  spiInit(int32_t fd)
   * @param[in] arg0 is the first argument of command.
   * @param[in] arg1 is the second argument of command.
   * @return command status.
-  * @retval 0 Success otherwise fail. Fail value could be 
+  * @retval 0 Success otherwise fail. Fail value could be
   *                                    - \ref SPI_ERR_NODEV
   *                                    - \ref SPI_ERR_IO
   *                                    - \ref SPI_ERR_ARG
@@ -127,86 +128,87 @@ int32_t  spiInit(int32_t fd)
 int32_t spiIoctl(int32_t fd, uint32_t cmd, uint32_t arg0, uint32_t arg1)
 {
     spi_dev *dev;
-    
+
     if(fd != 0 && fd != 1)
-		return(SPI_ERR_NODEV);
-    
+        return(SPI_ERR_NODEV);
+
     dev = (spi_dev *)((uint32_t)&spi_device[fd]);
-	if(dev->openflag == 0)
-		return(SPI_ERR_IO);	
-    
-    switch(cmd){
-        case SPI_IOC_TRIGGER:            
+    if(dev->openflag == 0)
+        return(SPI_ERR_IO);
+
+    switch(cmd)
+    {
+        case SPI_IOC_TRIGGER:
             dev->intflag = 0;
             spi_out(dev, spi_in(dev, CNTRL) | 0x1 ,CNTRL);
             break;
-        
+
         case SPI_IOC_SET_INTERRUPT:
             if(arg0 == SPI_ENABLE_INTERRUPT)
                 spi_out(dev, spi_in(dev, CNTRL) | (0x1<<17) ,CNTRL);
             else
                 spi_out(dev, spi_in(dev, CNTRL) & ~(0x1<<17) ,CNTRL);
             break;
-            
+
         case SPI_IOC_SET_SPEED:
             spiSetSpeed(dev, (uint32_t)arg0);
             break;
-            
+
         case SPI_IOC_SET_DUAL_QUAD_MODE:
             if(arg0 == SPI_DISABLE_DUAL_QUAD)
             {
                 spi_out(dev, (spi_in(dev, CNTRL) & ~(0x3 << 21)) ,CNTRL);
                 break;
             }
-            
+
             if(arg0 == SPI_DUAL_MODE)
                 spi_out(dev, (spi_in(dev, CNTRL) & ~(0x3 << 21)) | (0x1 << 22) ,CNTRL);
             else
                 spi_out(dev, (spi_in(dev, CNTRL) & ~(0x3 << 21)) | (0x1 << 21) ,CNTRL);
             break;
-       
+
         case SPI_IOC_SET_DUAL_QUAD_DIR:
             if(arg0 == SPI_DUAL_QUAD_INPUT)
                 spi_out(dev, spi_in(dev, CNTRL) & ~(0x1 << 20) ,CNTRL);
             else
                 spi_out(dev, spi_in(dev, CNTRL) | (0x1 << 20) ,CNTRL);
             break;
-        
+
         case SPI_IOC_SET_LSB_MSB:
             if(arg0 == SPI_MSB)
                 spi_out(dev, spi_in(dev, CNTRL) & ~(0x1 << 10) ,CNTRL);
             else
                 spi_out(dev, spi_in(dev, CNTRL) | (0x1 << 10) ,CNTRL);
             break;
-        
+
         case SPI_IOC_SET_TX_NUM:
             if(arg0 < 4)
                 spi_out(dev, (spi_in(dev, CNTRL) & ~(0x3 << 8)) | (arg0 << 8) ,CNTRL);
             else
                 return SPI_ERR_ARG;
             break;
-        
+
         case SPI_IOC_SET_TX_BITLEN:
             if(arg0 < 32)
                 spi_out(dev, (spi_in(dev, CNTRL) & ~(0x1f << 3)) | (arg0 << 3) ,CNTRL);
             else
                 return SPI_ERR_ARG;
             break;
-        
+
         case SPI_IOC_SET_MODE:
             if(arg0 > SPI_MODE_3)
                 return SPI_ERR_ARG;
-                
+
             if(arg0 == SPI_MODE_0)
                 spi_out(dev, (spi_in(dev, CNTRL) & ~((0x3<<1) | (1UL<<31))) | (1<<2) ,CNTRL);
             else if(arg0 == SPI_MODE_1)
                 spi_out(dev, (spi_in(dev, CNTRL) & ~((0x3<<1) | (1UL<<31))) | (1<<1) ,CNTRL);
             else if(arg0 == SPI_MODE_2)
                 spi_out(dev, (spi_in(dev, CNTRL) & ~((0x3<<1) | (1UL<<31))) | ((1UL<<31) | (1<<2)) ,CNTRL);
-            else 
+            else
                 spi_out(dev, (spi_in(dev, CNTRL) & ~((0x3<<1) | (1UL<<31))) | ((1UL<<31) | (1<<1)) ,CNTRL);
             break;
-        
+
         case SPI_IOC_ENABLE_SS:
             if(arg0 == SPI_SS_SS0)
                 spi_out(dev, (spi_in(dev, SSR) & ~(0x3)) | 0x1 ,SSR);
@@ -217,7 +219,7 @@ int32_t spiIoctl(int32_t fd, uint32_t cmd, uint32_t arg0, uint32_t arg1)
             else
                 return SPI_ERR_ARG;
             break;
-            
+
         case SPI_IOC_DISABLE_SS:
             if(arg0 == SPI_SS_SS0)
                 spi_out(dev, (spi_in(dev, SSR) & ~(0x1)) ,SSR);
@@ -228,14 +230,14 @@ int32_t spiIoctl(int32_t fd, uint32_t cmd, uint32_t arg0, uint32_t arg1)
             else
                 return SPI_ERR_ARG;
             break;
-            
+
         case SPI_IOC_SET_AUTOSS:
             if(arg0 == SPI_DISABLE_AUTOSS)
                 spi_out(dev, spi_in(dev, SSR) & ~(0x1 << 3) ,SSR);
             else
                 spi_out(dev, spi_in(dev, SSR) | (0x1 << 3) ,SSR);
             break;
-        
+
         case SPI_IOC_SET_SS_ACTIVE_LEVEL:
             if(arg0 == SPI_SS_ACTIVE_LOW)
                 spi_out(dev, spi_in(dev, SSR) & ~(0x1 << 2) ,SSR);
@@ -244,7 +246,7 @@ int32_t spiIoctl(int32_t fd, uint32_t cmd, uint32_t arg0, uint32_t arg1)
         default:
             break;
     }
-        
+
     return 0;
 }
 
@@ -257,27 +259,27 @@ int32_t spiIoctl(int32_t fd, uint32_t cmd, uint32_t arg0, uint32_t arg1)
 int spiOpen(int32_t fd)
 {
     spi_dev *dev;
-    
+
     if( (uint32_t)fd >= SPI_NUMBER)
-		return SPI_ERR_NODEV;
+        return SPI_ERR_NODEV;
 
-	dev = (spi_dev *)((uint32_t)&spi_device[fd]);
+    dev = (spi_dev *)((uint32_t)&spi_device[fd]);
 
-	if( dev->openflag != 0 )		/* a card slot can open only once */
-		return(SPI_ERR_BUSY);
-			
-	/* Enable engine clock */
+    if( dev->openflag != 0 )        /* a card slot can open only once */
+        return(SPI_ERR_BUSY);
+
+    /* Enable engine clock */
     if((uint32_t)fd == 0)
         outpw(REG_CLK_PCLKEN1, inpw(REG_CLK_PCLKEN1) | 0x10);
     else
-		outpw(REG_CLK_PCLKEN1, inpw(REG_CLK_PCLKEN1) | 0x20);	
-    
-	memset(dev, 0, sizeof(spi_dev));
-	dev->base = ((uint32_t)fd) ? SPI1_BA : SPI0_BA;
+        outpw(REG_CLK_PCLKEN1, inpw(REG_CLK_PCLKEN1) | 0x20);
+
+    memset(dev, 0, sizeof(spi_dev));
+    dev->base = ((uint32_t)fd) ? SPI1_BA : SPI0_BA;
     dev->openflag = 1;
     dev->intflag = 0;
-	
-	return 0;
+
+    return 0;
 }
 
 /**
@@ -290,9 +292,9 @@ int spiOpen(int32_t fd)
 uint8_t spiGetBusyStatus(int32_t fd)
 {
     spi_dev *dev;
-    
+
     dev = (spi_dev *)((uint32_t)&spi_device[fd]);
-    
+
     if(spi_in(dev, CNTRL) & (0x1 << 17))
         return (!dev->intflag);
     else
@@ -307,8 +309,8 @@ uint8_t spiGetBusyStatus(int32_t fd)
   */
 uint32_t spiRead(int32_t fd, uint8_t buff_id)
 {
-	spi_dev *dev;
-    
+    spi_dev *dev;
+
     dev = (spi_dev *)((uint32_t)&spi_device[fd]);
     return spi_in(dev, (RX0+4*buff_id));
 }
@@ -322,8 +324,8 @@ uint32_t spiRead(int32_t fd, uint8_t buff_id)
   */
 void spiWrite(int32_t fd, uint8_t buff_id, uint32_t data)
 {
-	spi_dev *dev;
-    
+    spi_dev *dev;
+
     dev = (spi_dev *)((uint32_t)&spi_device[fd]);
     spi_out(dev, data, (TX0+4*buff_id));
 }

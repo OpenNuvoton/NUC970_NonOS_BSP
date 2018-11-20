@@ -57,7 +57,8 @@ EMMC_INFO_T eMMC;
 
 void eMMC_CheckRB()
 {
-    while(1) {
+    while(1)
+    {
         outpw(REG_FMI_EMMCCTL, inpw(REG_FMI_EMMCCTL)|FMI_EMMCCTL_CLK8OEN_Msk);
         while(inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_CLK8OEN_Msk);
         if (inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_DAT0STS_Msk)
@@ -74,7 +75,8 @@ int eMMC_Command(EMMC_INFO_T *pSD, unsigned char ucCmd, unsigned int uArg)
     buf = (inpw(REG_FMI_EMMCCTL)&(~FMI_EMMCCTL_CMDCODE_Msk))|(ucCmd << 8)|(FMI_EMMCCTL_COEN_Msk);
     outpw(REG_FMI_EMMCCTL, buf);
 
-    while(inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_COEN_Msk) {
+    while(inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_COEN_Msk)
+    {
         if (pSD->IsCardInsert == FALSE)
             return EMMC_NO_CARD;
     }
@@ -90,35 +92,46 @@ int eMMC_CmdAndRsp(EMMC_INFO_T *pSD, unsigned char ucCmd, unsigned int uArg, int
     buf = (inpw(REG_FMI_EMMCCTL)&(~FMI_EMMCCTL_CMDCODE_Msk))|(ucCmd << 8)|(FMI_EMMCCTL_COEN_Msk | FMI_EMMCCTL_RIEN_Msk);
     outpw(REG_FMI_EMMCCTL, buf);
 
-    if (ntickCount > 0) {
-        while(inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_RIEN_Msk) {
-            if(ntickCount-- == 0) {
+    if (ntickCount > 0)
+    {
+        while(inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_RIEN_Msk)
+        {
+            if(ntickCount-- == 0)
+            {
                 outpw(REG_FMI_EMMCCTL, inpw(REG_FMI_EMMCCTL)|FMI_EMMCCTL_CTLRST_Msk); // reset SD engine
                 return 2;
             }
             if (pSD->IsCardInsert == FALSE)
                 return EMMC_NO_CARD;
         }
-    } else {
-        while(inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_RIEN_Msk) {
+    }
+    else
+    {
+        while(inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_RIEN_Msk)
+        {
             if (pSD->IsCardInsert == FALSE)
                 return EMMC_NO_CARD;
         }
     }
 
-    if (_fmi_uR7_CMD) {
-        if (((inpw(REG_FMI_EMMCRESP1) & 0xff) != 0x55) && ((inpw(REG_FMI_EMMCRESP0) & 0xf) != 0x01)) {
+    if (_fmi_uR7_CMD)
+    {
+        if (((inpw(REG_FMI_EMMCRESP1) & 0xff) != 0x55) && ((inpw(REG_FMI_EMMCRESP0) & 0xf) != 0x01))
+        {
             _fmi_uR7_CMD = 0;
             return EMMC_CMD8_ERROR;
         }
     }
 
-    if (!_fmi_uR3_CMD) {
+    if (!_fmi_uR3_CMD)
+    {
         if (inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC7_Msk)     // check CRC7
             return 0;
         else
             return EMMC_CRC7_ERROR;
-    } else { // ignore CRC error for R3 case
+    }
+    else     // ignore CRC error for R3 case
+    {
         _fmi_uR3_CMD = 0;
         outpw(REG_FMI_EMMCINTSTS, FMI_EMMCINTSTS_CRCIF_Msk);
         return 0;
@@ -147,18 +160,21 @@ int eMMC_CmdAndRsp2(EMMC_INFO_T *pSD, unsigned char ucCmd, unsigned int uArg, un
     buf = (inpw(REG_FMI_EMMCCTL)&(~FMI_EMMCCTL_CMDCODE_Msk))|(ucCmd << 8)|(FMI_EMMCCTL_COEN_Msk | FMI_EMMCCTL_R2EN_Msk);
     outpw(REG_FMI_EMMCCTL, buf);
 
-    while(inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_R2EN_Msk) {
+    while(inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_R2EN_Msk)
+    {
         if (pSD->IsCardInsert == FALSE)
             return EMMC_NO_CARD;
     }
 
-    if (inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC7_Msk) {
+    if (inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC7_Msk)
+    {
         for (i=0; i<5; i++)
             tmpBuf[i] = eMMC_Swap32(*(int*)(FMI_BA+i*4));
         for (i=0; i<4; i++)
             *puR2ptr++ = ((tmpBuf[i] & 0x00ffffff)<<8) | ((tmpBuf[i+1] & 0xff000000)>>24);
         return 0;
-    } else
+    }
+    else
         return EMMC_CRC7_ERROR;
 }
 
@@ -171,21 +187,25 @@ int eMMC_CmdAndRspDataIn(EMMC_INFO_T *pSD, unsigned char ucCmd, unsigned int uAr
     buf = (inpw(REG_FMI_EMMCCTL)&(~FMI_EMMCCTL_CMDCODE_Msk))|(ucCmd << 8)|(FMI_EMMCCTL_COEN_Msk | FMI_EMMCCTL_RIEN_Msk | FMI_EMMCCTL_DIEN_Msk);
     outpw(REG_FMI_EMMCCTL, buf);
 
-    while (inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_RIEN_Msk) {
+    while (inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_RIEN_Msk)
+    {
         if (pSD->IsCardInsert == FALSE)
             return EMMC_NO_CARD;
     }
 
-    while (inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_DIEN_Msk) {
+    while (inpw(REG_FMI_EMMCCTL) & FMI_EMMCCTL_DIEN_Msk)
+    {
         if (pSD->IsCardInsert == FALSE)
             return EMMC_NO_CARD;
     }
 
-    if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC7_Msk)) {    // check CRC7
+    if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC7_Msk))      // check CRC7
+    {
         return EMMC_CRC7_ERROR;
     }
 
-    if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC16_Msk)) {   // check CRC16
+    if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC16_Msk))     // check CRC16
+    {
         return EMMC_CRC16_ERROR;
     }
     return 0;
@@ -230,18 +250,18 @@ void eMMC_Set_clock(unsigned int clock_khz)
         div0 = (rate <= EMMC_CLK_DIV1_MAX) ? 1 : EMMC_CLK_DIV0_MAX;
     }
 
-    //--- calculate the second divider 
+    //--- calculate the second divider
     div1 = rate / div0;
     div1 &= 0xFF;
 
-     //sysprintf("Set_clock(): wanted clock=%d, rate=%d, div0=%d, div1=%d\n", clock_khz, rate, div0, div1);
+    //sysprintf("Set_clock(): wanted clock=%d, rate=%d, div0=%d, div1=%d\n", clock_khz, rate, div0, div1);
 
     //--- setup register
-	outpw(REG_CLK_DIVCTL3, (inpw(REG_CLK_DIVCTL3) & ~0x18) | (0x3 << 3)); 	    
-	outpw(REG_CLK_DIVCTL3, (inpw(REG_CLK_DIVCTL3) & ~0x7) | (div0-1)); 			
-	outpw(REG_CLK_DIVCTL3, (inpw(REG_CLK_DIVCTL3) & ~0xff00) | ((div1-1) << 8));
-	for(i=0; i<1000; i++);  // waiting for clock become stable
-	return;
+    outpw(REG_CLK_DIVCTL3, (inpw(REG_CLK_DIVCTL3) & ~0x18) | (0x3 << 3));
+    outpw(REG_CLK_DIVCTL3, (inpw(REG_CLK_DIVCTL3) & ~0x7) | (div0-1));
+    outpw(REG_CLK_DIVCTL3, (inpw(REG_CLK_DIVCTL3) & ~0xff00) | ((div1-1) << 8));
+    for(i=0; i<1000; i++);  // waiting for clock become stable
+    return;
 }
 
 // Initial
@@ -268,14 +288,16 @@ int eMMC_Init(EMMC_INFO_T *pSD)
     u32CmdTimeOut = 5000;
 
     i = eMMC_CmdAndRsp(pSD, 8, 0x00000155, u32CmdTimeOut);
-    if (i == 0) {
+    if (i == 0)
+    {
         // SD 2.0
         eMMC_CmdAndRsp(pSD, 55, 0x00, u32CmdTimeOut);
         _fmi_uR3_CMD = 1;
         eMMC_CmdAndRsp(pSD, 41, 0x40ff8000, u32CmdTimeOut); // 2.7v-3.6v
         resp = inpw(REG_FMI_EMMCRESP0);
 
-        while (!(resp & 0x00800000)) {      // check if card is ready
+        while (!(resp & 0x00800000))        // check if card is ready
+        {
             eMMC_CmdAndRsp(pSD, 55, 0x00, u32CmdTimeOut);
             _fmi_uR3_CMD = 1;
             eMMC_CmdAndRsp(pSD, 41, 0x40ff8000, u32CmdTimeOut); // 3.0v-3.4v
@@ -285,22 +307,27 @@ int eMMC_Init(EMMC_INFO_T *pSD)
             pSD->CardType = EMMC_TYPE_SD_HIGH;
         else
             pSD->CardType = EMMC_TYPE_SD_LOW;
-    } else {
+    }
+    else
+    {
         // SD 1.1
         eMMC_Command(pSD, 0, 0);        // reset all cards
         for (i=0x100; i>0; i--);
 
         i = eMMC_CmdAndRsp(pSD, 55, 0x00, u32CmdTimeOut);
-        if (i == 2) {   // MMC memory
+        if (i == 2)     // MMC memory
+        {
 
             eMMC_Command(pSD, 0, 0);        // reset
             for (i=0x100; i>0; i--);
 
             _fmi_uR3_CMD = 1;
 
-            if (eMMC_CmdAndRsp(pSD, 1, 0x40ff8000, u32CmdTimeOut) != 2) {  // eMMC memory
+            if (eMMC_CmdAndRsp(pSD, 1, 0x40ff8000, u32CmdTimeOut) != 2)    // eMMC memory
+            {
                 resp = inpw(REG_FMI_EMMCRESP0);
-                while (!(resp & 0x00800000)) {      // check if card is ready
+                while (!(resp & 0x00800000))        // check if card is ready
+                {
                     _fmi_uR3_CMD = 1;
 
                     eMMC_CmdAndRsp(pSD, 1, 0x40ff8000, u32CmdTimeOut);      // high voltage
@@ -310,36 +337,47 @@ int eMMC_Init(EMMC_INFO_T *pSD)
                 if(resp & 0x00400000)
                     pSD->CardType = EMMC_TYPE_EMMC;
                 else
-                pSD->CardType = EMMC_TYPE_MMC;
-            } else {
+                    pSD->CardType = EMMC_TYPE_MMC;
+            }
+            else
+            {
                 pSD->CardType = EMMC_TYPE_UNKNOWN;
                 return EMMC_ERR_DEVICE;
             }
-        } else if (i == 0) { // SD Memory
+        }
+        else if (i == 0)     // SD Memory
+        {
             _fmi_uR3_CMD = 1;
             eMMC_CmdAndRsp(pSD, 41, 0x00ff8000, u32CmdTimeOut); // 3.0v-3.4v
             resp = inpw(REG_FMI_EMMCRESP0);
-            while (!(resp & 0x00800000)) {      // check if card is ready
+            while (!(resp & 0x00800000))        // check if card is ready
+            {
                 eMMC_CmdAndRsp(pSD, 55, 0x00,u32CmdTimeOut);
                 _fmi_uR3_CMD = 1;
                 eMMC_CmdAndRsp(pSD, 41, 0x00ff8000, u32CmdTimeOut); // 3.0v-3.4v
                 resp = inpw(REG_FMI_EMMCRESP0);
             }
             pSD->CardType = EMMC_TYPE_SD_LOW;
-        } else {
+        }
+        else
+        {
             pSD->CardType = EMMC_TYPE_UNKNOWN;
             return EMMC_INIT_ERROR;
         }
     }
 
     // CMD2, CMD3
-    if (pSD->CardType != EMMC_TYPE_UNKNOWN) {
+    if (pSD->CardType != EMMC_TYPE_UNKNOWN)
+    {
         eMMC_CmdAndRsp2(pSD, 2, 0x00, CIDBuffer);
-        if ((pSD->CardType == EMMC_TYPE_MMC) || (pSD->CardType == EMMC_TYPE_EMMC)) {
+        if ((pSD->CardType == EMMC_TYPE_MMC) || (pSD->CardType == EMMC_TYPE_EMMC))
+        {
             if ((status = eMMC_CmdAndRsp(pSD, 3, 0x10000, 0)) != 0)        // set RCA
                 return status;
             pSD->RCA = 0x10000;
-        } else {
+        }
+        else
+        {
             if ((status = eMMC_CmdAndRsp(pSD, 3, 0x00, 0)) != 0)       // get RCA
                 return status;
             else
@@ -347,12 +385,12 @@ int eMMC_Init(EMMC_INFO_T *pSD)
         }
     }
 
-	if (pSD->CardType == EMMC_TYPE_SD_HIGH)
-		sysprintf("This is high capacity SD memory card\n");
-	if (pSD->CardType == EMMC_TYPE_SD_LOW)
-		sysprintf("This is standard capacity SD memory card\n");
-	if (pSD->CardType == EMMC_TYPE_EMMC)
-		sysprintf("This is eMMC memory card\n");
+    if (pSD->CardType == EMMC_TYPE_SD_HIGH)
+        sysprintf("This is high capacity SD memory card\n");
+    if (pSD->CardType == EMMC_TYPE_SD_LOW)
+        sysprintf("This is standard capacity SD memory card\n");
+    if (pSD->CardType == EMMC_TYPE_EMMC)
+        sysprintf("This is eMMC memory card\n");
     return 0;
 }
 
@@ -374,7 +412,8 @@ int eMMC_SwitchToHighSpeed(EMMC_INFO_T *pSD)
 
     busy_status0 = _fmi_peMMCBuffer[28]<<8 | _fmi_peMMCBuffer[29];
 
-    if (!busy_status0) { // function ready
+    if (!busy_status0)   // function ready
+    {
         outpw(REG_FMI_DMASA, (unsigned int)_fmi_peMMCBuffer);        // set DMA transfer starting address
         outpw(REG_FMI_EMMCBLEN, 63);    // 512 bit
 
@@ -390,7 +429,8 @@ int eMMC_SwitchToHighSpeed(EMMC_INFO_T *pSD)
             return 1;
 
         return 0;
-    } else
+    }
+    else
         return 1;
 }
 
@@ -406,7 +446,8 @@ int eMMC_SelectCardType(EMMC_INFO_T *pSD)
     eMMC_CheckRB();
 
     // if SD card set 4bit
-    if (pSD->CardType == EMMC_TYPE_SD_HIGH) {
+    if (pSD->CardType == EMMC_TYPE_SD_HIGH)
+    {
         _fmi_peMMCBuffer = (unsigned char *)((unsigned int)_fmi_uceMMCBuffer);
         outpw(REG_FMI_DMASA, (unsigned int)_fmi_peMMCBuffer);    // set DMA transfer starting address
         outpw(REG_FMI_EMMCBLEN, 0x07);  // 64 bit
@@ -416,9 +457,11 @@ int eMMC_SelectCardType(EMMC_INFO_T *pSD)
         if ((status = eMMC_CmdAndRspDataIn(pSD, 51, 0x00)) != 0)
             return status;
 
-        if ((_fmi_uceMMCBuffer[0] & 0xf) == 0x2) {
+        if ((_fmi_uceMMCBuffer[0] & 0xf) == 0x2)
+        {
             status = eMMC_SwitchToHighSpeed(pSD);
-            if (status == 0) {
+            if (status == 0)
+            {
                 /* divider */
                 eMMC_Set_clock(SDHC_FREQ);
             }
@@ -430,7 +473,9 @@ int eMMC_SelectCardType(EMMC_INFO_T *pSD)
             return status;
 
         outpw(REG_FMI_EMMCCTL, inpw(REG_FMI_EMMCCTL)| FMI_EMMCCTL_DBW_Msk);
-    } else if (pSD->CardType == EMMC_TYPE_SD_LOW) {
+    }
+    else if (pSD->CardType == EMMC_TYPE_SD_LOW)
+    {
         _fmi_peMMCBuffer = (unsigned char *)((unsigned int)_fmi_uceMMCBuffer);
         outpw(REG_FMI_DMASA, (unsigned int) _fmi_peMMCBuffer); // set DMA transfer starting address
         outpw(REG_FMI_EMMCBLEN, 0x07);  // 64 bit
@@ -448,11 +493,15 @@ int eMMC_SelectCardType(EMMC_INFO_T *pSD)
             return status;
 
         outpw(REG_FMI_EMMCCTL, inpw(REG_FMI_EMMCCTL)| FMI_EMMCCTL_DBW_Msk);
-    } else if (pSD->CardType == EMMC_TYPE_MMC) {
+    }
+    else if (pSD->CardType == EMMC_TYPE_MMC)
+    {
 
         outpw(REG_FMI_EMMCCTL, inpw(REG_FMI_EMMCCTL) & ~FMI_EMMCCTL_DBW_Msk);
 
-    } else if (pSD->CardType == EMMC_TYPE_EMMC) {
+    }
+    else if (pSD->CardType == EMMC_TYPE_EMMC)
+    {
 
         //--- sent CMD6 to MMC card to set bus width to 4 bits mode, skymedi only support 1-bit
         // set CMD6 argument Access field to 3, Index to 183, Value to 1 (4-bit mode)
@@ -486,7 +535,7 @@ void eMMC_Get_info(EMMC_INFO_T *pSD)
 
     eMMC_CmdAndRsp2(pSD, 9, pSD->RCA, Buffer);
 
-	if ((pSD->CardType == EMMC_TYPE_MMC) || (pSD->CardType == EMMC_TYPE_EMMC))
+    if ((pSD->CardType == EMMC_TYPE_MMC) || (pSD->CardType == EMMC_TYPE_EMMC))
     {
         // for MMC/eMMC card
         if ((Buffer[0] & 0xc0000000) == 0xc0000000)
@@ -498,7 +547,7 @@ void eMMC_Get_info(EMMC_INFO_T *pSD)
             ptr = (unsigned char *)((unsigned int)_fmi_uceMMCBuffer);
             outpw(REG_FMI_DMASA, (unsigned int)ptr);  // set DMA transfer starting address
             outpw(REG_FMI_EMMCBLEN, 511);  // read 512 bytes for EXT_CSD
-			
+
             if (eMMC_CmdAndRspDataIn(pSD, 8, 0x00) != 0)
                 return;
 
@@ -557,7 +606,7 @@ void eMMC_Get_info(EMMC_INFO_T *pSD)
  */
 void FMI_SetReferenceClock(unsigned int u32Clock)
 {
-	gFMIReferenceClock = u32Clock;	// kHz
+    gFMIReferenceClock = u32Clock;	// kHz
 }
 
 /**
@@ -654,15 +703,18 @@ unsigned int eMMC_Read(unsigned char *pu8BufAddr, unsigned int u32StartSec, unsi
     outpw(REG_FMI_DMASA, (unsigned int)pu8BufAddr);
 
     loop = u32SecCount / 255;
-    for (i=0; i<loop; i++) {
+    for (i=0; i<loop; i++)
+    {
         _fmi_eMMCDataReady = FALSE;
 
         reg = inpw(REG_FMI_EMMCCTL) & ~FMI_EMMCCTL_CMDCODE_Msk;
         reg = reg | 0xff0000;
-        if (bIsSendCmd == FALSE) {
+        if (bIsSendCmd == FALSE)
+        {
             outpw(REG_FMI_EMMCCTL, reg|(18<<8)|(FMI_EMMCCTL_COEN_Msk | FMI_EMMCCTL_RIEN_Msk | FMI_EMMCCTL_DIEN_Msk));
             bIsSendCmd = TRUE;
-        } else
+        }
+        else
             outpw(REG_FMI_EMMCCTL, reg | FMI_EMMCCTL_DIEN_Msk);
 
         while(!_fmi_eMMCDataReady)
@@ -675,27 +727,32 @@ unsigned int eMMC_Read(unsigned char *pu8BufAddr, unsigned int u32StartSec, unsi
                 return EMMC_NO_CARD;
         }
 
-        if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC7_Msk)) {    // check CRC7
+        if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC7_Msk))      // check CRC7
+        {
             return EMMC_CRC7_ERROR;
         }
 
-        if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC16_Msk)) {   // check CRC16
+        if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC16_Msk))     // check CRC16
+        {
             return EMMC_CRC16_ERROR;
         }
     }
 
     loop = u32SecCount % 255;
-    if (loop != 0) {
+    if (loop != 0)
+    {
         _fmi_eMMCDataReady = FALSE;
 
         reg = inpw(REG_FMI_EMMCCTL) & (~FMI_EMMCCTL_CMDCODE_Msk);
         reg = reg & (~FMI_EMMCCTL_BLKCNT_Msk);
         reg |= (loop << 16);
 
-        if (bIsSendCmd == FALSE) {
+        if (bIsSendCmd == FALSE)
+        {
             outpw(REG_FMI_EMMCCTL, reg|(18<<8)|(FMI_EMMCCTL_COEN_Msk | FMI_EMMCCTL_RIEN_Msk | FMI_EMMCCTL_DIEN_Msk));
             bIsSendCmd = TRUE;
-        } else
+        }
+        else
             outpw(REG_FMI_EMMCCTL, reg | FMI_EMMCCTL_DIEN_Msk);
 
         while(!_fmi_eMMCDataReady)
@@ -708,16 +765,19 @@ unsigned int eMMC_Read(unsigned char *pu8BufAddr, unsigned int u32StartSec, unsi
                 return EMMC_NO_CARD;
         }
 
-        if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC7_Msk)) {    // check CRC7
+        if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC7_Msk))      // check CRC7
+        {
             return EMMC_CRC7_ERROR;
         }
 
-        if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC16_Msk)) {   // check CRC16
+        if (!(inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRC16_Msk))     // check CRC16
+        {
             return EMMC_CRC16_ERROR;
         }
     }
 
-    if (eMMC_CmdAndRsp(pSD, 12, 0, 0)) {    // stop command
+    if (eMMC_CmdAndRsp(pSD, 12, 0, 0))      // stop command
+    {
         //sysprintf("stop command fail !!\n");
         return EMMC_CRC7_ERROR;
     }
@@ -772,15 +832,18 @@ unsigned int eMMC_Write(unsigned char *pu8BufAddr, unsigned int u32StartSec, uns
 
     outpw(REG_FMI_DMASA, (unsigned int)pu8BufAddr);
     loop = u32SecCount / 255;   // the maximum block count is 0xFF=255
-    for (i=0; i<loop; i++) {
+    for (i=0; i<loop; i++)
+    {
         _fmi_eMMCDataReady = FALSE;
 
         reg = inpw(REG_FMI_EMMCCTL) & 0xff00c080;
         reg = reg | 0xff0000;
-        if (!bIsSendCmd) {
+        if (!bIsSendCmd)
+        {
             outpw(REG_FMI_EMMCCTL, reg|(25<<8)|(FMI_EMMCCTL_COEN_Msk | FMI_EMMCCTL_RIEN_Msk | FMI_EMMCCTL_DOEN_Msk));
             bIsSendCmd = TRUE;
-        } else
+        }
+        else
             outpw(REG_FMI_EMMCCTL, reg | FMI_EMMCCTL_DOEN_Msk);
 
         while(!_fmi_eMMCDataReady)
@@ -793,21 +856,25 @@ unsigned int eMMC_Write(unsigned char *pu8BufAddr, unsigned int u32StartSec, uns
                 return EMMC_NO_CARD;
         }
 
-        if ((inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRCIF_Msk) != 0) {   // check CRC
+        if ((inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRCIF_Msk) != 0)     // check CRC
+        {
             outpw(REG_FMI_EMMCINTSTS, FMI_EMMCINTSTS_CRCIF_Msk);
             return EMMC_CRC_ERROR;
         }
     }
 
     loop = u32SecCount % 255;
-    if (loop != 0) {
+    if (loop != 0)
+    {
         _fmi_eMMCDataReady = FALSE;
 
         reg = (inpw(REG_FMI_EMMCCTL) & 0xff00c080) | (loop << 16);
-        if (!bIsSendCmd) {
+        if (!bIsSendCmd)
+        {
             outpw(REG_FMI_EMMCCTL, reg|(25<<8)|(FMI_EMMCCTL_COEN_Msk | FMI_EMMCCTL_RIEN_Msk | FMI_EMMCCTL_DOEN_Msk));
             bIsSendCmd = TRUE;
-        } else
+        }
+        else
             outpw(REG_FMI_EMMCCTL, reg | FMI_EMMCCTL_DOEN_Msk);
 
         while(!_fmi_eMMCDataReady)
@@ -820,14 +887,16 @@ unsigned int eMMC_Write(unsigned char *pu8BufAddr, unsigned int u32StartSec, uns
                 return EMMC_NO_CARD;
         }
 
-        if ((inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRCIF_Msk) != 0) {   // check CRC
+        if ((inpw(REG_FMI_EMMCINTSTS) & FMI_EMMCINTSTS_CRCIF_Msk) != 0)     // check CRC
+        {
             outpw(REG_FMI_EMMCINTSTS, FMI_EMMCINTSTS_CRCIF_Msk);
             return EMMC_CRC_ERROR;
         }
     }
     outpw(REG_FMI_EMMCINTSTS, FMI_EMMCINTSTS_CRCIF_Msk);
 
-    if (eMMC_CmdAndRsp(pSD, 12, 0, 0)) {    // stop command
+    if (eMMC_CmdAndRsp(pSD, 12, 0, 0))      // stop command
+    {
         return EMMC_CRC7_ERROR;
     }
     eMMC_CheckRB();

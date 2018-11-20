@@ -8,7 +8,7 @@
     AREA SYS_INIT, CODE, READONLY
 
     EXPORT  sysSetupCP15
-	EXPORT	sys_flush_and_clean_dcache
+    EXPORT  sys_flush_and_clean_dcache
 
 sysSetupCP15
 
@@ -26,12 +26,12 @@ sysSetupCP15
     BX  r14
 
 sys_flush_and_clean_dcache
-		
+        
 tci_loop
-	MRC p15, 0, r15, c7, c14, 3 ; test clean and invalidate
-	BNE tci_loop
-		
- 	BX  r14
+    MRC p15, 0, r15, c7, c14, 3 ; test clean and invalidate
+    BNE tci_loop
+        
+    BX  r14
 
 
     END

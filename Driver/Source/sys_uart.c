@@ -222,10 +222,10 @@ static INT8 *FormatItem(INT8 *f, INT a)
 
 INT  sysIsKbHit()
 {
-	if (inpw(REG_UART0_FSR) & (1 << 14))
-		return 0;
-	else 
-		return 1;
+    if (inpw(REG_UART0_FSR) & (1 << 14))
+        return 0;
+    else 
+        return 1;
 }
 /// @endcond HIDDEN_SYMBOLS
 

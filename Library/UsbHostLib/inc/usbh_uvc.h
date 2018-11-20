@@ -2,6 +2,12 @@
 #define __INCLUDED_UVC_H__
 
 #include "usb.h"
+/** @addtogroup NUC970_Library NUC970 Library
+  @{
+*/
+/** @addtogroup NUC970_USBH_Library USB Host Library
+  @{
+*/
 
 /// @cond HIDDEN_SYMBOLS
 
@@ -533,7 +539,7 @@ struct uvc_dev_t;
 /// @endcond HIDDEN_SYMBOLS
 
 
-/** @addtogroup USBH_EXPORTED_STRUCTURES USB Host Exported Structures
+/** @addtogroup NUC970_USBH_EXPORTED_STRUCTURES USB Host Exported Structures
   @{
 */
 
@@ -624,8 +630,9 @@ typedef struct uvc_dev_t
     UVC_CB_FUNC       *func_rx;       /* user callback function for receiving images        */
     struct uvc_dev_t  *next;
 }   UVC_DEV_T;
-
-
+/*@}*/ /* end of group NUC970_USBH_EXPORTED_STRUCTURES */
+/*@}*/ /* end of group NUC970_USBH_Library */
+/*@}*/ /* end of group NUC970_Library */
 #endif /* __INCLUDED_UVC_H__ */
 
 /*** (C) COPYRIGHT 2018 Nuvoton Technology Corp. ***/

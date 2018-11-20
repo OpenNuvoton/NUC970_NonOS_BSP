@@ -3,7 +3,7 @@
  * @version  V1.00
  * $Revision: 11 $
  * $Date: 14/12/02 5:47p $
- * @brief    NUC980 MCU USB Host HID driver
+ * @brief    NUC970 MCU USB Host HID driver
  *
  * @note
  * Copyright (C) 2016 Nuvoton Technology Corp. All rights reserved.

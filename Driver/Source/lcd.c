@@ -35,7 +35,7 @@
 static VPOST_T DEF_E50A2V1 = {  800,                            /*!< Panel width */
                                 480,                            /*!< Panel height */
                                 0,                              /*!< MPU command line low indicator */
-                                0,                              /*!< MPU command width */ 
+                                0,                              /*!< MPU command width */
                                 0,                              /*!< MPU bus width */
                                 VPOSTB_DATA16or18,              /*!< Display bus width */
                                 0,                              /*!< MPU mode */
@@ -45,39 +45,44 @@ static VPOST_T DEF_E50A2V1 = {  800,                            /*!< Panel width
                                 0x01e00320,                     /*!< CRTCDEND register value */
                                 0x03250321,                     /*!< CRTCHR register value */
                                 0x03780348,                     /*!< CRTCHSYNC register value */
-                                0x01f001ed};                    /*!< CRTCVR register value */
+                                0x01f001ed                      /*!< CRTCVR register value */
+                             };
 
-static VPOST_T DEF_ILI9341_MPU80 = {  
-                                240,                            /*!< Panel width */
-                                320,                            /*!< Panel height */
-                                VPOSTB_CMDLOW,                  /*!< MPU command line low indicator */
-                                VPOSTB_CM16t18HIGH,             /*!< MPU command width */ 
-                                VPOSTB_CMD8,                    /*!< MPU bus width */
-                                VPOSTB_DATA16or18,              /*!< Display bus width */
-                                VPOSTB_MPU80,                   /*!< MPU mode */
-                                VPOSTB_COLORTYPE_64K,           /*!< Display colors */
-                                VPOSTB_DEVICE_MPU,              /*!< Type of display panel */
-                                0x01600100,                     /*!< CRTCSIZE register value */
-                                0x014000F0,                     /*!< CRTCDEND register value */
-                                0x00FA00F5,                     /*!< CRTCHR register value */
-                                0x00FC00FA,                     /*!< CRTCHSYNC register value */
-                                0x01500145};                    /*!< CRTCVR register value */
+static VPOST_T DEF_ILI9341_MPU80 =
+{
+    240,                            /*!< Panel width */
+    320,                            /*!< Panel height */
+    VPOSTB_CMDLOW,                  /*!< MPU command line low indicator */
+    VPOSTB_CM16t18HIGH,             /*!< MPU command width */
+    VPOSTB_CMD8,                    /*!< MPU bus width */
+    VPOSTB_DATA16or18,              /*!< Display bus width */
+    VPOSTB_MPU80,                   /*!< MPU mode */
+    VPOSTB_COLORTYPE_64K,           /*!< Display colors */
+    VPOSTB_DEVICE_MPU,              /*!< Type of display panel */
+    0x01600100,                     /*!< CRTCSIZE register value */
+    0x014000F0,                     /*!< CRTCDEND register value */
+    0x00FA00F5,                     /*!< CRTCHR register value */
+    0x00FC00FA,                     /*!< CRTCHSYNC register value */
+    0x01500145                      /*!< CRTCVR register value */
+};
 
-static VPOST_T DEF_LSA40AT9001 = {
-                                800,                            /*!< Panel width */
-                                600,                            /*!< Panel height */
-                                0,                              /*!< MPU command line low indicator */
-                                0,                              /*!< MPU command width */
-                                0,                              /*!< MPU bus width */
-                                VPOSTB_DATA16or18,              /*!< Display bus width */
-                                0,                              /*!< MPU mode */
-                                VPOSTB_COLORTYPE_16M,           /*!< Display colors */
-                                VPOSTB_DEVICE_SYNC_HIGHCOLOR,   /*!< Type of display panel */
-                                0x02800425,                     /*!< CRTCSIZE register value */
-                                0x02580320,                     /*!< CRTCDEND register value */
-                                0x032F032A,                     /*!< CRTCHR register value */
-                                0x0334032A,                     /*!< CRTCHSYNC register value */
-                                0x026C0262};                    /*!< CRTCVR register value */
+static VPOST_T DEF_LSA40AT9001 =
+{
+    800,                            /*!< Panel width */
+    600,                            /*!< Panel height */
+    0,                              /*!< MPU command line low indicator */
+    0,                              /*!< MPU command width */
+    0,                              /*!< MPU bus width */
+    VPOSTB_DATA16or18,              /*!< Display bus width */
+    0,                              /*!< MPU mode */
+    VPOSTB_COLORTYPE_16M,           /*!< Display colors */
+    VPOSTB_DEVICE_SYNC_HIGHCOLOR,   /*!< Type of display panel */
+    0x02800425,                     /*!< CRTCSIZE register value */
+    0x02580320,                     /*!< CRTCDEND register value */
+    0x032F032A,                     /*!< CRTCHR register value */
+    0x0334032A,                     /*!< CRTCHSYNC register value */
+    0x026C0262                      /*!< CRTCVR register value */
+};
 
 /* LCD build-in support list */
 static VPOST_T* DisplayDevList[3] = {&DEF_E50A2V1, &DEF_ILI9341_MPU80, &DEF_LSA40AT9001};
@@ -87,7 +92,7 @@ static LCDFORMATEX curVADev = {0};
 
 /// @endcond /* HIDDEN_SYMBOLS */
 
-/*@}*/ /* end of group NUC970_I2C_EXPORTED_CONSTANTS */
+/*@}*/ /* end of group NUC970_LCD_EXPORTED_CONSTANTS */
 
 /** @addtogroup NUC970_LCD_EXPORTED_FUNCTIONS LCD Exported Functions
   @{
@@ -95,11 +100,11 @@ static LCDFORMATEX curVADev = {0};
 /// @cond HIDDEN_SYMBOLS
 
 /* For align 32 */
-static uint32_t shift_pointer(uint32_t ptr, uint32_t align)   
+static uint32_t shift_pointer(uint32_t ptr, uint32_t align)
 {
     uint32_t alignedPTR;
     uint32_t remain;
-    
+
     //printf("pointer position is %x\n",ptr);
     if( (ptr%align)!=0)
     {
@@ -112,20 +117,20 @@ static uint32_t shift_pointer(uint32_t ptr, uint32_t align)
 
 static void vpostIntHandler(void)
 {
-   /* clear VPOST interrupt state */
-   uint32_t uintstatus;
-   
-   uintstatus = inpw(REG_LCM_INT_CS);
-   if (uintstatus & VPOSTB_UNDERRUN_INT)
-   {
-       outpw(REG_LCM_INT_CS,inpw(REG_LCM_INT_CS) | VPOSTB_UNDERRUN_INT);
-       sysprintf("LCD under run error!!\n");
-   }
-   else if (uintstatus & VPOSTB_BUS_ERROR_INT)
-   {
-       outpw(REG_LCM_INT_CS,inpw(REG_LCM_INT_CS) | VPOSTB_BUS_ERROR_INT);
-       sysprintf("LCD bus error!!\n");
-   }
+    /* clear VPOST interrupt state */
+    uint32_t uintstatus;
+
+    uintstatus = inpw(REG_LCM_INT_CS);
+    if (uintstatus & VPOSTB_UNDERRUN_INT)
+    {
+        outpw(REG_LCM_INT_CS,inpw(REG_LCM_INT_CS) | VPOSTB_UNDERRUN_INT);
+        sysprintf("LCD under run error!!\n");
+    }
+    else if (uintstatus & VPOSTB_BUS_ERROR_INT)
+    {
+        outpw(REG_LCM_INT_CS,inpw(REG_LCM_INT_CS) | VPOSTB_BUS_ERROR_INT);
+        sysprintf("LCD bus error!!\n");
+    }
 }
 /// @endcond /* HIDDEN_SYMBOLS */
 
@@ -138,24 +143,24 @@ void vpostLCMInit(uint32_t u32DisplayPanelID)
 {
     // enable lcd engine clock
     outpw(REG_CLK_HCLKEN, inpw(REG_CLK_HCLKEN) | (1<<25));
-    
+
     memset((void *)&curDisplayDev, 0, sizeof(curDisplayDev));
     memcpy((void *)&curDisplayDev, DisplayDevList[u32DisplayPanelID], sizeof(curDisplayDev));
-    
-    outpw(REG_LCM_DEV_CTRL,   curDisplayDev.u32CmdLow 
-                            | curDisplayDev.u32Cmd16t18
-                            | curDisplayDev.u32CmdBusWidth
-                            | curDisplayDev.u32DataBusWidth
-                            | curDisplayDev.u32MPU_Mode
-                            | curDisplayDev.u32DisplayColors
-                            | curDisplayDev.u32DevType );
-                                                   
+
+    outpw(REG_LCM_DEV_CTRL,   curDisplayDev.u32CmdLow
+          | curDisplayDev.u32Cmd16t18
+          | curDisplayDev.u32CmdBusWidth
+          | curDisplayDev.u32DataBusWidth
+          | curDisplayDev.u32MPU_Mode
+          | curDisplayDev.u32DisplayColors
+          | curDisplayDev.u32DevType );
+
     outpw(REG_LCM_CRTC_SIZE,    curDisplayDev.u32Reg_CRTCSIZE);
     outpw(REG_LCM_CRTC_DEND,    curDisplayDev.u32Reg_CRTCDEND);
     outpw(REG_LCM_CRTC_HR,      curDisplayDev.u32Reg_CRTCHR);
     outpw(REG_LCM_CRTC_HSYNC,   curDisplayDev.u32Reg_CRTCHSYNC);
     outpw(REG_LCM_CRTC_VR,      curDisplayDev.u32Reg_CRTCVR);
-    
+
     sysInstallISR(IRQ_LEVEL_1, LCD_IRQn, (PVOID)vpostIntHandler);
     sysEnableInterrupt(LCD_IRQn);
 
@@ -172,7 +177,7 @@ void vpostLCMDeinit(void)
 {
     // disable lcd engine clock
     outpw(REG_CLK_HCLKEN, inpw(REG_CLK_HCLKEN) & ~(1<<25));
-    
+
     sysDisableInterrupt(LCD_IRQn);
 }
 
@@ -187,10 +192,10 @@ uint8_t* vpostGetFrameBuffer(void)
 {
     uint8_t* u8BufPtr;
     uint8_t u32BytePerPixel;
-    
+
     if((curDisplayDev.u32DevWidth == 0) || (curDisplayDev.u32DevHeight == 0))
         return NULL;
-    
+
     switch(curVADev.ucVASrcFormat)
     {
         case VA_SRC_YUV422:
@@ -198,22 +203,22 @@ uint8_t* vpostGetFrameBuffer(void)
         case VA_SRC_RGB565:
             u32BytePerPixel = 2;
             break;
-        
+
         case VA_SRC_RGB666:
         case VA_SRC_RGB888:
             u32BytePerPixel = 4;
             break;
-        
+
         default:
             u32BytePerPixel = 2;
     }
-    
+
     u8BufPtr = (uint8_t *)malloc((curDisplayDev.u32DevWidth * curDisplayDev.u32DevHeight * u32BytePerPixel)+32);
     u8BufPtr = (uint8_t *)shift_pointer((uint32_t)u8BufPtr, 32);
-    
+
     outpw(REG_LCM_VA_BADDR0, (uint32_t)((uint32_t)u8BufPtr | 0x80000000));
     outpw(REG_LCM_VA_FBCTRL, inpw(REG_LCM_VA_FBCTRL) & ~(1<<30) & ~VPOSTB_DB_EN);
-    
+
     return (uint8_t *)((uint32_t)u8BufPtr | 0x80000000);
 }
 
@@ -234,48 +239,48 @@ void vpostSetActiveWindow(uint16_t u16StartY, uint16_t u16EndY, uint8_t u8BGColo
 
 /**
   * @brief Configure LCD display mode
-  * @param[in] u8DisplayMode is display mode, value could be 
+  * @param[in] u8DisplayMode is display mode, value could be
   *                                         - \ref VPOST_DISPLAY_SINGLE
-  *                                         - \ref VPOST_DISPLAY_CONTINUOUS  
+  *                                         - \ref VPOST_DISPLAY_CONTINUOUS
   * @return none
   */
 void vpostSetDisplayMode(uint8_t u8DisplayMode)
 {
     if (u8DisplayMode==0)
         outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) & ~(1<<7));//clear setting
-    else        
+    else
         outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | (u8DisplayMode) << 7);
 }
 
 /**
   * @brief Configure display attributes of video interface,
-  * @param[in] u32VASrcType is display type, value could be 
+  * @param[in] u32VASrcType is display type, value could be
   *                                         - \ref VA_SRC_YUV422
-  *                                         - \ref VA_SRC_YCBCR422  
-  *                                         - \ref VA_SRC_RGB888  
-  *                                         - \ref VA_SRC_RGB666    
-  *                                         - \ref VA_SRC_RGB565 
-  *                                         - \ref VA_SRC_RGB444_LOW 
-  *                                         - \ref VA_SRC_RGB444_HIGH 
+  *                                         - \ref VA_SRC_YCBCR422
+  *                                         - \ref VA_SRC_RGB888
+  *                                         - \ref VA_SRC_RGB666
+  *                                         - \ref VA_SRC_RGB565
+  *                                         - \ref VA_SRC_RGB444_LOW
+  *                                         - \ref VA_SRC_RGB444_HIGH
   * @return none
   */
-void vpostSetVASrc(uint32_t u32VASrcType)    
-{    
+void vpostSetVASrc(uint32_t u32VASrcType)
+{
     uint32_t u32BytePerPixel, VA_FF, VA_Sride;
-    
+
     curVADev.ucVASrcFormat = u32VASrcType;
-    
+
     outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) & ~(7<<8));
     if (u32VASrcType != 0)
         outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | u32VASrcType);
     else
         outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) & ~(7<<8));
-    
+
     if ((u32VASrcType==VA_SRC_RGB888)||(u32VASrcType==VA_SRC_RGB666))
         outpw(REG_LCM_VA_FBCTRL,inpw(REG_LCM_VA_FBCTRL) &~0x7ff07ff | (curDisplayDev.u32DevWidth << 16) | curDisplayDev.u32DevWidth);
     else
-        outpw(REG_LCM_VA_FBCTRL,inpw(REG_LCM_VA_FBCTRL) &~0x7ff07ff | ((curDisplayDev.u32DevWidth/2) << 16) | (curDisplayDev.u32DevWidth/2)); 
-    
+        outpw(REG_LCM_VA_FBCTRL,inpw(REG_LCM_VA_FBCTRL) &~0x7ff07ff | ((curDisplayDev.u32DevWidth/2) << 16) | (curDisplayDev.u32DevWidth/2));
+
     switch(u32VASrcType)
     {
         case VA_SRC_YUV422:
@@ -283,16 +288,16 @@ void vpostSetVASrc(uint32_t u32VASrcType)
         case VA_SRC_RGB565:
             u32BytePerPixel = 2;
             break;
-        
+
         case VA_SRC_RGB666:
         case VA_SRC_RGB888:
             u32BytePerPixel = 4;
             break;
-        
+
         default:
             u32BytePerPixel = 2;
     }
-    
+
     /* set video stream frame buffer control */
     VA_FF = curDisplayDev.u32DevWidth * u32BytePerPixel / 4;
     VA_Sride = curDisplayDev.u32DevWidth * u32BytePerPixel / 4;
@@ -319,24 +324,24 @@ void vpostVAStartTrigger(void)
   */
 void vpostVAStopTrigger(void)
 {
-     outpw(REG_LCM_DCCS,inpw(REG_LCM_DCCS) & ~(VPOSTB_DISP_OUT_EN | VPOSTB_VA_EN));//OSD disable     
+    outpw(REG_LCM_DCCS,inpw(REG_LCM_DCCS) & ~(VPOSTB_DISP_OUT_EN | VPOSTB_VA_EN));//OSD disable
 }
 
 /**
   * @brief Configure LCD scaling attribute
-  * @param[in] u8HIntegral is horizontal integral 
+  * @param[in] u8HIntegral is horizontal integral
   * @param[in] u16HDecimal is horizontal decimal
-  * @param[in] u8VIntegral is vertical integral 
+  * @param[in] u8VIntegral is vertical integral
   * @param[in] u16VDecimal is vertical decimal
-  * @param[in] u32Mode is scale mode, value could be 
+  * @param[in] u32Mode is scale mode, value could be
   *                                      - \ref VA_SCALE_INTERPOLATION
-  *                                      - \ref VA_SCALE_DUPLICATION  
+  *                                      - \ref VA_SCALE_DUPLICATION
   * @return none
   */
 void vpostVAScalingCtrl(uint8_t u8HIntegral, uint16_t u16HDecimal, uint8_t u8VIntegral, uint16_t u16VDecimal, uint32_t u32Mode)
 {
     outpw(REG_LCM_VA_SCALE,((((uint32_t)u8VIntegral << 10) + ((uint32_t)ceil((double)1024/10)*u16VDecimal)) << 16)
-                            | (((uint32_t)u8HIntegral << 10) + ((uint32_t)ceil((double)1024/10)*u16HDecimal)) | u32Mode);
+          | (((uint32_t)u8HIntegral << 10) + ((uint32_t)ceil((double)1024/10)*u16HDecimal)) | u32Mode);
 }
 
 /**
@@ -389,24 +394,24 @@ void vpostOSDDisableBlinking(void)
 
 /**
   * @brief Configure display attributes of OSD
-  * @param[in] u32OSDSrcType is display type, value could be 
+  * @param[in] u32OSDSrcType is display type, value could be
   *                                         - \ref OSD_SRC_YUV422
-  *                                         - \ref OSD_SRC_YCBCR422  
-  *                                         - \ref OSD_SRC_RGB888  
-  *                                         - \ref OSD_SRC_RGB666    
-  *                                         - \ref OSD_SRC_RGB565 
-  *                                         - \ref OSD_SRC_RGB444_LOW 
-  *                                         - \ref OSD_SRC_RGB444_HIGH 
+  *                                         - \ref OSD_SRC_YCBCR422
+  *                                         - \ref OSD_SRC_RGB888
+  *                                         - \ref OSD_SRC_RGB666
+  *                                         - \ref OSD_SRC_RGB565
+  *                                         - \ref OSD_SRC_RGB444_LOW
+  *                                         - \ref OSD_SRC_RGB444_HIGH
   *                                         - \ref OSD_SRC_RGB332
   * @return none
   */
 void vpostSetOSDSrc(uint32_t u32OSDSrcType)
-{   
+{
     uint32_t u32BytePerPixel, VA_FF, VA_Sride;
-    
+
     outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) &~(7<<12) | u32OSDSrcType);
     curOSDDev.ucOSDSrcFormat = u32OSDSrcType;
-    
+
     switch(u32OSDSrcType)
     {
         case OSD_SRC_YUV422:
@@ -414,16 +419,16 @@ void vpostSetOSDSrc(uint32_t u32OSDSrcType)
         case OSD_SRC_RGB565:
             u32BytePerPixel = 2;
             break;
-        
+
         case OSD_SRC_RGB666:
         case OSD_SRC_RGB888:
             u32BytePerPixel = 4;
             break;
-        
+
         default:
             u32BytePerPixel = 2;
     }
-    
+
     /* set video stream frame buffer control */
     VA_FF = curOSDDev.nOSDWidth * u32BytePerPixel / 4;
     VA_Sride = curOSDDev.nOSDWidth * u32BytePerPixel / 4;
@@ -441,11 +446,12 @@ uint8_t* vpostGetOSDBuffer(void)
 {
     uint32_t u32BytePerPixel;
     uint8_t* u8BufPtr;
-    
-    if ((curOSDDev.nOSDWidth == 0) || (curOSDDev.nOSDHeight == 0)){
-        return NULL; 
+
+    if ((curOSDDev.nOSDWidth == 0) || (curOSDDev.nOSDHeight == 0))
+    {
+        return NULL;
     }
-    
+
     switch(curOSDDev.ucOSDSrcFormat)
     {
         case OSD_SRC_YUV422:
@@ -453,21 +459,21 @@ uint8_t* vpostGetOSDBuffer(void)
         case OSD_SRC_RGB565:
             u32BytePerPixel = 2;
             break;
-        
+
         case OSD_SRC_RGB666:
         case OSD_SRC_RGB888:
             u32BytePerPixel = 4;
             break;
-        
+
         default:
             u32BytePerPixel = 2;
     }
-    
+
     u8BufPtr = (uint8_t *)malloc((curOSDDev.nOSDWidth * curOSDDev.nOSDHeight * u32BytePerPixel)+32);
     u8BufPtr = (uint8_t *)shift_pointer((uint32_t)u8BufPtr, 32);
-    
+
     outpw(REG_LCM_OSD_BADDR, (uint32_t)((uint32_t)u8BufPtr | 0x80000000));
-    
+
     return (uint8_t *)((uint32_t)u8BufPtr | 0x80000000);
 }
 
@@ -478,31 +484,31 @@ uint8_t* vpostGetOSDBuffer(void)
   */
 void vpostOSDEnable(void)
 {
-     outpw(REG_LCM_DCCS,inpw(REG_LCM_DCCS) | VPOSTB_OSD_EN);//OSD enable
+    outpw(REG_LCM_DCCS,inpw(REG_LCM_DCCS) | VPOSTB_OSD_EN);//OSD enable
 }
 
 /**
   * @brief Configure OSD scaling attribute
-  * @param[in] u8HIntegral is horizontal integral 
+  * @param[in] u8HIntegral is horizontal integral
   * @param[in] u16HDecimal is horizontal decimal
-  * @param[in] u8VScall is scale mode, value could be 
+  * @param[in] u8VScall is scale mode, value could be
   *                                      - \ref VPOSTB_OSD_VUP_1X
-  *                                      - \ref VPOSTB_OSD_VUP_2X  
-  *                                      - \ref VPOSTB_OSD_VUP_4X    
+  *                                      - \ref VPOSTB_OSD_VUP_2X
+  *                                      - \ref VPOSTB_OSD_VUP_4X
   * @return none
   */
 void vpostOSDScalingCtrl(uint8_t u8HIntegral, uint16_t u16HDecimal,uint8_t u8VScall)
 {
     outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS)&0xfff0ffff); //clear OSD scaling setting
     if (u8VScall!=0)
-        outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | (u8VScall<<16));   
+        outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | (u8VScall<<16));
     outpw(REG_LCM_OSD_SCALE, ((uint32_t)u8HIntegral<<10) | ((uint32_t)ceil((double)1024/10*u16HDecimal))<<6);
 }
 
 /**
   * @brief Set OSD display window, including start position, width and height.
   * @param[in] u32XStart is X start position
-  * @param[in] u32YStart is Y start position  
+  * @param[in] u32YStart is Y start position
   * @param[in] u32Width is OSD display width
   * @param[in] u32Height is OSD display height
   * @return none
@@ -511,7 +517,7 @@ void vpostOSDSetWindow(uint32_t u32XStart,uint32_t u32YStart,uint32_t u32Width,u
 {
     outpw(REG_LCM_OSD_WINS,((u32YStart+1)<<16) | (u32XStart+1));
     outpw(REG_LCM_OSD_WINE,((u32YStart+u32Height)<<16) | (u32XStart+u32Width));
-    
+
     curOSDDev.nOSDWidth = u32Width;
     curOSDDev.nOSDHeight = u32Height;
 }
@@ -525,7 +531,7 @@ void vpostOSDSetWindow(uint32_t u32XStart,uint32_t u32YStart,uint32_t u32Width,u
   *                                              - \ref HC_MODE2
   *                                              - \ref HC_MODE3
   *                                              - \ref HC_MODE4
-  *                                              - \ref HC_MODE5  
+  *                                              - \ref HC_MODE5
   * @return none
   */
 void vpostHCInit(uint32_t *u32CursorBMPBuff, VA_HCMODE_E ucMode)
@@ -533,14 +539,14 @@ void vpostHCInit(uint32_t *u32CursorBMPBuff, VA_HCMODE_E ucMode)
     int bpp=2;
     int BlockWidth=32;
     int bpw=32;
-    
+
     outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x003f3f00 | (0x00<<8) | (0x00<<16));//set TIP
     if (ucMode == HC_MODE0)
     {
         bpp=2;
         BlockWidth=32;
         outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7);//set mode 0 32X32X2bpp 4 color
-        
+
     }
     else if (ucMode == HC_MODE1)
     {
@@ -572,12 +578,12 @@ void vpostHCInit(uint32_t *u32CursorBMPBuff, VA_HCMODE_E ucMode)
         BlockWidth=128;
         outpw(REG_LCM_HC_CTRL, inpw(REG_LCM_HC_CTRL) &~0x7 | 0x5);//set mode 5 128X128X1bpp 1 color and 1 transparent
     }
-    
+
     outpw(REG_LCM_HC_WBCTRL,((bpp*BlockWidth/bpw)<<16) | (bpp*BlockWidth/bpw) );
     outpw(REG_LCM_HC_BADDR,(uint32_t)u32CursorBMPBuff);
     outpw(REG_LCM_HC_COLOR0, 0x00ff0000);       // RED color
-    outpw(REG_LCM_HC_COLOR1, 0x0000ff00);       // GREEN color                
-    outpw(REG_LCM_HC_COLOR2, 0x000000ff);       // BLUE color                                
+    outpw(REG_LCM_HC_COLOR1, 0x0000ff00);       // GREEN color
+    outpw(REG_LCM_HC_COLOR2, 0x000000ff);       // BLUE color
     outpw(REG_LCM_HC_COLOR3, 0x00ffff00);       // YELLOW color
     outpw(REG_LCM_DCCS,inpw(REG_LCM_DCCS) | VPOSTB_HC_EN);
 }
@@ -585,7 +591,7 @@ void vpostHCInit(uint32_t *u32CursorBMPBuff, VA_HCMODE_E ucMode)
 /**
   * @brief Set the position of hardware cursor
   * @param[in] u32CursorX is X position
-  * @param[in] u32CursorY is Y position  
+  * @param[in] u32CursorY is Y position
   * @return none
   */
 void vpostHCPosCtrl(uint32_t u32CursorX, uint32_t u32CursorY)
@@ -595,14 +601,14 @@ void vpostHCPosCtrl(uint32_t u32CursorX, uint32_t u32CursorY)
 
 /**
   * @brief Set OSD overlay condition
-  * @param[in] u8OSDDisplayMatch is display method when mask bit is matched, value could be 
+  * @param[in] u8OSDDisplayMatch is display method when mask bit is matched, value could be
   *                                                         - \ref DISPLAY_VIDEO
   *                                                         - \ref DISPLAY_OSD
-  *                                                         - \ref DISPLAY_SYNTHESIZED  
+  *                                                         - \ref DISPLAY_SYNTHESIZED
   * @param[in] u8OSDDisplayUnMatch is display method when mask bit is unmatched
   *                                                         - \ref DISPLAY_VIDEO
   *                                                         - \ref DISPLAY_OSD
-  *                                                         - \ref DISPLAY_SYNTHESIZED    
+  *                                                         - \ref DISPLAY_SYNTHESIZED
   * @param[in] u8OSDSynW is synthesis video weighting, based on match condition
   * @return none
   */
@@ -610,19 +616,22 @@ void vpostOSDSetOverlay(uint8_t u8OSDDisplayMatch, uint8_t u8OSDDisplayUnMatch, 
 {
     /* clear OCR0 and OCR1 */
     outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY)&0xfffffff0);
-    
+
     /* match condition */
-    if (u8OSDDisplayMatch != 0){
+    if (u8OSDDisplayMatch != 0)
+    {
         outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY) | (u8OSDDisplayMatch<<2));
     }
-    
+
     /* unmatch condition */
-    if (u8OSDDisplayUnMatch != 0){
+    if (u8OSDDisplayUnMatch != 0)
+    {
         outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY) | (u8OSDDisplayUnMatch));
     }
-    
+
     /* synthesized weight */
-    if (u8OSDDisplayMatch == DISPLAY_SYNTHESIZED || u8OSDDisplayUnMatch == DISPLAY_SYNTHESIZED){
+    if (u8OSDDisplayMatch == DISPLAY_SYNTHESIZED || u8OSDDisplayUnMatch == DISPLAY_SYNTHESIZED)
+    {
         outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY) | (u8OSDSynW<<4));
     }
 }
@@ -636,16 +645,16 @@ void vpostMPUWriteAddr(uint16_t uscmd)
 {
     outpw(REG_LCM_MPU_CMD,inpw(REG_LCM_MPU_CMD) & ~(1<<30));        //RS=0
     outpw(REG_LCM_MPU_CMD,inpw(REG_LCM_MPU_CMD) & ~(1<<29));        //w
-    
+
     outpw(REG_LCM_DCCS,(inpw(REG_LCM_DCCS) | (1<<5)));              //CMD ON
     outpw(REG_LCM_MPU_CMD,(inpw(REG_LCM_MPU_CMD) & 0xffff0000 | uscmd));
-    while(inpw(REG_LCM_MPU_CMD) & (1UL<<31));     
+    while(inpw(REG_LCM_MPU_CMD) & (1UL<<31));
     outpw(REG_LCM_DCCS,(inpw(REG_LCM_DCCS) & ~(1<<5)));             //CMD OFF
 }
 
 /**
   * @brief Write MPU data
-  * @param[in] uscmd is data
+  * @param[in] usdata is data
   * @return none
   */
 void vpostMPUWriteData(uint16_t usdata)
@@ -666,14 +675,14 @@ void vpostMPUWriteData(uint16_t usdata)
 uint32_t vpostMPUReadData(void)
 {
     uint32_t udata;
-    
+
     outpw(REG_LCM_MPU_CMD,inpw(REG_LCM_MPU_CMD) | (1<<30));         //RS=1
     outpw(REG_LCM_DCCS,(inpw(REG_LCM_DCCS) | (1<<5)));              //CMD ON
     outpw(REG_LCM_MPU_CMD,inpw(REG_LCM_MPU_CMD) | (1<<29));         //r
     while(inpw(REG_LCM_MPU_CMD) & (1UL<<31));
     udata = inpw(REG_LCM_MPU_CMD) & 0xffff;
     outpw(REG_LCM_DCCS,(inpw(REG_LCM_DCCS) & ~(1<<5)));             //CMD OFF
-    
+
     return udata;
 }
 

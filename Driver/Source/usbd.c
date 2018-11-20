@@ -72,9 +72,9 @@ uint32_t g_usbd_CtrlInSize = 0;
 void USBD_Open(S_USBD_INFO_T *param, CLASS_REQ pfnClassReq, SET_INTERFACE_REQ pfnSetInterface)
 {
     /* Select Vbus detect pin -> GPH0 */
-	outpw(REG_SYS_GPH_MFPL, (inpw(REG_SYS_GPH_MFPL) & ~0xf) | 0x7);
+    outpw(REG_SYS_GPH_MFPL, (inpw(REG_SYS_GPH_MFPL) & ~0xf) | 0x7);
     /* Enable USB device clock */
-	outpw(REG_CLK_HCLKEN, inpw(REG_CLK_HCLKEN) | 0x80000);
+    outpw(REG_CLK_HCLKEN, inpw(REG_CLK_HCLKEN) | 0x80000);
 
     g_usbd_sInfo = param;
     g_usbd_pfnClassRequest = pfnClassReq;
@@ -351,7 +351,7 @@ void USBD_StandardRequest(void)
         }
         case SET_CONFIGURATION: {
             g_usbd_UsbConfig = (uint8_t)gUsbCmd.wValue;
-			g_usbd_Configured = 1;
+            g_usbd_Configured = 1;
             // DATA IN for end of setup
             /* Status stage */
             USBD_CLR_CEP_INT_FLAG(USBD_CEPINTSTS_STSDONEIF_Msk);
@@ -389,11 +389,11 @@ void USBD_StandardRequest(void)
     }
 }
 
-#define TEST_J					0x01    /*!< TEST J  \hideinitializer */
-#define TEST_K					0x02    /*!< TEST K  \hideinitializer */
-#define TEST_SE0_NAK			0x03    /*!< TEST SE0  \hideinitializer */
-#define TEST_PACKET				0x04    /*!< TEST Packet  \hideinitializer */
-#define TEST_FORCE_ENABLE		0x05    /*!< TEST Force enable  \hideinitializer */
+#define TEST_J                  0x01    /*!< TEST J  \hideinitializer */
+#define TEST_K                  0x02    /*!< TEST K  \hideinitializer */
+#define TEST_SE0_NAK            0x03    /*!< TEST SE0  \hideinitializer */
+#define TEST_PACKET             0x04    /*!< TEST Packet  \hideinitializer */
+#define TEST_FORCE_ENABLE       0x05    /*!< TEST Force enable  \hideinitializer */
 
 
 /**

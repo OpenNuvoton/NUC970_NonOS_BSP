@@ -19,7 +19,7 @@
 #include "usbh_uvc.h"
 
 
-/** @addtogroup NUC970_Device_Driver NUC970 Device Driver
+/** @addtogroup NUC970_Library NUC970 Library
   @{
 */
 
@@ -216,7 +216,7 @@ static int  usbh_uvc_select_alt_interface(UVC_DEV_T *vdev)
 
 /**
  *  @brief  Get a video format from support list of the UVC device
- *  @param[in]  uvc     UVC device
+ *  @param[in]  vdev    UVC device
  *  @param[in]  index   Index probe to supportd image format
  *  @param[out] format  If success, return the image format.
  *  @param[out] width   If success, return the image width.
@@ -246,7 +246,7 @@ int  usbh_get_video_format(UVC_DEV_T *vdev, int index, IMAGE_FORMAT_E *format, i
 
 /**
  *  @brief  Set video format
- *  @param[in]  uvc     UVC device
+ *  @param[in]  vdev    UVC device
  *  @param[out] format  Image format
  *
  *  @param[out] width   Image width
@@ -486,7 +486,7 @@ static void iso_in_irq(UTR_T *utr)
 
 /**
  *  @brief  Give the image buffer where the next received image will be written to.
- *  @param[in] uvc            Video Class device
+ *  @param[in] vdev           Video Class device
  *  @param[in] image_buff     The image buffer.
  *  @param[in] img_buff_size  Size of the image buffer.
  *  @return    None.
@@ -501,7 +501,7 @@ void usbh_uvc_set_video_buffer(UVC_DEV_T *vdev, uint8_t *image_buff, int img_buf
 
 /**
  *  @brief  Start to receive video data from UVC device.
- *  @param[in] uvc        Video Class device
+ *  @param[in] vdev       Video Class device
  *  @param[in] func       Video in callback function.
  *  @return   Success or not.
  *  @retval    0          Success
@@ -611,7 +611,7 @@ err_2:
 
 /**
  *  @brief  Pause the video straming input.
- *  @param[in] uvc        Video Class device
+ *  @param[in] vdev       Video Class device
  *  @return   Success or not.
  *  @retval    0          Success
  *  @retval    Otherwise  Failed

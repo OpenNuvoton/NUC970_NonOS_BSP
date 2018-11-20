@@ -18,7 +18,7 @@
 #include "usbh_uvc.h"
 
 
-/** @addtogroup NUC970_Device_Driver NUC970 Device Driver
+/** @addtogroup NUC970_Library NUC970 Library
   @{
 */
 

@@ -35,7 +35,7 @@ extern void OHCI_IRQHandler(void);
 
 
 /**
-  * @brief       Initialize NUC980 USB Host controller and USB stack.
+  * @brief       Initialize NUC970 USB Host controller and USB stack.
   *
   * @return      None.
   */
@@ -82,7 +82,7 @@ void  usbh_core_init()
   * @brief    Install device connect and disconnect callback function.
   *
   * @param[in]  conn_func       Device connect callback function.
-  * @param[in]  conn_func       Device disconnect callback function.
+  * @param[in]  disconn_func    Device disconnect callback function.
   * @return      None.
   */
 void usbh_install_conn_callback(CONN_FUNC *conn_func, CONN_FUNC *disconn_func)

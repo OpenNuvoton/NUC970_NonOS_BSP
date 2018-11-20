@@ -1,5 +1,5 @@
 /**************************************************************************//**
- * @file     hid.h
+ * @file     usbh_hid.h
  * @version  V1.10
  * $Revision: 1 $
  * $Date: 15/06/12 9:58a $
@@ -24,15 +24,15 @@ extern "C"
 /// @endcond HIDDEN_SYMBOLS
 
 
-/** @addtogroup NUC980_Device_Driver NUC980 Device Driver
+/** @addtogroup NUC970_Library NUC970 Library
   @{
 */
 
-/** @addtogroup NUC980_USBH_Library USB Host Library
+/** @addtogroup NUC970_USBH_Library USB Host Library
   @{
 */
 
-/** @addtogroup NUC980_USBH_EXPORTED_CONSTANTS USB Host Exported Constants
+/** @addtogroup NUC970_USBH_EXPORTED_CONSTANTS USB Host Exported Constants
   @{
 */
 
@@ -57,10 +57,10 @@ extern "C"
 #define RT_FEATURE                  3      /*!< Report type: Feature             \hideinitializer */
 
 
-/*@}*/ /* end of group NUC980_USBH_EXPORTED_CONSTANTS */
+/*@}*/ /* end of group NUC970_USBH_EXPORTED_CONSTANTS */
 
 
-/** @addtogroup NUC980_USBH_EXPORTED_STRUCTURES USB Host Exported Structures
+/** @addtogroup NUC970_USBH_EXPORTED_STRUCTURES USB Host Exported Structures
   @{
 */
 
@@ -83,12 +83,12 @@ typedef struct usbhid_dev
     struct usbhid_dev   *next;          /*!< Point to the next HID device                      */
 } HID_DEV_T;                            /*! HID device structure                               */
 
-/*@}*/ /* end of group NUC980_USBH_EXPORTED_STRUCTURES */
+/*@}*/ /* end of group NUC970_USBH_EXPORTED_STRUCTURES */
 
 
-/*@}*/ /* end of group NUC980_USBH_Library */
+/*@}*/ /* end of group NUC970_USBH_Library */
 
-/*@}*/ /* end of group NUC980_Device_Driver */
+/*@}*/ /* end of group NUC970_Library */
 
 #ifdef __cplusplus
 }
