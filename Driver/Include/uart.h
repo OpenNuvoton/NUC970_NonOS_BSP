@@ -439,6 +439,12 @@ extern "C"
 #define UART_LIN_CTL_LINS_EN_Msk        (1ul << UART_LIN_CTL_LINS_EN_Pos)          /*!< UART LIN_CTL: LINS_EN Mask           */
 
 /* UART LIN_SR Bit Field Definitions */
+#define UART_LIN_SR_BIT_ERR_F_Pos       9                                           /*!< UART LIN_SR: BIT_ERR_F Position       */
+#define UART_LIN_SR_BIT_ERR_F_Msk       (1ul << UART_LIN_SR_LINS_SYNC_F_Pos)        /*!< UART LIN_SR: BIT_ERR_F Mask           */
+
+#define UART_LIN_SR_LIN_BKDET_F_Pos     8                                           /*!< UART LIN_SR: LIN_BKDET_F Position       */
+#define UART_LIN_SR_LIN_BKDET_F_Msk     (1ul << UART_LIN_SR_LINS_SYNC_F_Pos)        /*!< UART LIN_SR: LIN_BKDET_F Mask           */
+
 #define UART_LIN_SR_LINS_SYNC_F_Pos     3                                           /*!< UART LIN_SR: LINS_SYNC_F Position       */
 #define UART_LIN_SR_LINS_SYNC_F_Msk     (1ul << UART_LIN_SR_LINS_SYNC_F_Pos)        /*!< UART LIN_SR: LINS_SYNC_F Mask           */
 

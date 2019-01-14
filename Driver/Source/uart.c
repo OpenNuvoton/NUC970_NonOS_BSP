@@ -172,6 +172,50 @@ void RS485_HANDLE(INT nNum)
     }
 }
 
+void LIN_HANDLE(INT nNum)
+{
+    UINT32 volatile uRegISR, uRegFSR, uRegLIN_SR, uRegALT_CSR;
+
+    uRegISR = inpw(REG_UART0_ISR+(nNum*UARTOFFSET));
+    uRegFSR = inpw(REG_UART0_FSR+(nNum*UARTOFFSET));
+    uRegLIN_SR = inpw(REG_UART0_LIN_SR+(nNum*UARTOFFSET));
+
+    if(uRegISR & UART_ISR_LIN_RX_BREAK_INT_Msk)
+    {
+        if(uRegLIN_SR & UART_LIN_SR_LINS_HDET_F_Msk)
+        {
+            // Clear LIN slave header detection flag
+            outpw((REG_UART0_LIN_SR+(nNum*UARTOFFSET)), UART_LIN_SR_LINS_HDET_F_Msk);
+            U1DEBUG("\n LIN Slave Header detected ");
+        }
+
+        if(uRegLIN_SR & (UART_LIN_SR_LINS_HERR_F_Msk | UART_LIN_SR_LINS_IDPERR_F_Msk | UART_LIN_SR_BIT_ERR_F_Msk))
+        {
+            // Clear LIN error flag
+            uRegLIN_SR = (UART_LIN_SR_LINS_HERR_F_Msk | UART_LIN_SR_LINS_IDPERR_F_Msk | UART_LIN_SR_BIT_ERR_F_Msk);
+            outpw((REG_UART0_LIN_SR+(nNum*UARTOFFSET)), uRegLIN_SR);
+            U1DEBUG("\n LIN error detected ");
+        }
+    }
+
+    if(uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk))
+    {
+        _uartReceiveChars(nNum);
+    }
+
+    if(uRegISR & UART_ISR_RLS_IF_Msk) {
+        uRegFSR = inpw(REG_UART0_FSR+(nNum*UARTOFFSET));
+        U1DEBUG("U1 Irpt_RLS [0x%x]!\n", uRegFSR);
+
+        if(uRegFSR & UART_FSR_BIF_Msk)
+            _uart_cBIIState_1 = 1;
+
+        if (uRegFSR & UART_FSR_RX_OVER_IF_Msk)
+            U1DEBUG("U1 OEI!\n");
+    }
+
+}
+
 void uart0ISR(void)
 {
     UINT32 volatile uRegISR, uRegFSR;
@@ -204,6 +248,8 @@ void uart1ISR(void)
 
     if(uRegFUN_SEL == 0x3) {
         RS485_HANDLE(UART1);
+    } else if(uRegFUN_SEL == 0x1){
+        LIN_HANDLE(UART1);
     } else {
         if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
             _uartReceiveChars(UART1);
@@ -243,6 +289,8 @@ void uart2ISR(void)
 
     if(uRegFUN_SEL == 0x3) {
         RS485_HANDLE(UART2);
+    } else if(uRegFUN_SEL == 0x1){
+        LIN_HANDLE(UART2);
     } else {
         if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
             _uartReceiveChars(UART2);
@@ -288,6 +336,8 @@ void uart3ISR(void)
 
     if(uRegFUN_SEL == 0x3) {
         RS485_HANDLE(UART3);
+    } else if(uRegFUN_SEL == 0x1){
+        LIN_HANDLE(UART3);
     } else {
         if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk))
             _uartReceiveChars(UART3);
@@ -328,6 +378,8 @@ void uart4ISR(void)
 
     if(uRegFUN_SEL == 0x3) {
         RS485_HANDLE(UART4);
+    } else if(uRegFUN_SEL == 0x1){
+        LIN_HANDLE(UART4);
     } else {
         if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
             _uartReceiveChars(UART4);
@@ -368,6 +420,8 @@ void uart5ISR(void)
 
     if(uRegFUN_SEL == 0x3) {
         RS485_HANDLE(UART5);
+    } else if(uRegFUN_SEL == 0x1){
+        LIN_HANDLE(UART5);
     } else {
         if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
             _uartReceiveChars(UART5);
@@ -408,6 +462,8 @@ void uart6ISR(void)
 
     if(uRegFUN_SEL == 0x3) {
         RS485_HANDLE(UART6);
+    } else if(uRegFUN_SEL == 0x1){
+        LIN_HANDLE(UART6);
     } else {
         if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
             _uartReceiveChars(UART6);
@@ -448,6 +504,8 @@ void uart7ISR(void)
 
     if(uRegFUN_SEL == 0x3) {
         RS485_HANDLE(UART7);
+    } else if(uRegFUN_SEL == 0x1){
+        LIN_HANDLE(UART7);
     } else {
         if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
             _uartReceiveChars(UART7);
@@ -488,6 +546,8 @@ void uart8ISR(void)
 
     if(uRegFUN_SEL == 0x3) {
         RS485_HANDLE(UART8);
+    } else if(uRegFUN_SEL == 0x1){
+        LIN_HANDLE(UART8);
     } else {
         if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
             _uartReceiveChars(UART8);
@@ -528,6 +588,8 @@ void uart9ISR(void)
 
     if(uRegFUN_SEL == 0x3) {
         RS485_HANDLE(UART9);
+    } else if(uRegFUN_SEL == 0x1){
+        LIN_HANDLE(UART9);
     } else {
         if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk))  /* Received Data Available interrupt */
             _uartReceiveChars(UART9);
@@ -568,6 +630,8 @@ void uart10ISR(void)
 
     if(uRegFUN_SEL == 0x3) {
         RS485_HANDLE(UARTA);
+    } else if(uRegFUN_SEL == 0x1){
+        LIN_HANDLE(UARTA);
     } else {
         if( uRegISR & (UART_ISR_RDA_IF_Msk | UART_ISR_TOUT_IF_Msk)) /* Received Data Available interrupt */
             _uartReceiveChars(UARTA);
