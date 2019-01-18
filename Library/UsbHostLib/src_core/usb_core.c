@@ -847,7 +847,7 @@ static int  usbh_parse_interface(UDEV_T *udev, uint8_t *desc_buff, int len)
             desc_buff += ret;
             parsed_len += ret;
             len -= ret;
-            USB_vdebug("EP parse remaning %d\n", len);
+            USB_vdebug("EP parse remaining %d\n", len);
         }
     }
 
@@ -1067,12 +1067,15 @@ int  connect_device(UDEV_T *udev)
         return ret;
     }
 
-    /* Enable remote wakeup                                                                   */
-    if (usbh_ctrl_xfer(udev, REQ_TYPE_OUT | REQ_TYPE_STD_DEV | REQ_TYPE_TO_DEV,
-                       USB_REQ_SET_FEATURE, 0x01, 0x0000, 0x0000,
-                       NULL, &read_len, 300) < 0)
+    if (conf->bmAttributes & (1<<5))
     {
-        USB_debug("Device not accept remote wakeup enable command.\n");
+        /* Enable remote wakeup                                                                   */
+        if (usbh_ctrl_xfer(udev, REQ_TYPE_OUT | REQ_TYPE_STD_DEV | REQ_TYPE_TO_DEV,
+                           USB_REQ_SET_FEATURE, 0x01, 0x0000, 0x0000,
+                           NULL, &read_len, 300) < 0)
+        {
+            USB_debug("Device does not accept remote wakeup enable command.\n");
+        }
     }
 
     if (g_conn_func)
