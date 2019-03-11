@@ -274,6 +274,27 @@ int spiOpen(int32_t fd)
     else
         outpw(REG_CLK_PCLKEN1, inpw(REG_CLK_PCLKEN1) | 0x20);
 
+    /* Unlock write-protect */
+    do {
+        outpw(REG_SYS_REGWPCTL, 0x59);
+        outpw(REG_SYS_REGWPCTL, 0x16);
+        outpw(REG_SYS_REGWPCTL, 0x88);
+    } while (inpw(REG_SYS_REGWPCTL) != 1);
+
+    /* Reset SPI */
+    if((uint32_t)fd == 0) {
+        outpw(REG_SYS_APBIPRST1, inpw(REG_SYS_APBIPRST1) | 0x10);
+        outpw(REG_SYS_APBIPRST1, inpw(REG_SYS_APBIPRST1) & ~0x10);
+        while(inpw(REG_SYS_APBIPRST1) & 0x10) {}
+    } else {
+        outpw(REG_SYS_APBIPRST1, inpw(REG_SYS_APBIPRST1) | 0x20);
+        outpw(REG_SYS_APBIPRST1, inpw(REG_SYS_APBIPRST1) & ~0x20);
+        while(inpw(REG_SYS_APBIPRST1) & 0x20) {}
+    }
+
+    /* Lock write protect */
+    outpw(REG_SYS_REGWPCTL, 0x0);
+
     memset(dev, 0, sizeof(spi_dev));
     dev->base = ((uint32_t)fd) ? SPI1_BA : SPI0_BA;
     dev->openflag = 1;
