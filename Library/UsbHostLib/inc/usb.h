@@ -152,6 +152,7 @@ typedef struct usb_interface_descriptor   /*!< Interface descriptor structure   
 #define USB_CLASS_PRINTER              0x07
 #define USB_CLASS_MASS_STORAGE         0x08
 #define USB_CLASS_HUB                  0x09
+#define USB_CLASS_DATA                 0x0A
 #define USB_CLASS_VIDEO                0x0E
 
 /*
