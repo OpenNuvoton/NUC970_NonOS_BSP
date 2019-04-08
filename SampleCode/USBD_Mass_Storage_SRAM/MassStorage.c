@@ -377,6 +377,7 @@ void MSC_Init(void)
     g_TotalSectors = 60;
     g_u32MassBase = 0x80300000;
     g_u32StorageBase = 0x80400000;
+    memset((void *)g_u32StorageBase, 0, 1024);
 }
 
 void MSC_ClassRequest(void)
