@@ -8,7 +8,7 @@
  * Copyright (C) 2015 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #include <stdio.h>
-#include "NUC970.h"
+#include "nuc970.h"
 #include "sys.h"
 #include "usbd.h"
 #include "hid_mousekeyboard.h"

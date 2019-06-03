@@ -1,8 +1,7 @@
 /*
  * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2011 Aleph One Ltd.
- *   for Toby Churchill Ltd and Brightstar Engineering
+ * Copyright (C) 2002-2018 Aleph One Ltd.
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -17,13 +16,14 @@
 #ifndef __YPORTENV_H__
 #define __YPORTENV_H__
 
-#include "linux\types.h"
 
 /* Definition of types */
 #ifdef CONFIG_YAFFS_DEFINES_TYPES
 typedef unsigned char u8;
 typedef unsigned short u16;
-typedef unsigned u32;
+typedef unsigned int u32;
+typedef unsigned long long u64;
+typedef signed int s32;
 #endif
 
 
@@ -249,14 +249,40 @@ struct iattr {
 #define S_IFREG		0100000
 #endif
 
+#ifndef S_ISSOCK
 #define S_ISSOCK(m)	(((m) & S_IFMT) == S_IFSOCK)
+#endif
+#ifndef S_ISLNK
 #define S_ISLNK(m)	(((m) & S_IFMT) == S_IFLNK)
+#endif
+#ifndef S_ISDIR
 #define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)
+#endif
+#ifndef S_ISREG
 #define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
+#endif
+#ifndef S_ISBLK
 #define S_ISBLK(m)	(((m) & S_IFMT) == S_IFBLK)
+#endif
+#ifndef S_ISCHR
 #define S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
+#endif
+#ifndef S_ISFIFO
 #define S_ISFIFO(m)	(((m) & S_IFMT) == S_IFIFO)
+#endif
 
+
+#ifndef S_IRUSR
+#define S_IRUSR		0000400
+#endif
+
+#ifndef S_IWUSR
+#define	S_IWUSR		0000200
+#endif
+
+#ifndef S_IXUSR
+#define	S_IXUSR		0000100
+#endif
 
 #ifndef S_IREAD
 #define S_IREAD		0000400
@@ -270,6 +296,16 @@ struct iattr {
 #define	S_IEXEC	0000100
 #endif
 
+
+#else
+#include <errno.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
+
+#endif
+
+/* Create some less common define values if they don't exist */
 #ifndef XATTR_CREATE
 #define XATTR_CREATE 1
 #endif
@@ -285,12 +321,8 @@ struct iattr {
 #define F_OK	0
 #endif
 
-#else
-#include <errno.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#endif
-
+#ifndef S_ISSOCK
+#define S_ISSOCK(m)	(((m) & S_IFMT) == S_IFSOCK)
 #endif
 
 #ifndef Y_DUMP_STACK

@@ -24,8 +24,6 @@
  * This is defined by having the EXTRA_HEADER_INFO_FLAG set.
  */
 
-extern void sysprintf(char *pcStr,...);
-
 /* Extra flags applied to chunk_id */
 
 #define EXTRA_HEADER_INFO_FLAG	0x80000000

@@ -1,8 +1,7 @@
 /*
  * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2007 Aleph One Ltd.
- *   for Toby Churchill Ltd and Brightstar Engineering
+ * Copyright (C) 2002-2018 Aleph One Ltd.
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -12,19 +11,20 @@
  */
 
 /* XXX U-BOOT XXX */
-#include "common.h"
+#include <common.h>
 
 #include "yportenv.h"
 
+
 #include "yaffs_mtdif.h"
 
-#include "linux\mtd.h"
-#include "linux\types.h"
-#include "linux\time.h"
-#include "linux\nand.h"
+#include "linux/mtd/mtd.h"
+#include "linux/types.h"
+#include "linux/time.h"
+#include "linux/mtd/nand.h"
 
 
-static __inline void translate_spare2oob(const struct yaffs_spare *spare, u8 *oob)
+static inline void translate_spare2oob(const struct yaffs_spare *spare, u8 *oob)
 {
 	oob[0] = spare->tb0;
 	oob[1] = spare->tb1;
@@ -38,7 +38,7 @@ static __inline void translate_spare2oob(const struct yaffs_spare *spare, u8 *oo
 	oob[7] = spare->tb7;
 }
 
-static __inline void translate_oob2spare(struct yaffs_spare *spare, u8 *oob)
+static inline void translate_oob2spare(struct yaffs_spare *spare, u8 *oob)
 {
 	struct yaffs_nand_spare *nspare = (struct yaffs_nand_spare *)spare;
 	spare->tb0 = oob[0];
@@ -65,26 +65,26 @@ int nandmtd_WriteChunkToNAND(struct yaffs_dev *dev, int chunkInNAND,
 	struct mtd_oob_ops ops;
 	size_t dummy;
 	int retval = 0;
-	loff_t addr = ((loff_t) chunkInNAND) * dev->data_bytes_per_chunk;
+	loff_t addr = ((loff_t) chunkInNAND) * dev->param.total_bytes_per_chunk;
 	u8 spareAsBytes[8]; /* OOB */
 
 	if (data && !spare)
-		retval = mtd->write(mtd, addr, dev->data_bytes_per_chunk,
+		retval = mtd->_write(mtd, addr, dev->data_bytes_per_chunk,
 				&dummy, data);
 	else if (spare) {
 		if (dev->param.use_nand_ecc) {
 			translate_spare2oob(spare, spareAsBytes);
-			ops.mode = MTD_OOB_AUTO;
+			ops.mode = MTD_OPS_AUTO_OOB;
 			ops.ooblen = 8; /* temp hack */
 		} else {
-			ops.mode = MTD_OOB_RAW;
+			ops.mode = MTD_OPS_RAW;
 			ops.ooblen = YAFFS_BYTES_PER_SPARE;
 		}
 		ops.len = data ? dev->data_bytes_per_chunk : ops.ooblen;
 		ops.datbuf = (u8 *)data;
 		ops.ooboffs = 0;
 		ops.oobbuf = spareAsBytes;
-		retval = mtd->write_oob(mtd, addr, &ops);
+		retval = mtd->_write_oob(mtd, addr, &ops);
 	}
 
 	if (retval == 0)
@@ -101,25 +101,25 @@ int nandmtd_ReadChunkFromNAND(struct yaffs_dev *dev, int chunkInNAND, u8 *data,
 	size_t dummy;
 	int retval = 0;
 
-	loff_t addr = ((loff_t) chunkInNAND) * dev->data_bytes_per_chunk;
+	loff_t addr = ((loff_t) chunkInNAND) * dev->param.total_bytes_per_chunk;
 	u8 spareAsBytes[8]; /* OOB */
 
 	if (data && !spare)
-		retval = mtd->read(mtd, addr, dev->data_bytes_per_chunk,
+		retval = mtd->_read(mtd, addr, dev->data_bytes_per_chunk,
 				&dummy, data);
 	else if (spare) {
 		if (dev->param.use_nand_ecc) {
-			ops.mode = MTD_OOB_AUTO;
+			ops.mode = MTD_OPS_AUTO_OOB;
 			ops.ooblen = 8; /* temp hack */
 		} else {
-			ops.mode = MTD_OOB_RAW;
+			ops.mode = MTD_OPS_RAW;
 			ops.ooblen = YAFFS_BYTES_PER_SPARE;
 		}
 		ops.len = data ? dev->data_bytes_per_chunk : ops.ooblen;
 		ops.datbuf = data;
 		ops.ooboffs = 0;
 		ops.oobbuf = spareAsBytes;
-		retval = mtd->read_oob(mtd, addr, &ops);
+		retval = mtd->_read_oob(mtd, addr, &ops);
 		if (dev->param.use_nand_ecc)
 			translate_oob2spare(spare, spareAsBytes);
 	}
@@ -133,9 +133,6 @@ int nandmtd_ReadChunkFromNAND(struct yaffs_dev *dev, int chunkInNAND, u8 *data,
 int nandmtd_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 {
 	struct mtd_info *mtd = (struct mtd_info *)(dev->driver_context);
-////	__u32 addr =
-////	    ((loff_t) blockNumber) * dev->data_bytes_per_chunk
-////		* dev->param.chunks_per_block;
 	__u32 addr =
 	    ((loff_t) blockNumber) * dev->param.total_bytes_per_chunk
 		* dev->param.chunks_per_block;
@@ -144,7 +141,7 @@ int nandmtd_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 
 	ei.mtd = mtd;
 	ei.addr = addr;
-////	ei.len = dev->data_bytes_per_chunk * dev->param.chunks_per_block;
+//	ei.len = dev->data_bytes_per_chunk * dev->param.chunks_per_block;
 	ei.len = dev->param.total_bytes_per_chunk * dev->param.chunks_per_block;
 	ei.time = 1000;
 	ei.retries = 2;
@@ -154,7 +151,7 @@ int nandmtd_EraseBlockInNAND(struct yaffs_dev *dev, int blockNumber)
 	/* Todo finish off the ei if required */
 
 
-	retval = mtd->erase(mtd, &ei);
+	retval = mtd->_erase(mtd, &ei);
 
 	if (retval == 0)
 		return YAFFS_OK;

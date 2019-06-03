@@ -16,19 +16,11 @@
 #include "yaffs_ecc.h"
 #include "yaffs_getblockinfo.h"
 #include "yaffs_trace.h"
-#include "asm\bitops.h"
-#include "linux\bitops.h"
 
 static void yaffs_handle_rd_data_error(struct yaffs_dev *dev, int nand_chunk);
 
 
 /********** Tags ECC calculations  *********/
-
-void yaffs_calc_ecc(const u8 *data, struct yaffs_spare *spare)
-{
-	yaffs_ecc_calc(data, spare->ecc1);
-	yaffs_ecc_calc(&data[256], spare->ecc2);
-}
 
 void yaffs_calc_tags_ecc(struct yaffs_tags *tags)
 {
@@ -129,14 +121,11 @@ static int yaffs_wr_nand(struct yaffs_dev *dev,
 			 int nand_chunk, const u8 *data,
 			 struct yaffs_spare *spare)
 {
-	if (nand_chunk < dev->param.start_block * dev->param.chunks_per_block) {
-		yaffs_trace(YAFFS_TRACE_ERROR,
-			"**>> yaffs chunk %d is not valid",
-			nand_chunk);
-		return YAFFS_FAIL;
-	}
+	int data_size = dev->data_bytes_per_chunk;
 
-	return dev->param.write_chunk_fn(dev, nand_chunk, data, spare);
+	return dev->drv.drv_write_chunk_fn(dev, nand_chunk,
+				data, data_size,
+				(u8 *) spare, sizeof(*spare));
 }
 
 static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
@@ -148,112 +137,77 @@ static int yaffs_rd_chunk_nand(struct yaffs_dev *dev,
 {
 	int ret_val;
 	struct yaffs_spare local_spare;
+	int data_size;
+	int spare_size;
+	int ecc_result1, ecc_result2;
+	u8 calc_ecc[3];
 
 	if (!spare) {
 		/* If we don't have a real spare, then we use a local one. */
 		/* Need this for the calculation of the ecc */
 		spare = &local_spare;
 	}
+	data_size = dev->data_bytes_per_chunk;
+	spare_size = sizeof(struct yaffs_spare);
 
-	if (!dev->param.use_nand_ecc) {
-		ret_val =
-		    dev->param.read_chunk_fn(dev, nand_chunk, data, spare);
-		if (data && correct_errors) {
-			/* Do ECC correction */
-			/* Todo handle any errors */
-			int ecc_result1, ecc_result2;
-			u8 calc_ecc[3];
+	if (dev->param.use_nand_ecc)
+		return dev->drv.drv_read_chunk_fn(dev, nand_chunk,
+						data, data_size,
+						(u8 *) spare, spare_size,
+						ecc_result);
 
-			yaffs_ecc_calc(data, calc_ecc);
-			ecc_result1 =
-			    yaffs_ecc_correct(data, spare->ecc1, calc_ecc);
-			yaffs_ecc_calc(&data[256], calc_ecc);
-			ecc_result2 =
-			    yaffs_ecc_correct(&data[256], spare->ecc2,
-					      calc_ecc);
 
-			if (ecc_result1 > 0) {
-				yaffs_trace(YAFFS_TRACE_ERROR,
-					"**>>yaffs ecc error fix performed on chunk %d:0",
-					nand_chunk);
-				dev->n_ecc_fixed++;
-			} else if (ecc_result1 < 0) {
-				yaffs_trace(YAFFS_TRACE_ERROR,
-					"**>>yaffs ecc error unfixed on chunk %d:0",
-					nand_chunk);
-				dev->n_ecc_unfixed++;
-			}
+	/* Handle the ECC at this level. */
 
-			if (ecc_result2 > 0) {
-				yaffs_trace(YAFFS_TRACE_ERROR,
-					"**>>yaffs ecc error fix performed on chunk %d:1",
-					nand_chunk);
-				dev->n_ecc_fixed++;
-			} else if (ecc_result2 < 0) {
-				yaffs_trace(YAFFS_TRACE_ERROR,
-					"**>>yaffs ecc error unfixed on chunk %d:1",
-					nand_chunk);
-				dev->n_ecc_unfixed++;
-			}
+	ret_val = dev->drv.drv_read_chunk_fn(dev, nand_chunk,
+						 data, data_size,
+						 (u8 *)spare, spare_size,
+						NULL);
+	if (!data || !correct_errors)
+		return ret_val;
 
-			if (ecc_result1 || ecc_result2) {
-				/* We had a data problem on this page */
-				yaffs_handle_rd_data_error(dev, nand_chunk);
-			}
+	/* Do ECC correction if needed. */
+	yaffs_ecc_calc(data, calc_ecc);
+	ecc_result1 = yaffs_ecc_correct(data, spare->ecc1, calc_ecc);
+	yaffs_ecc_calc(&data[256], calc_ecc);
+	ecc_result2 = yaffs_ecc_correct(&data[256], spare->ecc2, calc_ecc);
 
-			if (ecc_result1 < 0 || ecc_result2 < 0)
-				*ecc_result = YAFFS_ECC_RESULT_UNFIXED;
-			else if (ecc_result1 > 0 || ecc_result2 > 0)
-				*ecc_result = YAFFS_ECC_RESULT_FIXED;
-			else
-				*ecc_result = YAFFS_ECC_RESULT_NO_ERROR;
-		}
-	} else {
-		/* Must allocate enough memory for spare+2*sizeof(int) */
-		/* for ecc results from device. */
-		struct yaffs_nand_spare nspare;
-
-		memset(&nspare, 0, sizeof(nspare));
-
-		ret_val = dev->param.read_chunk_fn(dev, nand_chunk, data,
-						   (struct yaffs_spare *)
-						   &nspare);
-		memcpy(spare, &nspare, sizeof(struct yaffs_spare));
-		if (data && correct_errors) {
-			if (nspare.eccres1 > 0) {
-				yaffs_trace(YAFFS_TRACE_ERROR,
-					"**>>mtd ecc error fix performed on chunk %d:0",
-					nand_chunk);
-			} else if (nspare.eccres1 < 0) {
-				yaffs_trace(YAFFS_TRACE_ERROR,
-					"**>>mtd ecc error unfixed on chunk %d:0",
-					nand_chunk);
-			}
-
-			if (nspare.eccres2 > 0) {
-				yaffs_trace(YAFFS_TRACE_ERROR,
-					"**>>mtd ecc error fix performed on chunk %d:1",
-					nand_chunk);
-			} else if (nspare.eccres2 < 0) {
-				yaffs_trace(YAFFS_TRACE_ERROR,
-					"**>>mtd ecc error unfixed on chunk %d:1",
-					nand_chunk);
-			}
-
-			if (nspare.eccres1 || nspare.eccres2) {
-				/* We had a data problem on this page */
-				yaffs_handle_rd_data_error(dev, nand_chunk);
-			}
-
-			if (nspare.eccres1 < 0 || nspare.eccres2 < 0)
-				*ecc_result = YAFFS_ECC_RESULT_UNFIXED;
-			else if (nspare.eccres1 > 0 || nspare.eccres2 > 0)
-				*ecc_result = YAFFS_ECC_RESULT_FIXED;
-			else
-				*ecc_result = YAFFS_ECC_RESULT_NO_ERROR;
-
-		}
+	if (ecc_result1 > 0) {
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"**>>yaffs ecc error fix performed on chunk %d:0",
+			nand_chunk);
+		dev->n_ecc_fixed++;
+	} else if (ecc_result1 < 0) {
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"**>>yaffs ecc error unfixed on chunk %d:0",
+			nand_chunk);
+		dev->n_ecc_unfixed++;
 	}
+
+	if (ecc_result2 > 0) {
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"**>>yaffs ecc error fix performed on chunk %d:1",
+			nand_chunk);
+		dev->n_ecc_fixed++;
+	} else if (ecc_result2 < 0) {
+		yaffs_trace(YAFFS_TRACE_ERROR,
+			"**>>yaffs ecc error unfixed on chunk %d:1",
+			nand_chunk);
+		dev->n_ecc_unfixed++;
+	}
+
+	if (ecc_result1 || ecc_result2) {
+		/* We had a data problem on this page */
+		yaffs_handle_rd_data_error(dev, nand_chunk);
+	}
+
+	if (ecc_result1 < 0 || ecc_result2 < 0)
+		*ecc_result = YAFFS_ECC_RESULT_UNFIXED;
+	else if (ecc_result1 > 0 || ecc_result2 > 0)
+		*ecc_result = YAFFS_ECC_RESULT_FIXED;
+	else
+		*ecc_result = YAFFS_ECC_RESULT_NO_ERROR;
+
 	return ret_val;
 }
 
@@ -303,8 +257,10 @@ int yaffs_tags_compat_wr(struct yaffs_dev *dev,
 
 		tags.serial_number = ext_tags->serial_number;
 
-		if (!dev->param.use_nand_ecc && data)
-			yaffs_calc_ecc(data, &spare);
+		if (!dev->param.use_nand_ecc && data) {
+			yaffs_ecc_calc(data, spare.ecc1);
+			yaffs_ecc_calc(&data[256], spare.ecc2);
+		}
 
 		yaffs_load_tags_to_spare(&spare, &tags);
 	}
@@ -407,3 +363,4 @@ int yaffs_tags_compat_query_block(struct yaffs_dev *dev,
 
 	return YAFFS_OK;
 }
+

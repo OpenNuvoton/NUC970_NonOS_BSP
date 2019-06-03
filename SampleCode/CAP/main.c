@@ -36,9 +36,13 @@ CAPDEV_T* pCAP;
 #define OPT_CROP_HEIGHT 640
 #define OPT_CROP_WIDTH 480
 
+#if defined ( __GNUC__ ) && !(__CC_ARM)
+//__attribute__((aligned(4))) UINT8 u8PacketFrameBuffer[OPT_PACKET_WIDTH*OPT_PACKET_HEIGHT*2];		//Keep 640*480*2 RGB565 frame buffer
+__attribute__((aligned(256))) UINT8 u8PlanarFrameBuffer[OPT_PLANAR_WIDTH*OPT_PLANAR_HEIGHT*2];		//Keep 640x480*2 PlanarYUV422 frame buffer
+#else
  //__align(4) UINT8 u8PacketFrameBuffer[OPT_PACKET_WIDTH*OPT_PACKET_HEIGHT*2];		//Keep 640*480*2 RGB565 frame buffer
  __align(256) UINT8 u8PlanarFrameBuffer[OPT_PLANAR_WIDTH*OPT_PLANAR_HEIGHT*2];		//Keep 640x480*2 PlanarYUV422 frame buffer
- 
+#endif
 /*------------------------------------------------------------------------------------------*/
 /* To run CAP_InterruptHandler, when CAP frame end interrupt                                */
 /*------------------------------------------------------------------------------------------*/

@@ -42,11 +42,11 @@ unsigned char volatile _fmi_eMMCDataReady = FALSE;
 unsigned char *_fmi_peMMCBuffer;
 unsigned int gFMIReferenceClock;
 
-#if defined (__CC_ARM)
-__align(4096) unsigned char _fmi_uceMMCBuffer[512];
-#elif defined ( __ICCARM__ ) /*!< IAR Compiler */
+#ifdef __ICCARM__
 #pragma data_alignment = 4096
 unsigned char _fmi_uceMMCBuffer[512];
+#else
+unsigned char _fmi_uceMMCBuffer[512] __attribute__((aligned(4096)));
 #endif
 
 int emmc_ok = 0;

@@ -61,17 +61,18 @@
 /*--------------------------------------------------------------------------*/
 /*   Hub descriptor                                                         */
 /*--------------------------------------------------------------------------*/
-typedef struct
+typedef struct __attribute__((__packed__))
 {
-    __packed uint8_t  bDescLength;
-    __packed uint8_t  bDescriptorType;
-    __packed uint8_t  bNbrPorts;
-    __packed uint16_t wHubCharacteristics;
-    __packed uint8_t  bPwrOn2PwrGood;
-    __packed uint8_t  bHubContrCurrent;
-    __packed uint8_t  bDeviceRemovble;
-    __packed uint8_t  PortPwrCtrlMask[16];
-}  DESC_HUB_T;
+    uint8_t  bDescLength;
+    uint8_t  bDescriptorType;
+    uint8_t  bNbrPorts;
+    uint16_t wHubCharacteristics;
+    uint8_t  bPwrOn2PwrGood;
+    uint8_t  bHubContrCurrent;
+    uint8_t  bDeviceRemovble;
+    uint8_t  PortPwrCtrlMask[16];
+}
+DESC_HUB_T;
 
 /*
  *   wHubCharacteristics bit field mask

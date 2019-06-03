@@ -2004,8 +2004,13 @@ typedef int *             PINT32;   ///< Define 32-bit signed pointer data type
 typedef unsigned int      UINT32;   ///< Define 32-bit unsigned data type
 typedef unsigned int *    PUINT32;  ///< Define 32-bit unsigned pointer data type
 
+# if defined ( __GNUC__ ) && !(__CC_ARM)
+typedef long long           INT64;
+typedef unsigned long long  UINT64;
+#else
 typedef __int64           INT64;    ///< Define 64-bit signed data type
 typedef unsigned __int64  UINT64;   ///< Define 64-bit unsigned data type
+#endif
 
 typedef float             FLOAT;    ///< Define float data type
 typedef float *           PFLOAT;   ///< Define float pointer data type

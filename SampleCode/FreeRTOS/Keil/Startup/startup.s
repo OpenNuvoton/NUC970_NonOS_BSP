@@ -23,17 +23,16 @@ I_BIT       EQU     0x80
 F_BIT       EQU     0x40
 
 ;----------------------------
-; System / User Stack Memory
+; System / User Stack Memory Size
 ;----------------------------
-RAM_Limit       EQU     0x2000000            ; For unexpanded hardware board
+UND_Stack_Size  EQU     0x00000100
+ABT_Stack_Size  EQU     0x00000100
+FIQ_Stack_Size  EQU     0x00000200
+SVC_Stack_Size  EQU     0x00000C00
+IRQ_Stack_Size  EQU     0x00004000
+USR_Stack_Size  EQU     0x00004000
 
-UND_Stack       EQU     RAM_Limit
-Abort_Stack     EQU     RAM_Limit-256
-FIQ_Stack       EQU     RAM_Limit-512       ; followed by IRQ stack
-SVC_Stack       EQU     RAM_Limit-1024      ; SVC stack at top of memory
-IRQ_Stack       EQU     RAM_Limit-10240     ; followed by IRQ stack
-USR_Stack       EQU     RAM_Limit-20480
-
+REG_SDIC_SIZE0  EQU     0xB0001810  ; DDR size register
 REG_AIC_MDCR    EQU     0xB8002138  ; Mask disable command register
 REG_AIC_MDCRH   EQU     0xB800213C  ; Mask disable command register (High)
 
@@ -95,23 +94,51 @@ Reset_Go
     ; Initial Stack Pointer register
     ;--------------------------------
     ;INIT_STACK
-    MSR    CPSR_c, #UDF_MODE :OR: I_BIT :OR: F_BIT
-     LDR    SP, =UND_Stack
+    LDR    R2, =REG_SDIC_SIZE0
+    LDR    R3,[R2]
+    AND    R3, R3, #0x00000007
+    MOV    R1,#2
+    MOV    R0,#1
+LOOP_DRAMSIZE
+    CMP    R0,R3
+    BEQ    DONE_DRAMSIZE
+    LSL    R1,R1,#1
+    ADD    R0,R0,#1
+    B    LOOP_DRAMSIZE
+DONE_DRAMSIZE
+    ; Using DRAM Size to set Stack Pointer
+    LSL    R0,R1,#20
 
-     MSR    CPSR_c, #ABT_MODE :OR: I_BIT :OR: F_BIT
-     LDR    SP, =Abort_Stack
+    ; Enter Undefined Instruction Mode and set Stack Pointer
+    MSR    CPSR_c, #UDF_MODE:OR:I_BIT:OR:F_BIT
+    MOV    SP, R0
+    SUB    R0, R0, #UND_Stack_Size
 
-     MSR    CPSR_c, #IRQ_MODE :OR: I_BIT :OR: F_BIT
-     LDR    SP, =IRQ_Stack
+    ; Enter Abort Mode and set Stack Pointer
+    MSR    CPSR_c, #ABT_MODE:OR:I_BIT:OR:F_BIT
+    MOV    SP, R0
+    SUB    R0, R0, #ABT_Stack_Size
 
-     MSR    CPSR_c, #FIQ_MODE :OR: I_BIT :OR: F_BIT
-     LDR    SP, =FIQ_Stack
+    ; Enter IRQ Mode and set Stack Pointer
+    MSR    CPSR_c, #IRQ_MODE:OR:I_BIT:OR:F_BIT
+    MOV    SP, R0
+    SUB    R0, R0, #IRQ_Stack_Size
 
-     MSR    CPSR_c, #SYS_MODE :OR: I_BIT :OR: F_BIT
-     LDR    SP, =USR_Stack
+    ; Enter FIQ Mode and set Stack Pointer
+    MSR    CPSR_c, #FIQ_MODE:OR:I_BIT:OR:F_BIT
+    MOV    SP, R0
+    SUB    R0, R0, #FIQ_Stack_Size
 
-     MSR    CPSR_c, #SVC_MODE :OR: I_BIT :OR: F_BIT
-     LDR    SP, =SVC_Stack
+    ; Enter User Mode and set Stack Pointer
+    MSR    CPSR_c, #SYS_MODE:OR:I_BIT:OR:F_BIT
+    MOV    SP, R0
+    SUB    R0, R0, #USR_Stack_Size
+
+    ; Enter Supervisor Mode and set Stack Pointer
+    MSR    CPSR_c, #SVC_MODE:OR:I_BIT:OR:F_BIT
+    MOV    SP, R0
+    SUB    R0, R0, #SVC_Stack_Size
+
 
     ;------------------------------------------------------
     ; Set the normal exception vector of CP15 control bit

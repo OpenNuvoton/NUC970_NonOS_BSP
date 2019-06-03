@@ -1,8 +1,7 @@
 /*
  * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2007 Aleph One Ltd.
- *   for Toby Churchill Ltd and Brightstar Engineering
+ * Copyright (C) 2002-2018 Aleph One Ltd.
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -15,24 +14,24 @@
 
 /* XXX U-BOOT XXX */
 #include <common.h>
-#include "asm\errno.h"
+#include "asm/errno.h"
 
 #include "yportenv.h"
 #include "yaffs_trace.h"
 
 #include "yaffs_mtdif2.h"
 
-#include "linux\mtd.h"
-#include "linux\types.h"
-#include "linux\time.h"
+#include "linux/mtd/mtd.h"
+#include "linux/types.h"
+#include "linux/time.h"
 
 #include "yaffs_trace.h"
 #include "yaffs_packedtags2.h"
+#include "string.h"
 
 #define yaffs_dev_to_mtd(dev) ((struct mtd_info *)((dev)->driver_context))
 #define yaffs_dev_to_lc(dev) ((struct yaffs_linux_context *)((dev)->os_context))
 
-extern void sysprintf(char *pcStr,...);
 
 /* NB For use with inband tags....
  * We assume that the data buffer is of size total_bytes_per_chunk so
@@ -46,6 +45,7 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 	struct mtd_oob_ops ops;
 
 	int retval = 0;
+
 	loff_t addr;
 
 	struct yaffs_packed_tags2 pt;
@@ -78,13 +78,13 @@ int nandmtd2_write_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 		yaffs_pack_tags2(&pt, tags, !dev->param.no_tags_ecc);
 	}
 
-	ops.mode = MTD_OOB_AUTO;
+	ops.mode = MTD_OPS_AUTO_OOB;
 	ops.ooblen = (dev->param.inband_tags) ? 0 : packed_tags_size;
 	ops.len = dev->param.total_bytes_per_chunk;
 	ops.ooboffs = 0;
 	ops.datbuf = (u8 *) data;
 	ops.oobbuf = (dev->param.inband_tags) ? NULL : packed_tags_ptr;
-	retval = mtd->write_oob(mtd, addr, &ops);
+	retval = mtd->_write_oob(mtd, addr, &ops);
 
 	if (retval == 0)
 		return YAFFS_OK;
@@ -122,16 +122,16 @@ int nandmtd2_read_chunk_tags(struct yaffs_dev *dev, int nand_chunk,
 	}
 
 	if (dev->param.inband_tags || (data && !tags))
-		retval = mtd->read(mtd, addr, dev->param.total_bytes_per_chunk,
+		retval = mtd->_read(mtd, addr, dev->param.total_bytes_per_chunk,
 				   &dummy, data);
 	else if (tags) {
-		ops.mode = MTD_OOB_AUTO;
+		ops.mode = MTD_OPS_AUTO_OOB;
 		ops.ooblen = packed_tags_size;
 		ops.len = data ? dev->data_bytes_per_chunk : packed_tags_size;
 		ops.ooboffs = 0;
 		ops.datbuf = data;
 		ops.oobbuf = local_spare;
-		retval = mtd->read_oob(mtd, addr, &ops);
+		retval = mtd->_read_oob(mtd, addr, &ops);
 	}
 
 	if (dev->param.inband_tags) {
@@ -180,7 +180,7 @@ int nandmtd2_MarkNANDBlockBad(struct yaffs_dev *dev, int blockNo)
 		"nandmtd2_MarkNANDBlockBad %d", blockNo);
 
 	retval =
-	    mtd->block_markbad(mtd,
+	    mtd->_block_markbad(mtd,
 			       blockNo * dev->param.chunks_per_block *
 			       dev->data_bytes_per_chunk);
 
@@ -199,12 +199,12 @@ int nandmtd2_QueryNANDBlock(struct yaffs_dev *dev, int blockNo,
 
 	yaffs_trace(YAFFS_TRACE_MTD, "nandmtd2_QueryNANDBlock %d", blockNo);
 	retval =
-	    mtd->block_isbad(mtd,
+	    mtd->_block_isbad(mtd,
 			     blockNo * dev->param.chunks_per_block *
 			     dev->data_bytes_per_chunk);
 
 	if (retval) {
-		yaffs_trace(YAFFS_TRACE_MTD, "block is bad");
+		yaffs_trace(YAFFS_TRACE_MTD, "block is bad 0x%x", retval);
 
 		*state = YAFFS_BLOCK_STATE_DEAD;
 		*sequenceNumber = 0;

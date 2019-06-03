@@ -25,9 +25,11 @@
 #include "image_rgb565.dat"
 #include "image_rgb565_320x240.dat"
 #endif
-
+#if defined ( __GNUC__ ) && !(__CC_ARM)
+__attribute__((aligned(32))) uint32_t u32CursorBuf[512];
+#else
 __align(32) uint32_t u32CursorBuf[512];
-
+#endif
 int32_t main(void)
 {	
 	uint8_t *u8FrameBufPtr, *u8OSDFrameBufPtr, i;    

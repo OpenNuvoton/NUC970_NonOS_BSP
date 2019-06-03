@@ -22,7 +22,7 @@
 #include "malloc.h"
 
 extern void sysprintf(char *pcStr,...);
-unsigned yaffs_trace_mask = 0; /* Disable logging */
+//unsigned yaffs_trace_mask = 0; /* Disable logging */
 
 /***************************************/
 
@@ -38,7 +38,7 @@ typedef struct YAFFS_mhdr
 	unsigned int  reserved;
 }  YAFFS_MHDR_T;
 
-__align(YAFFS_MEM_BLOCK_SIZE) unsigned char  _YAFFSMemoryPool[YAFFS_MEMORY_POOL_SIZE];
+unsigned char  _YAFFSMemoryPool[YAFFS_MEMORY_POOL_SIZE] __attribute__((aligned(YAFFS_MEM_BLOCK_SIZE)));
 
 static YAFFS_MHDR_T  *_pCurrent;
 static unsigned int  _FreeMemorySize;
@@ -205,48 +205,6 @@ void yaffs_free(void *ptr)
 	return;
 }
 
-/*======================================================================*/
-static int yaffs_errno;
-
-void yaffs_bug_fn(const char *fn, int n)
-{
-	sysprintf("yaffs bug at %s:%d\n", fn, n);
-}
-
-void yaffsfs_SetError(int err)
-{
-	yaffs_errno = err;
-}
-
-int yaffsfs_GetLastError(void)
-{
-	return yaffs_errno;
-}
-
-
-int yaffsfs_GetError(void)
-{
-	return yaffs_errno;
-}
-
-void yaffsfs_Lock(void)
-{
-}
-
-void yaffsfs_Unlock(void)
-{
-}
-
-__u32 yaffsfs_CurrentTime(void)
-{
-	return 0;
-}
-
-
-void yaffsfs_LocalInitialisation(void)
-{
-	/* No locking used */
-}
 
 
 

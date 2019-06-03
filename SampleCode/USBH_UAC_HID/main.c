@@ -35,8 +35,8 @@ static uint16_t  vol_max, vol_min, vol_res, vol_cur;
 
 void delay_us(int usec)
 {
-	volatile int  loop = 300 * usec;
-	while (loop > 0) loop--;
+    volatile int  loop = 300 * usec;
+    while (loop > 0) loop--;
 }
 
 uint32_t get_ticks(void)
@@ -49,9 +49,11 @@ void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
     int     nIdx, i;
 
     nIdx = 0;
-    while (nBytes > 0) {
+    while (nBytes > 0)
+    {
         sysprintf("0x%04X  ", nIdx);
-        for (i = 0; (i < 16) && (nBytes > 0); i++) {
+        for (i = 0; (i < 16) && (nBytes > 0); i++)
+        {
             sysprintf("%02x ", pucBuff[nIdx + i]);
             nBytes--;
         }
@@ -64,7 +66,8 @@ void  dump_buff_hex(uint8_t *pucBuff, int nBytes)
 int  is_a_new_hid_device(HID_DEV_T *hdev)
 {
     int    i;
-    for (i = 0; i < CONFIG_HID_MAX_DEV; i++) {
+    for (i = 0; i < CONFIG_HID_MAX_DEV; i++)
+    {
         if ((g_hid_list[i] != NULL) && (g_hid_list[i] == hdev) &&
                 (g_hid_list[i]->uid == hdev->uid))
             return 0;
@@ -76,7 +79,8 @@ void update_hid_device_list(HID_DEV_T *hdev)
 {
     int  i = 0;
     memset(g_hid_list, 0, sizeof(g_hid_list));
-    while ((i < CONFIG_HID_MAX_DEV) && (hdev != NULL)) {
+    while ((i < CONFIG_HID_MAX_DEV) && (hdev != NULL))
+    {
         g_hid_list[i++] = hdev;
         hdev = hdev->next;
     }
@@ -90,12 +94,13 @@ void  int_read_callback(HID_DEV_T *hdev, uint16_t ep_addr, int status, uint8_t *
      *  transfer failed and HID driver will stop this pipe. It can be caused by USB transfer error
      *  or device disconnected.
      */
-    if (status < 0) {
+    if (status < 0)
+    {
         sysprintf("Interrupt in transfer failed! status: %d\n", status);
         return;
     }
     sysprintf("Device [0x%x,0x%x] ep 0x%x, %d bytes received =>\n",
-           hdev->idVendor, hdev->idProduct, ep_addr, data_len);
+              hdev->idVendor, hdev->idProduct, ep_addr, data_len);
     dump_buff_hex(rdata, data_len);
 }
 
@@ -111,7 +116,8 @@ int  init_hid_device(HID_DEV_T *hdev)
     sysprintf("  VID: 0x%x, PID: 0x%x\n\n", hdev->idVendor, hdev->idProduct);
 
     ret = usbh_hid_get_report_descriptor(hdev, data_buff, 1024);
-    if (ret > 0) {
+    if (ret > 0)
+    {
         sysprintf("\nDump report descriptor =>\n");
         dump_buff_hex(data_buff, ret);
     }
@@ -196,7 +202,8 @@ void  uac_control_example(UAC_DEV_T *uac_dev)
     ret = usbh_uac_get_channel_number(uac_dev, UAC_MICROPHONE);
     if (ret < 0)
         sysprintf("    Failed to get microphone's channel number.\n");
-    else {
+    else
+    {
         sysprintf("    Microphone: %d\n", ret);
     }
 
@@ -208,7 +215,8 @@ void  uac_control_example(UAC_DEV_T *uac_dev)
     ret = usbh_uac_get_bit_resolution(uac_dev, UAC_SPEAKER, &val8);
     if(ret < 0)
         sysprintf("    Failed to get speaker's bit resoltion.\n");
-    else {
+    else
+    {
         sysprintf("    Speaker audio subframe size: %d bytes\n", val8);
         sysprintf("    Speaker subframe bit resolution: %d\n", ret);
     }
@@ -216,7 +224,8 @@ void  uac_control_example(UAC_DEV_T *uac_dev)
     ret = usbh_uac_get_bit_resolution(uac_dev, UAC_MICROPHONE, &val8);
     if(ret < 0)
         sysprintf("    Failed to get microphone's bit resoltion.\n");
-    else {
+    else
+    {
         sysprintf("    Microphone audio subframe size: %d bytes\n", val8);
         sysprintf("    Microphone subframe bit resolution: %d\n", ret);
     }
@@ -229,10 +238,12 @@ void  uac_control_example(UAC_DEV_T *uac_dev)
     ret = usbh_uac_get_sampling_rate(uac_dev, UAC_SPEAKER, (uint32_t *)&srate[0], 4, &val8);
     if(ret < 0)
         sysprintf("    Failed to get speaker's sampling rate.\n");
-    else {
+    else
+    {
         if(val8 == 0)
             sysprintf("    Speaker sampling rate range: %d ~ %d Hz\n", srate[0], srate[1]);
-        else {
+        else
+        {
             for(i = 0; i < val8; i++)
                 sysprintf("    Speaker sampling rate: %d\n", srate[i]);
         }
@@ -241,10 +252,12 @@ void  uac_control_example(UAC_DEV_T *uac_dev)
     ret = usbh_uac_get_sampling_rate(uac_dev, UAC_MICROPHONE, (uint32_t *)&srate[0], 4, &val8);
     if(ret < 0)
         sysprintf("    Failed to get microphone's sampling rate.\n");
-    else {
+    else
+    {
         if(val8 == 0)
             sysprintf("    Microphone sampling rate range: %d ~ %d Hz\n", srate[0], srate[1]);
-        else {
+        else
+        {
             for(i = 0; i < val8; i++)
                 sysprintf("    Microphone sampling rate: %d\n", srate[i]);
         }
@@ -255,9 +268,11 @@ void  uac_control_example(UAC_DEV_T *uac_dev)
     /*-------------------------------------------------------------*/
     /*  Get current mute value of UAC device's speaker.            */
     /*-------------------------------------------------------------*/
-    if (usbh_uac_mute_control(uac_dev, UAC_SPEAKER, UAC_GET_CUR, UAC_CH_MASTER, data) == UAC_RET_OK) {
+    if (usbh_uac_mute_control(uac_dev, UAC_SPEAKER, UAC_GET_CUR, UAC_CH_MASTER, data) == UAC_RET_OK)
+    {
         sysprintf("    Speaker mute state is %d.\n", data[0]);
-    } else
+    }
+    else
         sysprintf("    Failed to get speaker mute state!\n");
 
     sysprintf("\nSpeaker L(F) volume control ===>\n");
@@ -475,17 +490,17 @@ int32_t main(void)
     HID_DEV_T    *hdev, *hdev_list;
     int          ch;
     uint16_t     val16;
-	
+
     sysDisableCache();
     sysFlushCache(I_D_CACHE);
     sysEnableCache(CACHE_WRITE_BACK);
     sysInitializeUART();
 
-	outpw(REG_CLK_HCLKEN, inpw(REG_CLK_HCLKEN) | 0x40000);
-	outpw(REG_CLK_PCLKEN0, inpw(REG_CLK_PCLKEN0) | 0x10000);
+    outpw(REG_CLK_HCLKEN, inpw(REG_CLK_HCLKEN) | 0x40000);
+    outpw(REG_CLK_PCLKEN0, inpw(REG_CLK_PCLKEN0) | 0x10000);
 
-	// set PE.14 & PE.15 for USBH_PPWR0 & USBH_PPWR1
-	outpw(REG_SYS_GPE_MFPH, (inpw(REG_SYS_GPE_MFPH) & ~0xff000000) | 0x77000000);
+    // set PE.14 & PE.15 for USBH_PPWR0 & USBH_PPWR1
+    outpw(REG_SYS_GPE_MFPH, (inpw(REG_SYS_GPE_MFPH) & ~0xff000000) | 0x77000000);
 
     sysprintf("\n\n");
     sysprintf("+--------------------------------------------+\n");
@@ -494,17 +509,19 @@ int32_t main(void)
     sysprintf("|                                            |\n");
     sysprintf("+--------------------------------------------+\n");
 
-	/*--- init timer ---*/
-	sysSetTimerReferenceClock (TIMER0, 15000000);
-	sysStartTimer(TIMER0, 100, PERIODIC_MODE);
-	
+    /*--- init timer ---*/
+    sysSetTimerReferenceClock (TIMER0, 15000000);
+    sysStartTimer(TIMER0, 100, PERIODIC_MODE);
+
     usbh_core_init();
     usbh_uac_init();
     usbh_hid_init();
     usbh_memory_used();
 
-    while(1) {
-        if (usbh_pooling_hubs()) {            /* USB Host port detect polling and management */
+    while(1)
+    {
+        if (usbh_pooling_hubs())              /* USB Host port detect polling and management */
+        {
             /*
              *  Has hub port event.
              */
@@ -513,7 +530,8 @@ int32_t main(void)
             if (uac_dev == NULL)
                 continue;
 
-            if (uac_dev != NULL) {                /* should be newly connected UAC device        */
+            if (uac_dev != NULL)                  /* should be newly connected UAC device        */
+            {
                 usbh_uac_open(uac_dev);
 
                 uac_control_example(uac_dev);
@@ -525,8 +543,10 @@ int32_t main(void)
 
             hdev_list = usbh_hid_get_device_list();
             hdev = hdev_list;
-            while (hdev != NULL) {
-                if (is_a_new_hid_device(hdev)) {
+            while (hdev != NULL)
+            {
+                if (is_a_new_hid_device(hdev))
+                {
                     init_hid_device(hdev);
                 }
                 hdev = hdev->next;
@@ -534,11 +554,13 @@ int32_t main(void)
             update_hid_device_list(hdev_list);
         }
 
-        if (uac_dev == NULL) {
+        if (uac_dev == NULL)
+        {
             au_in_cnt = 0;
             au_out_cnt = 0;
 
-            if (!sysIsKbHit()) {
+            if (sysIsKbHit())
+            {
                 ch = sysGetChar();
                 usbh_memory_used();
             }
@@ -546,31 +568,43 @@ int32_t main(void)
             continue;
         }
 
-        if (!sysIsKbHit()) {
+        if (sysIsKbHit())
+        {
             ch = sysGetChar();
 
-            if ((ch == '+') && (vol_cur + vol_res <= vol_max)) {
+            if ((ch == '+') && (vol_cur + vol_res <= vol_max))
+            {
                 sysprintf("+");
                 val16 = vol_cur+vol_res;
-                if (usbh_uac_vol_control(uac_dev, UAC_MICROPHONE, UAC_SET_CUR, UAC_CH_MASTER, &val16) == UAC_RET_OK) {
+                if (usbh_uac_vol_control(uac_dev, UAC_MICROPHONE, UAC_SET_CUR, UAC_CH_MASTER, &val16) == UAC_RET_OK)
+                {
                     sysprintf("    Microphone set volume 0x%x success.\n", val16);
                     vol_cur = val16;
-                } else
+                }
+                else
                     sysprintf("    Failed to set microphone volume 0x%x!\n", val16);
-            } else if ((ch == '-') && (vol_cur - vol_res >= vol_min)) {
+            }
+            else if ((ch == '-') && (vol_cur - vol_res >= vol_min))
+            {
                 sysprintf("-");
                 val16 = vol_cur-vol_res;
-                if (usbh_uac_vol_control(uac_dev, UAC_MICROPHONE, UAC_SET_CUR, UAC_CH_MASTER, &val16) == UAC_RET_OK) {
+                if (usbh_uac_vol_control(uac_dev, UAC_MICROPHONE, UAC_SET_CUR, UAC_CH_MASTER, &val16) == UAC_RET_OK)
+                {
                     sysprintf("    Microphone set volume 0x%x success.\n", val16);
                     vol_cur = val16;
-                } else
+                }
+                else
                     sysprintf("    Failed to set microphone volume 0x%x!\n", val16);
-            } else if ((ch == '0') && (vol_cur - vol_res >= vol_min)) {
+            }
+            else if ((ch == '0') && (vol_cur - vol_res >= vol_min))
+            {
                 if (usbh_uac_vol_control(uac_dev, UAC_MICROPHONE, UAC_GET_CUR, UAC_CH_MASTER, &vol_cur) == UAC_RET_OK)
                     sysprintf("    Microphone current volume is 0x%x.\n", vol_cur);
                 else
                     sysprintf("    Failed to get microphone current volume!\n");
-            } else {
+            }
+            else
+            {
                 sysprintf("IN: %d, OUT: %d\n", au_in_cnt, au_out_cnt);
                 usbh_memory_used();
             }

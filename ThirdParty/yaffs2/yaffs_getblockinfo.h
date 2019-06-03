@@ -18,10 +18,9 @@
 
 #include "yaffs_guts.h"
 #include "yaffs_trace.h"
-extern void sysprintf(char *pcStr,...);
 
 /* Function to manipulate block info */
-static __inline struct yaffs_block_info *yaffs_get_block_info(struct yaffs_dev
+static inline struct yaffs_block_info *yaffs_get_block_info(struct yaffs_dev
 							      *dev, int blk)
 {
 	if (blk < dev->internal_start_block || blk > dev->internal_end_block) {

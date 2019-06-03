@@ -8,7 +8,7 @@
  * @note
  * Copyright (C) 2015 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
-#include "NUC970.h"
+#include "nuc970.h"
 #include "usbd.h"
 
 /** @addtogroup NUC970_Device_Driver NUC970 Device Driver
@@ -30,9 +30,9 @@
 S_USBD_CMD_T gUsbCmd;
 S_USBD_INFO_T *g_usbd_sInfo;
 
-VENDOR_REQ g_usbd_pfnVendorRequest = NULL;
-CLASS_REQ g_usbd_pfnClassRequest = NULL;
-SET_INTERFACE_REQ g_usbd_pfnSetInterface = NULL;
+VENDOR_REQ g_usbd_pfnVendorRequest = 0;
+CLASS_REQ g_usbd_pfnClassRequest = 0;
+SET_INTERFACE_REQ g_usbd_pfnSetInterface = 0;
 uint32_t g_u32EpStallLock = 0;       /*!< Bit map flag to lock specified EP when SET_FEATURE */
 
 static uint8_t *g_usbd_CtrlInPointer = 0;
@@ -46,7 +46,7 @@ static uint8_t g_usbd_TestSelector = 0;
 #pragma data_alignment=4
 static uint8_t g_usbd_buf[12];
 #else
-__align(4) static uint8_t g_usbd_buf[12];
+static uint8_t g_usbd_buf[12]  __attribute__((aligned(4)));
 #endif
 
 

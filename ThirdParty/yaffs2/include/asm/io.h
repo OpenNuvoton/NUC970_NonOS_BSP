@@ -25,6 +25,7 @@
 #include <linux/types.h>
 #include <asm/byteorder.h>
 #include <asm/memory.h>
+#include <asm/barriers.h>
 #if 0	/* XXX###XXX */
 #include <asm/arch/hardware.h>
 #endif	/* XXX###XXX */
@@ -46,7 +47,7 @@ static inline void sync(void)
 static inline void *
 map_physmem(phys_addr_t paddr, unsigned long len, unsigned long flags)
 {
-	return (void *)paddr;
+	return (void *)((unsigned long)paddr);
 }
 
 /*
@@ -59,7 +60,7 @@ static inline void unmap_physmem(void *vaddr, unsigned long flags)
 
 static inline phys_addr_t virt_to_phys(void * vaddr)
 {
-	return (phys_addr_t)(vaddr);
+	return (phys_addr_t)((unsigned long)vaddr);
 }
 
 /*
@@ -70,47 +71,52 @@ static inline phys_addr_t virt_to_phys(void * vaddr)
 #define __arch_getb(a)			(*(volatile unsigned char *)(a))
 #define __arch_getw(a)			(*(volatile unsigned short *)(a))
 #define __arch_getl(a)			(*(volatile unsigned int *)(a))
+#define __arch_getq(a)			(*(volatile unsigned long long *)(a))
 
 #define __arch_putb(v,a)		(*(volatile unsigned char *)(a) = (v))
 #define __arch_putw(v,a)		(*(volatile unsigned short *)(a) = (v))
 #define __arch_putl(v,a)		(*(volatile unsigned int *)(a) = (v))
+#define __arch_putq(v,a)		(*(volatile unsigned long long *)(a) = (v))
 
-extern inline void __raw_writesb(unsigned int addr, const void *data, int bytelen)
+static inline void __raw_writesb(unsigned long addr, const void *data,
+				 int bytelen)
 {
 	uint8_t *buf = (uint8_t *)data;
 	while(bytelen--)
 		__arch_putb(*buf++, addr);
 }
 
-extern inline void __raw_writesw(unsigned int addr, const void *data, int wordlen)
+static inline void __raw_writesw(unsigned long addr, const void *data,
+				 int wordlen)
 {
 	uint16_t *buf = (uint16_t *)data;
 	while(wordlen--)
 		__arch_putw(*buf++, addr);
 }
 
-extern inline void __raw_writesl(unsigned int addr, const void *data, int longlen)
+static inline void __raw_writesl(unsigned long addr, const void *data,
+				 int longlen)
 {
 	uint32_t *buf = (uint32_t *)data;
 	while(longlen--)
 		__arch_putl(*buf++, addr);
 }
 
-extern inline void __raw_readsb(unsigned int addr, void *data, int bytelen)
+static inline void __raw_readsb(unsigned long addr, void *data, int bytelen)
 {
 	uint8_t *buf = (uint8_t *)data;
 	while(bytelen--)
 		*buf++ = __arch_getb(addr);
 }
 
-extern inline void __raw_readsw(unsigned int addr, void *data, int wordlen)
+static inline void __raw_readsw(unsigned long addr, void *data, int wordlen)
 {
 	uint16_t *buf = (uint16_t *)data;
 	while(wordlen--)
 		*buf++ = __arch_getw(addr);
 }
 
-extern inline void __raw_readsl(unsigned int addr, void *data, int longlen)
+static inline void __raw_readsl(unsigned long addr, void *data, int longlen)
 {
 	uint32_t *buf = (uint32_t *)data;
 	while(longlen--)
@@ -120,26 +126,30 @@ extern inline void __raw_readsl(unsigned int addr, void *data, int longlen)
 #define __raw_writeb(v,a)	__arch_putb(v,a)
 #define __raw_writew(v,a)	__arch_putw(v,a)
 #define __raw_writel(v,a)	__arch_putl(v,a)
+#define __raw_writeq(v,a)	__arch_putq(v,a)
 
 #define __raw_readb(a)		__arch_getb(a)
 #define __raw_readw(a)		__arch_getw(a)
 #define __raw_readl(a)		__arch_getl(a)
+#define __raw_readq(a)		__arch_getq(a)
 
 /*
  * TODO: The kernel offers some more advanced versions of barriers, it might
  * have some advantages to use them instead of the simple one here.
  */
-#define dmb()		__asm__ __volatile__ ("" : : : "memory")
+#define mb()		dsb()
 #define __iormb()	dmb()
 #define __iowmb()	dmb()
 
 #define writeb(v,c)	({ u8  __v = v; __iowmb(); __arch_putb(__v,c); __v; })
 #define writew(v,c)	({ u16 __v = v; __iowmb(); __arch_putw(__v,c); __v; })
 #define writel(v,c)	({ u32 __v = v; __iowmb(); __arch_putl(__v,c); __v; })
+#define writeq(v,c)	({ u64 __v = v; __iowmb(); __arch_putq(__v,c); __v; })
 
 #define readb(c)	({ u8  __v = __arch_getb(c); __iormb(); __v; })
 #define readw(c)	({ u16 __v = __arch_getw(c); __iormb(); __v; })
 #define readl(c)	({ u32 __v = __arch_getl(c); __iormb(); __v; })
+#define readq(c)	({ u64 __v = __arch_getq(c); __iormb(); __v; })
 
 /*
  * The compiler seems to be incapable of optimising constants
@@ -165,9 +175,11 @@ extern inline void __raw_readsl(unsigned int addr, void *data, int longlen)
 #define out_arch(type,endian,a,v)	__raw_write##type(cpu_to_##endian(v),a)
 #define in_arch(type,endian,a)		endian##_to_cpu(__raw_read##type(a))
 
+#define out_le64(a,v)	out_arch(q,le64,a,v)
 #define out_le32(a,v)	out_arch(l,le32,a,v)
 #define out_le16(a,v)	out_arch(w,le16,a,v)
 
+#define in_le64(a)	in_arch(q,le64,a)
 #define in_le32(a)	in_arch(l,le32,a)
 #define in_le16(a)	in_arch(w,le16,a)
 
@@ -272,39 +284,12 @@ extern inline void __raw_readsl(unsigned int addr, void *data, int longlen)
 #define insw_p(port,to,len)		insw(port,to,len)
 #define insl_p(port,to,len)		insl(port,to,len)
 
-/*
- * ioremap and friends.
- *
- * ioremap takes a PCI memory address, as specified in
- * linux/Documentation/IO-mapping.txt.  If you want a
- * physical address, use __ioremap instead.
- */
-extern void * __ioremap(unsigned long offset, size_t size, unsigned long flags);
-extern void __iounmap(void *addr);
-
-/*
- * Generic ioremap support.
- *
- * Define:
- *  iomem_valid_addr(off,size)
- *  iomem_to_phys(off)
- */
-#ifdef iomem_valid_addr
-#define __arch_ioremap(off,sz,nocache)					\
- ({									\
-	unsigned long _off = (off), _size = (sz);			\
-	void *_ret = (void *)0;						\
-	if (iomem_valid_addr(_off, _size))				\
-		_ret = __ioremap(iomem_to_phys(_off),_size,nocache);	\
-	_ret;								\
- })
-
-#define __arch_iounmap __iounmap
-#endif
-
-#define ioremap(off,sz)			__arch_ioremap((off),(sz),0)
-#define ioremap_nocache(off,sz)		__arch_ioremap((off),(sz),1)
-#define iounmap(_addr)			__arch_iounmap(_addr)
+#define writesl(a, d, s)	__raw_writesl((unsigned long)a, d, s)
+#define readsl(a, d, s)		__raw_readsl((unsigned long)a, d, s)
+#define writesw(a, d, s)	__raw_writesw((unsigned long)a, d, s)
+#define readsw(a, d, s)		__raw_readsw((unsigned long)a, d, s)
+#define writesb(a, d, s)	__raw_writesb((unsigned long)a, d, s)
+#define readsb(a, d, s)		__raw_readsb((unsigned long)a, d, s)
 
 /*
  * DMA-consistent mapping functions.  These allocate/free a region of
@@ -364,7 +349,12 @@ out:
 	return retval;
 }
 
-#elif !defined(readb)
+#else
+#define memset_io(a, b, c)		memset((void *)(a), (b), (c))
+#define memcpy_fromio(a, b, c)		memcpy((a), (void *)(b), (c))
+#define memcpy_toio(a, b, c)		memcpy((void *)(a), (b), (c))
+
+#if !defined(readb)
 
 #define readb(addr)			(__readwrite_bug("readb"),0)
 #define readw(addr)			(__readwrite_bug("readw"),0)
@@ -377,6 +367,7 @@ out:
 
 #define check_signature(io,sig,len)	(0)
 
+#endif
 #endif	/* __mem_pci */
 
 /*
@@ -434,4 +425,7 @@ out:
 
 #endif	/* __mem_isa */
 #endif	/* __KERNEL__ */
+
+#include <iotrace.h>
+
 #endif	/* __ASM_ARM_IO_H */

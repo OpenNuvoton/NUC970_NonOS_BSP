@@ -30,7 +30,8 @@ static volatile int g_SHA_done;
 
 void CRYPTO_IRQHandler()
 {
-    if (SHA_GET_INT_FLAG()) {
+    if (SHA_GET_INT_FLAG())
+    {
         g_SHA_done = 1;
         SHA_CLR_INT_FLAG();
     }
@@ -41,7 +42,8 @@ int  do_compare(uint8_t *output, uint8_t *expect, int cmp_len)
 {
     int   i;
 
-    if (memcmp(expect, output, cmp_len)) {
+    if (memcmp(expect, output, cmp_len))
+    {
         sysprintf("\nMismatch!! - %d\n", cmp_len);
         for (i = 0; i < cmp_len; i++)
             sysprintf("0x%02x    0x%02x\n", expect[i], output[i]);
@@ -70,7 +72,8 @@ int  run_sha()
     /*--------------------------------------------*/
     /*  Compare                                   */
     /*--------------------------------------------*/
-    if (do_compare((uint8_t *)&au32OutputDigest[0], &_au8ShaDigest[0], _i32DigestLength) < 0) {
+    if (do_compare((uint8_t *)&au32OutputDigest[0], &_au8ShaDigest[0], _i32DigestLength) < 0)
+    {
         sysprintf("Compare error!\n");
         while (1);
     }
@@ -87,21 +90,22 @@ int main(void)
     sysInitializeUART();
 
     /* enable Crypto clock */
-	outpw(REG_CLK_HCLKEN, inpw(REG_CLK_HCLKEN) | (1 << 23));
+    outpw(REG_CLK_HCLKEN, inpw(REG_CLK_HCLKEN) | (1 << 23));
 
     sysprintf("+------------------------------------+\n");
     sysprintf("|     Crypto SHA Sample Program      |\n");
     sysprintf("+------------------------------------+\n");
 
-	sysInstallISR(HIGH_LEVEL_SENSITIVE | IRQ_LEVEL_1, CRPT_IRQn, (PVOID)CRYPTO_IRQHandler);
-  	sysSetLocalInterrupt(ENABLE_IRQ);
-	sysEnableInterrupt(CRPT_IRQn);
+    sysInstallISR(HIGH_LEVEL_SENSITIVE | IRQ_LEVEL_1, CRPT_IRQn, (PVOID)CRYPTO_IRQHandler);
+    sysSetLocalInterrupt(ENABLE_IRQ);
+    sysEnableInterrupt(CRPT_IRQn);
 
     SHA_ENABLE_INT();
 
     open_test_vector();
 
-    while (1) {
+    while (1)
+    {
         if (get_next_pattern() < 0)
             break;
 

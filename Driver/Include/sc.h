@@ -11,7 +11,7 @@
 #ifndef __SC_H__
 #define __SC_H__
 
-#include "NUC970.h"
+#include "nuc970.h"
 
 #ifdef __cplusplus
 extern "C"

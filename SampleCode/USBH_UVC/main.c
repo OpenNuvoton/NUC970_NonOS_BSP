@@ -24,7 +24,7 @@
 
 #define USB_PPWR_PE
 
-//#define SELECT_MJPEG
+#define SELECT_MJPEG
 
 #define SELECT_RES_WIDTH     640
 #define SELECT_RES_HEIGHT    480
@@ -57,9 +57,9 @@ struct ig_buff_t
 };
 struct ig_buff_t  _ig[IMAGE_BUFF_CNT];
 
-__align(32) uint8_t  image_buff_pool[IMAGE_BUFF_CNT][IMAGE_MAX_SIZE];
+uint8_t  image_buff_pool[IMAGE_BUFF_CNT][IMAGE_MAX_SIZE] __attribute__((aligned(32)));
 
-__align(32) uint8_t  snapshot_buff_pool[IMAGE_MAX_SIZE];
+uint8_t  snapshot_buff_pool[IMAGE_MAX_SIZE] __attribute__((aligned(32)));
 
 int   _idx_usb = 0, _idx_post = 0;
 int   _total_frame_count = 0;

@@ -40,24 +40,45 @@ UINT32 sys_now(void)
 
 int sys_arch_protect(void)  
 {
-        int _old, _new;
-        __asm
-        {
-            MRS    _old, CPSR
-            ORR    _new, _old, DISABLE_FIQ_IRQ
-            MSR    CPSR_c, _new
-        }
-        return(_old);
+    int _old, _new;
+#if defined ( __GNUC__ ) && !(__CC_ARM)
+    asm
+    (
+        "mrs    %[old], cpsr  \n"
+        "bic    %[new], %[old], #0x80  \n"
+        "msr    CPSR_c, %[new]  \n"
+        : [old]"=r" (_old)
+        : [new]"r"  (_new)
+	    :
+    );
+#else
+    __asm
+    {
+        MRS    _old, CPSR
+        ORR    _new, _old, DISABLE_FIQ_IRQ
+        MSR    CPSR_c, _new
+    }
+#endif
+    return(_old);
 }
 
 void sys_arch_unprotect(int pval)
 {
-        __asm
-        {
-            MSR    CPSR_c, pval
-        }
-
-        return; 
+#if defined ( __GNUC__ ) && !(__CC_ARM)
+    asm
+    (
+        "msr    CPSR_c, %0  \n"
+        : "=r" (pval)
+        : "0"  (pval)
+        :
+    );
+#else
+    __asm
+    {
+        MSR    CPSR_c, pval
+    }
+#endif
+    return;
 }
 
 

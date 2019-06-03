@@ -27,24 +27,30 @@ static TCHAR  _Path[3] = { '0', ':', 0 };
 
 void SD_Open_(unsigned int cardSel)
 {
-    switch(cardSel & 0xff)
+    switch (cardSel & 0xff)
     {
         case SD_PORT0:
             SD_Open(cardSel);
-            if (SD_Probe(cardSel & 0x00ff) != TRUE) {
+
+            if (SD_Probe(cardSel & 0x00ff) != TRUE)
+            {
                 sysprintf("SD0 initial fail!!\n");
                 return;
             }
+
             f_mount(&_FatfsVolSd0, _Path, 1);
             break;
 
         case SD_PORT1:
             SD_Open(cardSel);
-            if (SD_Probe(cardSel & 0x00ff) != TRUE) {
+
+            if (SD_Probe(cardSel & 0x00ff) != TRUE)
+            {
                 sysprintf("SD1 initial fail!!\n");
                 return;
             }
-            _Path[0] = 	1 + '0';	
+
+            _Path[0] =  1 + '0';
             f_mount(&_FatfsVolSd1, _Path, 1);
             break;
     }
@@ -52,15 +58,18 @@ void SD_Open_(unsigned int cardSel)
 
 void SD_Close_(unsigned int cardSel)
 {
-    if (cardSel == SD_PORT0) {
+    if (cardSel == SD_PORT0)
+    {
         sd0_ok = 0;
         memset(&SD0, 0, sizeof(SD_INFO_T));
         f_mount(NULL, _Path, 1);
         memset(&_FatfsVolSd0, 0, sizeof(FATFS));
-    } else if(cardSel == SD_PORT1) {
+    }
+    else if (cardSel == SD_PORT1)
+    {
         sd1_ok = 0;
         memset(&SD1, 0, sizeof(SD_INFO_T));
-        _Path[0] = 	1 + '0';	
+        _Path[0] =  1 + '0';
         f_mount(NULL, _Path, 1);
         memset(&_FatfsVolSd1, 0, sizeof(FATFS));
     }

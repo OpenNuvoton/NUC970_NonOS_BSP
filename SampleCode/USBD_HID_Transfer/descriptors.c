@@ -9,7 +9,7 @@
 #define __DESCRIPTORS_C__
 
 /*!<Includes */
-#include "NUC970.h"
+#include "nuc970.h"
 #include "usbd.h"
 #include "hid_transfer.h"
 
@@ -264,14 +264,14 @@ uint8_t *gpu8UsbString[4] =
     gu8StringLang,
     gu8VendorStringDesc,
     gu8ProductStringDesc,
-    NULL,
+    0,
 };
 
 uint8_t *gu8UsbHidReport[3] =
 {
     HID_DeviceReportDescriptor,
-    NULL,
-    NULL,
+    0,
+    0,
 };
 
 uint32_t gu32UsbHidReportLen[3] =

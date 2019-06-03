@@ -663,7 +663,7 @@ void uart10ISR(void)
 static UINT32 _uartTxBufGetNextOne(INT nNum, UINT32 uPointer)
 {
     if((uPointer + 1) == UARTTXBUFSIZE[nNum])
-        return NULL;
+        return (UINT32)NULL;
     else
         return (uPointer + 1);
 }
@@ -671,7 +671,7 @@ static UINT32 _uartTxBufGetNextOne(INT nNum, UINT32 uPointer)
 static UINT32 _uartRxBufGetNextOne(INT nNum, UINT32 uPointer)
 {
     if((uPointer + 1) == UARTRXBUFSIZE[nNum])
-        return NULL;
+        return (UINT32)NULL;
     else
         return (uPointer + 1);
 }
@@ -957,8 +957,8 @@ static BOOL _uartBUFSpaceAlloc(INT nNum)
     memset(dev->pucUARTFlag, 0, UARTRXBUFSIZE[nNum] * sizeof(INT));
 
     /* inital struct UART_BUFFER_STRUCT, uUartTxHead, uUartTxTail, uUartRxHead, uUartRxTail */
-    dev->uUartTxHead = dev->uUartTxTail = NULL;
-    dev->uUartRxHead = dev->uUartRxTail = NULL;
+    dev->uUartTxHead = dev->uUartTxTail = (UINT32)NULL;
+    dev->uUartRxHead = dev->uUartRxTail = (UINT32)NULL;
 
     return TRUE;
 }

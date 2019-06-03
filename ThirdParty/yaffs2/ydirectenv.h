@@ -1,8 +1,7 @@
 /*
  * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2011 Aleph One Ltd.
- *   for Toby Churchill Ltd and Brightstar Engineering
+ * Copyright (C) 2002-2018 Aleph One Ltd.
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -20,23 +19,30 @@
 #ifndef __YDIRECTENV_H__
 #define __YDIRECTENV_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "linux\compat.h"
-
-#include "common.h"
-#include "malloc.h"
+#include "stdlib.h"
+#include "stdio.h"
+#include "string.h"
 
 #include "yaffs_osglue.h"
+#include "yaffs_hweight.h"
 
+extern void sysprintf (char *pcStr,...);
+extern void qsort(void *base, size_t nmemb, size_t size, int(*compar)(const void *, const void *));
 void yaffs_bug_fn(const char *file_name, int line_no);
 
+//#define BUG() do { yaffs_bug_fn(__FILE__, __LINE__); } while (0)
 
 
 #define YCHAR char
 #define YUCHAR unsigned char
 #define _Y(x) x
+
+#ifndef Y_LOFF_T
+#define Y_LOFF_T loff_t
+#endif
+
+/* Some RTOSs (eg. VxWorks) need strnlen. */
+size_t strnlen(const char *s, size_t maxlen);
 
 #define yaffs_strcat(a, b)	strcat(a, b)
 #define yaffs_strcpy(a, b)	strcpy(a, b)
@@ -51,28 +57,32 @@ void yaffs_bug_fn(const char *file_name, int line_no);
 #define yaffs_strncmp(a, b, c)	strncmp(a, b, c)
 #endif
 
+#define hweight8(x)	yaffs_hweight8(x)
+#define hweight32(x)	yaffs_hweight32(x)
 
-void yaffs_qsort(void *aa, size_t n, size_t es,
-		int (*cmp)(const void *, const void *));
-
-#define sort(base, n, sz, cmp_fn, swp) yaffs_qsort(base, n, sz, cmp_fn)
+#define sort(base, n, sz, cmp_fn, swp) qsort(base, n, sz, cmp_fn)
 
 #define YAFFS_PATH_DIVIDERS  "/"
 
 #ifdef NO_inline
 #define inline
+#else
+//#define inline __inline__
+#define inline __inline
 #endif
+
+#define kmalloc(x, flags) yaffsfs_malloc(x)
+#define kfree(x)   yaffsfs_free(x)
+#define vmalloc(x) yaffsfs_malloc(x)
+#define vfree(x) yaffsfs_free(x)
 
 #define cond_resched()  do {} while (0)
 
-// #define yaffs_trace(msk, fmt, ...) do { \
-// 	if (yaffs_trace_mask & (msk)) \
-// 		sysprintf("yaffs: " fmt "\n", ##__VA_ARGS__); \
-// } while (0)
-
-#define yaffs_trace(msk, fmt, ...) \
+#define yaffs_trace(msk, fmt, ...) do { \
 	if (yaffs_trace_mask & (msk)) \
 		sysprintf("yaffs: " fmt "\n", ##__VA_ARGS__); \
+} while (0)
+//#define yaffs_trace(msk, fmt, ...) sysprintf("yaffs: " fmt "\n", ##__VA_ARGS__);
 
 
 #define YAFFS_LOSTNFOUND_NAME		"lost+found"
@@ -91,3 +101,5 @@ void yaffs_qsort(void *aa, size_t n, size_t es,
 #include "yaffsfs.h"
 
 #endif
+
+

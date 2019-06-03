@@ -14,7 +14,7 @@
 #include <string.h>
 #include "nuc970.h"
 #include "sys.h"
-#include "RTC.h"
+#include "rtc.h"
 
 /** @addtogroup NUC970_Device_Driver NUC970 Device Driver
   @{

@@ -1,13 +1,9 @@
 #ifndef _LINUX_TYPES_H
 #define _LINUX_TYPES_H
 
-#ifdef	__KERNEL__
-#include <linux/config.h>
-#endif
-
-#include "linux\posix_types.h"
-#include "asm\types.h"
-//#include "stdbool.h"
+#include <linux/posix_types.h>
+#include <asm/types.h>
+#include <stdbool.h>
 
 #ifndef __KERNEL_STRICT_NAMES
 
@@ -109,13 +105,29 @@ typedef		__u32		u_int32_t;
 // typedef		__u16		uint16_t;
 // typedef		__u32		uint32_t;
 
-// #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+//#if defined(__GNUC__) && !defined(__STRICT_ANSI__) && \
+	(!defined(CONFIG_USE_STDINT) || !defined(__INT64_TYPE__))
 typedef		__u64		uint64_t;
 typedef		__u64		u_int64_t;
 typedef		__s64		int64_t;
 // #endif
 
 #endif /* __KERNEL_STRICT_NAMES */
+
+/* this is a special 64bit data type that is 8-byte aligned */
+#define aligned_u64 __u64 __aligned(8)
+#define aligned_be64 __be64 __aligned(8)
+#define aligned_le64 __le64 __aligned(8)
+
+#if defined(CONFIG_USE_STDINT) && defined(__INT64_TYPE__)
+typedef		__UINT64_TYPE__	uint64_t;
+typedef		__UINT64_TYPE__	u_int64_t;
+typedef		__INT64_TYPE__		int64_t;
+#endif
+
+#ifdef __KERNEL__
+typedef phys_addr_t resource_size_t;
+#endif
 
 /*
  * Below are truly Linux-specific types that should never collide with
@@ -142,7 +154,6 @@ typedef __u64 __bitwise __be64;
 // #endif
 typedef __u16 __bitwise __sum16;
 typedef __u32 __bitwise __wsum;
-
 
 typedef unsigned __bitwise__	gfp_t;
 

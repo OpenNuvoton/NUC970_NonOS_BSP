@@ -28,7 +28,6 @@
 #include "yaffs_nand.h"
 #include "yaffs_getblockinfo.h"
 #include "yaffs_bitmap.h"
-#include "yaffs_malloc.h"
 
 /*
  * The summary is built up in an array of summary tags.
@@ -64,9 +63,9 @@ static void yaffs_summary_clear(struct yaffs_dev *dev)
 
 void yaffs_summary_deinit(struct yaffs_dev *dev)
 {
-	yaffs_free(dev->sum_tags);
+	kfree(dev->sum_tags);
 	dev->sum_tags = NULL;
-	yaffs_free(dev->gc_sum_tags);
+	kfree(dev->gc_sum_tags);
 	dev->gc_sum_tags = NULL;
 	dev->chunks_per_summary = 0;
 }
@@ -87,10 +86,8 @@ int yaffs_summary_init(struct yaffs_dev *dev)
 	dev->chunks_per_summary = dev->param.chunks_per_block - chunks_used;
 	sum_tags_bytes = sizeof(struct yaffs_summary_tags) *
 				dev->chunks_per_summary;
-// 	dev->sum_tags = kmalloc(sum_tags_bytes, GFP_NOFS);
-// 	dev->gc_sum_tags = kmalloc(sum_tags_bytes, GFP_NOFS);
-	dev->sum_tags = yaffs_malloc(sum_tags_bytes);
-	dev->gc_sum_tags = yaffs_malloc(sum_tags_bytes);
+	dev->sum_tags = kmalloc(sum_tags_bytes, GFP_NOFS);
+	dev->gc_sum_tags = kmalloc(sum_tags_bytes, GFP_NOFS);
 	if (!dev->sum_tags || !dev->gc_sum_tags) {
 		yaffs_summary_deinit(dev);
 		return YAFFS_FAIL;
@@ -235,7 +232,6 @@ int yaffs_summary_read(struct yaffs_dev *dev,
 	if (result == YAFFS_OK) {
 		/* Verify header */
 		if (hdr.version != YAFFS_SUMMARY_VERSION ||
-		    hdr.block != blk ||
 		    hdr.seq != bi->seq_number ||
 		    hdr.sum != yaffs_summary_sum(dev))
 			result = YAFFS_FAIL;

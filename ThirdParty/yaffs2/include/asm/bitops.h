@@ -15,20 +15,9 @@
 #ifndef __ASM_ARM_BITOPS_H
 #define __ASM_ARM_BITOPS_H
 
-
-/*
- * hweightN: returns the hamming weight (i.e. the number
- * of bits set) of a N-bit word
- */
-
-#define hweight32(x) generic_hweight32(x)
-#define hweight16(x) generic_hweight16(x)
-#define hweight8(x) generic_hweight8(x)
-
-
 #ifdef __KERNEL__
 
-#include <asm/proc/system.h>
+#include <asm/proc-armv/system.h>
 
 #define smp_mb__before_clear_bit()	do { } while (0)
 #define smp_mb__after_clear_bit()	do { } while (0)
@@ -42,7 +31,7 @@ extern void clear_bit(int nr, volatile void * addr);
 
 extern void change_bit(int nr, volatile void * addr);
 
-static __inline void __change_bit(int nr, volatile void *addr)
+static inline void __change_bit(int nr, volatile void *addr)
 {
 	unsigned long mask = BIT_MASK(nr);
 	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
@@ -50,7 +39,7 @@ static __inline void __change_bit(int nr, volatile void *addr)
 	*p ^= mask;
 }
 
-static __inline int __test_and_set_bit(int nr, volatile void *addr)
+static inline int __test_and_set_bit(int nr, volatile void *addr)
 {
 	unsigned long mask = BIT_MASK(nr);
 	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
@@ -62,7 +51,7 @@ static __inline int __test_and_set_bit(int nr, volatile void *addr)
 
 static inline int test_and_set_bit(int nr, volatile void * addr)
 {
-	unsigned long flags;
+	unsigned long flags = 0;
 	int out;
 
 	local_irq_save(flags);
@@ -84,7 +73,7 @@ static inline int __test_and_clear_bit(int nr, volatile void *addr)
 
 static inline int test_and_clear_bit(int nr, volatile void * addr)
 {
-	unsigned long flags;
+	unsigned long flags = 0;
 	int out;
 
 	local_irq_save(flags);
@@ -105,9 +94,6 @@ static inline int __test_and_change_bit(int nr, volatile void *addr)
 	*p = old ^ mask;
 	return (old & mask) != 0;
 }
-
-extern int find_first_zero_bit(void * addr, unsigned size);
-extern int find_next_zero_bit(void * addr, int size, int offset);
 
 /*
  * This routine doesn't need to be atomic.
@@ -140,6 +126,43 @@ static inline unsigned long ffz(unsigned long word)
 	return k;
 }
 
+static inline int find_next_zero_bit(void *addr, int size, int offset)
+{
+	unsigned long *p = ((unsigned long *)addr) + (offset >> 5);
+	unsigned long result = offset & ~31UL;
+	unsigned long tmp;
+
+	if (offset >= size)
+		return size;
+	size -= result;
+	offset &= 31UL;
+	if (offset) {
+		tmp = *(p++);
+		tmp |= ~0UL >> (32-offset);
+		if (size < 32)
+			goto found_first;
+		if (~tmp)
+			goto found_middle;
+		size -= 32;
+		result += 32;
+	}
+	while (size & ~31UL) {
+		tmp = *(p++);
+		if (~tmp)
+			goto found_middle;
+		result += 32;
+		size -= 32;
+	}
+	if (!size)
+		return result;
+	tmp = *p;
+
+found_first:
+	tmp |= ~0UL >> size;
+found_middle:
+	return result + ffz(tmp);
+}
+
 /*
  * hweightN: returns the hamming weight (i.e. the number
  * of bits set) of a N-bit word
@@ -148,6 +171,9 @@ static inline unsigned long ffz(unsigned long word)
 #define hweight32(x) generic_hweight32(x)
 #define hweight16(x) generic_hweight16(x)
 #define hweight8(x) generic_hweight8(x)
+
+#define find_first_zero_bit(addr, size) \
+	find_next_zero_bit((addr), (size), 0)
 
 #define ext2_set_bit			test_and_set_bit
 #define ext2_clear_bit			test_and_clear_bit
@@ -163,5 +189,10 @@ static inline unsigned long ffz(unsigned long word)
 #define minix_find_first_zero_bit(addr,size)	find_first_zero_bit(addr,size)
 
 #endif /* __KERNEL__ */
+
+#include <asm-generic/bitops/__fls.h>
+#include <asm-generic/bitops/__ffs.h>
+#include <asm-generic/bitops/fls.h>
+#include <asm-generic/bitops/fls64.h>
 
 #endif /* _ARM_BITOPS_H */

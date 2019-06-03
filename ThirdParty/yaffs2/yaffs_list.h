@@ -1,8 +1,7 @@
 /*
  * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2011 Aleph One Ltd.
- *   for Toby Churchill Ltd and Brightstar Engineering
+ * Copyright (C) 2002-2018 Aleph One Ltd.
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -36,6 +35,10 @@ struct list_head {
 
 
 /* Initialise a static list */
+#ifdef LIST_HEAD
+#undef LIST_HEAD
+#endif
+
 #define LIST_HEAD(name) \
 struct list_head name = { &(name), &(name)}
 
@@ -50,7 +53,7 @@ do { \
 
 
 /* Add an element to a list */
-static __inline void list_add(struct list_head *new_entry,
+static inline void list_add(struct list_head *new_entry,
 				struct list_head *list)
 {
 	struct list_head *list_next = list->next;
@@ -62,7 +65,7 @@ static __inline void list_add(struct list_head *new_entry,
 
 }
 
-static __inline void list_add_tail(struct list_head *new_entry,
+static inline void list_add_tail(struct list_head *new_entry,
 				 struct list_head *list)
 {
 	struct list_head *list_prev = list->prev;
@@ -77,7 +80,7 @@ static __inline void list_add_tail(struct list_head *new_entry,
 
 /* Take an element out of its current list, with or without
  * reinitialising the links.of the entry*/
-static __inline void list_del(struct list_head *entry)
+static inline void list_del(struct list_head *entry)
 {
 	struct list_head *list_next = entry->next;
 	struct list_head *list_prev = entry->prev;
@@ -87,7 +90,7 @@ static __inline void list_del(struct list_head *entry)
 
 }
 
-static __inline void list_del_init(struct list_head *entry)
+static inline void list_del_init(struct list_head *entry)
 {
 	list_del(entry);
 	entry->next = entry->prev = entry;
@@ -95,7 +98,7 @@ static __inline void list_del_init(struct list_head *entry)
 
 
 /* Test if the list is empty */
-static __inline int list_empty(struct list_head *entry)
+static inline int list_empty(struct list_head *entry)
 {
 	return (entry->next == entry);
 }

@@ -8,7 +8,7 @@
  * @note
  * Copyright (C) 2013 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
-#include "NUC970.h"
+#include "nuc970.h"
 #include "scuart.h"
 
 /** @addtogroup NUC970_Device_Driver NUC970 Device Driver
@@ -100,7 +100,7 @@ UINT SCUART_Open(UINT sc, UINT u32baudrate)
   * @details The function is used to read Rx data from RX FIFO.
   * @note This function does not block and return immediately if there's no data available.
   */
-uint32_t SCUART_Read(UINT sc, char *pu8RxBuf, UINT u32ReadBytes)
+UINT SCUART_Read(UINT sc, char *pu8RxBuf, UINT u32ReadBytes)
 {
     uint32_t u32Count;
 

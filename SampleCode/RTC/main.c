@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "nuc970.h"
 #include "sys.h"
-#include "RTC.h"
+#include "rtc.h"
 
 /*---------------------------------------------------------------------------------------------------------*/
 /* Global variables                                                                                        */

@@ -23,7 +23,7 @@ static uint32_t     _u32FileIdx, _u32FileSize;
 
 static char  _pi8LineBuff[20*1024];
 
-__align(32) uint8_t   _au8ShaData_pool[8192] ;
+uint8_t   _au8ShaData_pool[8192] __attribute__((aligned(32)));
 uint8_t   *_au8ShaData;
 
 uint8_t     _au8ShaDigest[64];
@@ -53,14 +53,16 @@ int  get_line(void)
     int         i;
     uint8_t     ch;
 
-    if (_u32FileIdx+1 >= _u32FileSize) {
+    if (_u32FileIdx+1 >= _u32FileSize)
+    {
         //sysprintf("EOF.\n");
         return -1;
     }
 
     memset(_pi8LineBuff, 0, sizeof(_pi8LineBuff));
 
-    for (i = 0;  ; i++) {
+    for (i = 0;  ; i++)
+    {
         if (read_file(&ch, 1) < 0)
             return 0;
 
@@ -70,7 +72,8 @@ int  get_line(void)
         _pi8LineBuff[i] = ch;
     }
 
-    while (1) {
+    while (1)
+    {
         if (read_file(&ch, 1) < 0)
             return 0;
 
@@ -111,8 +114,10 @@ int  str_to_hex(uint8_t *str, uint8_t *hex, int swap)
     int         i, count = 0, actual_len;
     uint8_t     val8;
 
-    while (*str) {
-        if (!is_hex_char(*str)) {
+    while (*str)
+    {
+        if (!is_hex_char(*str))
+        {
             //sysprintf("ERROR - not hex!!\n");
             return count;
         }
@@ -120,7 +125,8 @@ int  str_to_hex(uint8_t *str, uint8_t *hex, int swap)
         val8 = char_to_hex(*str);
         str++;
 
-        if (!is_hex_char(*str)) {
+        if (!is_hex_char(*str))
+        {
             //sysprintf("ERROR - not hex!!\n");
             return count;
         }
@@ -142,7 +148,8 @@ int  str_to_hex(uint8_t *str, uint8_t *hex, int swap)
         return actual_len;
 
     // SWAP
-    for (i = 0; i < count; i+=4) {
+    for (i = 0; i < count; i+=4)
+    {
         val8 = hex[i];
         hex[i] = hex[i+3];
         hex[i+3] = val8;
@@ -161,8 +168,10 @@ int  str_to_decimal(uint8_t *str)
     int         val32;
 
     val32 = 0;
-    while (*str) {
-        if ((*str < '0') || (*str > '9')) {
+    while (*str)
+    {
+        if ((*str < '0') || (*str > '9'))
+        {
             return val32;
         }
         val32 = (val32 * 10) + (*str - '0');
@@ -177,16 +186,18 @@ int  get_next_pattern(void)
     int         line_num = 1;
     uint8_t     *p;
 
-	_au8ShaData = (uint8_t *)((uint32_t)_au8ShaData_pool | 0x80000000);
+    _au8ShaData = (uint8_t *)((uint32_t)_au8ShaData_pool | 0x80000000);
 
-    while (get_line() == 0) {
+    while (get_line() == 0)
+    {
         //sysprintf("LINE %d = %s\n", line_num, _pi8LineBuff);
         line_num++;
 
         if (_pi8LineBuff[0] == '#')
             continue;
 
-        if (strncmp(_pi8LineBuff ,"Len", 3) == 0) {
+        if (strncmp(_pi8LineBuff ,"Len", 3) == 0)
+        {
             p = (uint8_t *)&_pi8LineBuff[3];
             while ((*p < '0') || (*p > '9'))
                 p++;
@@ -195,14 +206,16 @@ int  get_next_pattern(void)
             continue;
         }
 
-        if (strncmp(_pi8LineBuff ,"Msg", 3) == 0) {
+        if (strncmp(_pi8LineBuff ,"Msg", 3) == 0)
+        {
             p = (uint8_t *)&_pi8LineBuff[3];
             while (!is_hex_char(*p)) p++;
             str_to_hex(p, &_au8ShaData[0], 0);
             continue;
         }
 
-        if (strncmp(_pi8LineBuff ,"MD", 2) == 0) {
+        if (strncmp(_pi8LineBuff ,"MD", 2) == 0)
+        {
             p = (uint8_t *)&_pi8LineBuff[2];
             while (!is_hex_char(*p)) p++;
             str_to_hex(p, &_au8ShaDigest[0], 1);

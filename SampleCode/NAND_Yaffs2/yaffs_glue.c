@@ -1,8 +1,7 @@
 /*
  * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2007 Aleph One Ltd.
- *   for Toby Churchill Ltd and Brightstar Engineering
+ * Copyright (C) 2002-2018 Aleph One Ltd.
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -11,27 +10,98 @@
  * published by the Free Software Foundation.
  */
 
-/******************************************************************************
- * @file     yaffs_glue.c
- * @version  V1.00
- * $Revision: 2 $
- * $Date: 15/05/29 3:19p $
- * @brief    configuration for the "direct" use of yaffs
- *           This version uses the ydevconfig mechanism to set up partitions.
+/*
+ * yaffscfg.c  The configuration for the "direct" use of yaffs.
  *
- * @note
- * Copyright (C) 2015 Nuvoton Technology Corp. All rights reserved.
-*****************************************************************************/
-#include <string.h>
+ * This is set up for u-boot.
+ *
+ * This version now uses the ydevconfig mechanism to set up partitions.
+ */
+
+#include <common.h>
+
+#include <config.h>
 #include "nand.h"
+#include "yaffscfg.h"
 #include "yaffsfs.h"
 #include "yaffs_packedtags2.h"
 #include "yaffs_mtdif.h"
 #include "yaffs_mtdif2.h"
+#include "yaffs_glue.h"
 #include "yaffs_malloc.h"
-#include "yaffs_trace.h"
 
-extern void sysprintf(char *pcStr,...);
+#if 0
+#include <errno.h>
+#else
+#include "malloc.h"
+#endif
+
+extern int sprintf(char * __restrict /*s*/, const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
+unsigned yaffs_trace_mask = 0x0; /* Disable logging */
+static int yaffs_errno;
+
+
+void yaffs_bug_fn(const char *fn, int n)
+{
+	sysprintf("yaffs bug at %s:%d\n", fn, n);
+}
+
+void *yaffsfs_malloc(size_t x)
+{
+	//return malloc(x);
+    return yaffs_malloc(x);
+}
+
+void yaffsfs_free(void *x)
+{
+	//free(x);
+    yaffs_free(x);
+}
+
+void yaffsfs_SetError(int err)
+{
+	yaffs_errno = err;
+}
+
+int yaffsfs_GetLastError(void)
+{
+	return yaffs_errno;
+}
+
+
+int yaffsfs_GetError(void)
+{
+	return yaffs_errno;
+}
+
+void yaffsfs_Lock(void)
+{
+}
+
+void yaffsfs_Unlock(void)
+{
+}
+
+__u32 yaffsfs_CurrentTime(void)
+{
+	return 0;
+}
+
+//void *yaffs_malloc(size_t size)
+//{
+//	return malloc(size);
+//}
+
+//void yaffs_free(void *ptr)
+//{
+//	free(ptr);
+//}
+
+void yaffsfs_LocalInitialisation(void)
+{
+	/* No locking used */
+}
+
 
 static const char *yaffs_file_type_str(struct yaffs_stat *stat)
 {
@@ -75,14 +145,15 @@ static const char *yaffs_error_str(void)
 	}
 }
 
-extern nand_info_t nand_info[];
+extern nand_info_t *nand_info[];
 
-void cmd_yaffs_tracemask(unsigned set, unsigned mask)
+int cmd_yaffs_tracemask(unsigned set, unsigned mask)
 {
 	if (set)
 		yaffs_trace_mask = mask;
 
 	sysprintf("yaffs trace mask: %08x\n", yaffs_trace_mask);
+	return 0;
 }
 
 static int yaffs_regions_overlap(int a, int b, int x, int y)
@@ -93,7 +164,7 @@ static int yaffs_regions_overlap(int a, int b, int x, int y)
 		(x <= b && b <= y);
 }
 
-void cmd_yaffs_devconfig(char *_mp, int flash_dev,
+int cmd_yaffs_devconfig(char *_mp, int flash_dev,
 			int start_block, int end_block)
 {
 	struct mtd_info *mtd = NULL;
@@ -102,14 +173,14 @@ void cmd_yaffs_devconfig(char *_mp, int flash_dev,
 	char *mp = NULL;
 	struct nand_chip *chip;
 
-// 	dev = calloc(1, sizeof(*dev));
-// 	mp = (char *)strdup(_mp);
+//	dev = calloc(1, sizeof(*dev));
+//	mp = strdup(_mp);
 	dev = yaffs_malloc(sizeof(*dev));
     memset(dev, 0, sizeof(*dev));
     mp = yaffs_malloc(strlen(_mp));
 	strcpy(mp, _mp);
 
-	mtd = &nand_info[flash_dev];
+	mtd = nand_info[flash_dev];
 
 	if (!dev || !mp) {
 		/* Alloc error */
@@ -117,7 +188,7 @@ void cmd_yaffs_devconfig(char *_mp, int flash_dev,
 		goto err;
 	}
 
-	if (flash_dev >= 1) {
+	if (flash_dev >= CONFIG_SYS_MAX_NAND_DEVICE) {
 		sysprintf("Flash device invalid\n");
 		goto err;
 	}
@@ -153,7 +224,7 @@ void cmd_yaffs_devconfig(char *_mp, int flash_dev,
 
 	}
 
-	/* Seems same, so configure */
+	/* Seems sane, so configure */
 	memset(dev, 0, sizeof(*dev));
 	dev->param.name = mp;
 	dev->driver_context = mtd;
@@ -167,26 +238,27 @@ void cmd_yaffs_devconfig(char *_mp, int flash_dev,
 	if (chip->ecc.layout->oobavail <= sizeof(struct yaffs_packed_tags2))
 		dev->param.inband_tags = 1;
 	dev->param.n_caches = 10;
-	dev->param.write_chunk_tags_fn = nandmtd2_write_chunk_tags;
-	dev->param.read_chunk_tags_fn = nandmtd2_read_chunk_tags;
-	dev->param.erase_fn = nandmtd_EraseBlockInNAND;
-	dev->param.initialise_flash_fn = nandmtd_InitialiseNAND;
-	dev->param.bad_block_fn = nandmtd2_MarkNANDBlockBad;
-	dev->param.query_block_fn = nandmtd2_QueryNANDBlock;
+    dev->tagger.write_chunk_tags_fn = nandmtd2_write_chunk_tags;
+    dev->tagger.read_chunk_tags_fn = nandmtd2_read_chunk_tags;
+    dev->drv.drv_erase_fn = nandmtd_EraseBlockInNAND;
+    dev->drv.drv_initialise_fn = nandmtd_InitialiseNAND;
+    dev->tagger.mark_bad_fn = nandmtd2_MarkNANDBlockBad;
+    dev->tagger.query_block_fn = nandmtd2_QueryNANDBlock;
 
 	yaffs_add_device(dev);
 
 	sysprintf("Configures yaffs mount %s: dev %d start block %d, end block %d %s\n",
-		dev->param.name, flash_dev, start_block, end_block,
+		mp, flash_dev, start_block, end_block,
 		dev->param.inband_tags ? "using inband tags" : "");
-	return;
+	return 0;
 
 err:
 	yaffs_free(dev);
 	yaffs_free(mp);
+	return -1;
 }
 
-void cmd_yaffs_dev_ls(void)
+int cmd_yaffs_dev_ls(void)
 {
 	struct yaffs_dev *dev;
 	int flash_dev;
@@ -197,11 +269,11 @@ void cmd_yaffs_dev_ls(void)
 	while (1) {
 		dev = yaffs_next_dev();
 		if (!dev)
-			return;
+			break;
 		flash_dev =
 			((unsigned) dev->driver_context - (unsigned) nand_info)/
 				sizeof(nand_info[0]);
-		sysprintf("%-3s %5d 0x%05x 0x%05x %s",
+		sysprintf("%-10s %5d 0x%05x 0x%05x %s",
 			dev->param.name, flash_dev,
 			dev->param.start_block, dev->param.end_block,
 			dev->param.inband_tags ? "using inband tags, " : "");
@@ -213,12 +285,15 @@ void cmd_yaffs_dev_ls(void)
 			sysprintf("free 0x%x\n", free_space);
 
 	}
+
+	return 0;
 }
 
-void make_a_file(char *yaffsName, char bval, int sizeOfFile)
+int make_a_file(char *yaffsName, char bval, int sizeOfFile)
 {
 	int outh;
 	int i;
+	int written;
 	unsigned char buffer[100];
 
 	outh = yaffs_open(yaffsName,
@@ -226,26 +301,28 @@ void make_a_file(char *yaffsName, char bval, int sizeOfFile)
 				S_IREAD | S_IWRITE);
 	if (outh < 0) {
 		sysprintf("Error opening file: %d. %s\n", outh, yaffs_error_str());
-		return;
+		return -1;
 	}
 
 	memset(buffer, bval, 100);
 
-	do {
-		i = sizeOfFile;
+	written = 0;
+	while (written < sizeOfFile) {
+		i = sizeOfFile - written;
 		if (i > 100)
 			i = 100;
-		sizeOfFile -= i;
 
-		yaffs_write(outh, buffer, i);
-
-	} while (sizeOfFile > 0);
-
+		if (yaffs_write(outh, buffer, i) != i)
+			break;
+		written += i;
+	}
 
 	yaffs_close(outh);
+
+	return (written == sizeOfFile) ? 0 : -1;
 }
 
-void read_a_file(char *fn)
+int read_a_file(char *fn)
 {
 	int h;
 	int i = 0;
@@ -254,7 +331,7 @@ void read_a_file(char *fn)
 	h = yaffs_open(fn, O_RDWR, 0);
 	if (h < 0) {
 		sysprintf("File not found\n");
-		return;
+		return -1;
 	}
 
 	while (yaffs_read(h, &b, 1) > 0) {
@@ -267,40 +344,49 @@ void read_a_file(char *fn)
 	}
 	sysprintf("\n");
 	yaffs_close(h);
+
+	return 0;
 }
 
-void cmd_yaffs_mount(char *mp)
+int cmd_yaffs_mount(char *mp)
 {
 	int retval = yaffs_mount(mp);
 	if (retval < 0)
 		sysprintf("Error mounting %s, return value: %d, %s\n", mp,
 			yaffsfs_GetError(), yaffs_error_str());
+	return retval;
 }
 
 
-void cmd_yaffs_umount(char *mp)
+int cmd_yaffs_umount(char *mp)
 {
-	if (yaffs_unmount(mp) == -1)
+	int retval = yaffs_unmount(mp);
+
+	if (retval < 0)
 		sysprintf("Error umounting %s, return value: %d, %s\n", mp,
 			yaffsfs_GetError(), yaffs_error_str());
+	return retval;
 }
 
-void cmd_yaffs_write_file(char *yaffsName, char bval, int sizeOfFile)
+int cmd_yaffs_write_file(char *yaffsName, char bval, int sizeOfFile)
 {
-	make_a_file(yaffsName, bval, sizeOfFile);
+	return make_a_file(yaffsName, bval, sizeOfFile);
 }
 
 
-void cmd_yaffs_read_file(char *fn)
+int cmd_yaffs_read_file(char *fn)
 {
-	read_a_file(fn);
+	return read_a_file(fn);
 }
 
 
-void cmd_yaffs_mread_file(char *fn, char *addr)
+int cmd_yaffs_mread_file(char *fn, char *addr)
 {
 	int h;
+	int retval = 0;
 	struct yaffs_stat s;
+	int read_size;
+//	char buf[16];
 
 	yaffs_stat(fn, &s);
 
@@ -308,31 +394,47 @@ void cmd_yaffs_mread_file(char *fn, char *addr)
 	h = yaffs_open(fn, O_RDWR, 0);
 	if (h < 0) {
 		sysprintf("File not found\n");
-		return;
+		retval = -1;
+		read_size = 0;
+	} else {
+		read_size = (int) s.st_size;
+		yaffs_read(h, addr, read_size);
+		sysprintf("\t[DONE]\n");
+
+		yaffs_close(h);
 	}
+//	sprintf(buf,"%x", read_size);
+//	setenv("filesize", buf);
 
-	yaffs_read(h, addr, (int)s.st_size);
-	sysprintf("\t[DONE]\n");
-
-	yaffs_close(h);
+	return retval;
 }
 
 
-void cmd_yaffs_mwrite_file(char *fn, char *addr, int size)
+int cmd_yaffs_mwrite_file(char *fn, char *addr, int size)
 {
 	int outh;
+	int wrote;
 
 	outh = yaffs_open(fn, O_CREAT | O_RDWR | O_TRUNC, S_IREAD | S_IWRITE);
-	if (outh < 0)
+	if (outh < 0) {
 		sysprintf("Error opening file: %d, %s\n", outh, yaffs_error_str());
+		return -1;
+	}
 
-	yaffs_write(outh, addr, size);
-
+	wrote = yaffs_write(outh, addr, size);
 	yaffs_close(outh);
+
+	if(wrote != size) {
+		sysprintf("only wrote %d (0x%x) bytes\n", wrote, wrote);
+		return -1;
+	}
+	return 0;
+
+
 }
 
 
-void cmd_yaffs_ls(const char *mountpt, int longlist)
+int cmd_yaffs_ls(const char *mountpt, int longlist)
 {
 	int i;
 	yaffs_DIR *d;
@@ -344,7 +446,7 @@ void cmd_yaffs_ls(const char *mountpt, int longlist)
 
 	if (!d) {
 		sysprintf("opendir failed, %s\n", yaffs_error_str());
-		return;
+		return -1;
 	}
 
 	for (i = 0; (de = yaffs_readdir(d)) != NULL; i++) {
@@ -363,41 +465,87 @@ void cmd_yaffs_ls(const char *mountpt, int longlist)
 	}
 
 	yaffs_closedir(d);
+
+	return 0;
+}
+
+int cmd_yaffs_check(const char *fname, const char *type)
+{
+	int retval = 0;
+	int ret;
+	struct yaffs_stat stat;
+
+	ret = yaffs_stat(fname, &stat);
+	if (ret < 0) {
+		sysprintf("%s not found\n", fname);
+		return -1;
+	}
+
+	sysprintf("%s is a %s\n", fname, yaffs_file_type_str(&stat));
+
+	if (strcmp(type, "REG") == 0 &&
+	    (stat.st_mode & S_IFMT) != S_IFREG)
+		retval = -1;
+
+	if (strcmp(type, "DIR") == 0 &&
+	    (stat.st_mode & S_IFMT) != S_IFDIR)
+		retval = -1;
+
+	if (retval == 0)
+		sysprintf("check ok\n");
+	else
+		sysprintf("check failed\n");
+
+	return retval;
 }
 
 
-void cmd_yaffs_mkdir(const char *dir)
+int cmd_yaffs_mkdir(const char *dir)
 {
 	int retval = yaffs_mkdir(dir, 0);
 
-	if (retval < 0)
+	if (retval < 0) {
 		sysprintf("yaffs_mkdir returning error: %d, %s\n",
 			retval, yaffs_error_str());
+		return -1;
+	}
+	return 0;
 }
 
-void cmd_yaffs_rmdir(const char *dir)
+int cmd_yaffs_rmdir(const char *dir)
 {
 	int retval = yaffs_rmdir(dir);
 
-	if (retval < 0)
+	if (retval < 0) {
 		sysprintf("yaffs_rmdir returning error: %d, %s\n",
 			retval, yaffs_error_str());
+		return -1;
+	}
+	return 0;
 }
 
-void cmd_yaffs_rm(const char *path)
+int cmd_yaffs_rm(const char *path)
 {
 	int retval = yaffs_unlink(path);
 
-	if (retval < 0)
+	if (retval < 0) {
 		sysprintf("yaffs_unlink returning error: %d, %s\n",
 			retval, yaffs_error_str());
+		return -1;
+	}
+
+	return 0;
 }
 
-void cmd_yaffs_mv(const char *oldPath, const char *newPath)
+int cmd_yaffs_mv(const char *oldPath, const char *newPath)
 {
 	int retval = yaffs_rename(newPath, oldPath);
 
-	if (retval < 0)
+	if (retval < 0) {
 		sysprintf("yaffs_unlink returning error: %d, %s\n",
 			retval, yaffs_error_str());
+		return -1;
+	}
+
+	return 0;
 }

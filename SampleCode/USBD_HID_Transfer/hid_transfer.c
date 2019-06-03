@@ -8,7 +8,7 @@
 
 /*!<Includes */
 #include <string.h>
-#include "NUC970.h"
+#include "nuc970.h"
 #include "sys.h"
 #include "usbd.h"
 #include "hid_transfer.h"

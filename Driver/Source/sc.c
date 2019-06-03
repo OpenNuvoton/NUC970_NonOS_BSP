@@ -8,7 +8,7 @@
  * @note
  * Copyright (C) 2015 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
-#include "NUC970.h"
+#include "nuc970.h"
 #include "sc.h"
 
 // Below are variables used locally by SC driver and does not want to parse by doxygen unless HIDDEN_SYMBOLS is defined
@@ -37,7 +37,7 @@ static uint32_t u32CardStateIgnore[SC_INTERFACE_NUM] = {0, 0};
   * @retval FALSE Card remove.
   * @details This function is used to check if specified smart card slot is presented.
   */
-uint32_t SC_IsCardInserted(UINT sc)
+UINT SC_IsCardInserted(UINT sc)
 {
     uint32_t cond1;
     uint32_t cond2;

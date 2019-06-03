@@ -24,7 +24,7 @@
 //#define USE_DHCP
 
 /* webpage*/
-static CHAR index[] = {
+static CHAR idx[] = {
     0x48, 0x54, 0x54, 0x50, 0x2f, 0x31, 0x2e, 0x30, 0x20, 0x32, 
     0x30, 0x30, 0x20, 0x4f, 0x4b, 0xd, 0xa, 0x53, 0x65, 0x72, 
     0x76, 0x65, 0x72, 0x3a, 0x20, 0x6c, 0x77, 0x49, 0x50, 0x2f, 
@@ -122,7 +122,7 @@ static err_t http_recv(void *arg, struct tcp_pcb *pcb, struct pbuf*p, err_t err)
             in the last argument means that the data should
             not be copied into internal buffers. */
             tcp_recved(pcb, p->tot_len);
-            tcp_write(pcb, index, sizeof(index) -1, 0);
+            tcp_write(pcb, idx, sizeof(idx) -1, 0);
             tcp_close(pcb);
         } else {    // err 404
             tcp_recved(pcb, p->tot_len);

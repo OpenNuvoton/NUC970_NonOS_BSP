@@ -15,9 +15,6 @@
 #include "yaffs_guts.h"
 #include "yaffs_trace.h"
 #include "yportenv.h"
-#include "yaffs_malloc.h"
-
-extern void sysprintf(char *pcStr,...);
 
 /*
  * Each entry in yaffs_tnode_list and yaffs_obj_list hold blocks
@@ -70,8 +67,8 @@ static void yaffs_deinit_raw_tnodes(struct yaffs_dev *dev)
 	while (allocator->alloc_tnode_list) {
 		tmp = allocator->alloc_tnode_list->next;
 
-		yaffs_free(allocator->alloc_tnode_list->tnodes);
-		yaffs_free(allocator->alloc_tnode_list);
+		kfree(allocator->alloc_tnode_list->tnodes);
+		kfree(allocator->alloc_tnode_list);
 		allocator->alloc_tnode_list = tmp;
 	}
 
@@ -115,8 +112,7 @@ static int yaffs_create_tnodes(struct yaffs_dev *dev, int n_tnodes)
 		return YAFFS_OK;
 
 	/* make these things */
-// 	new_tnodes = kmalloc(n_tnodes * dev->tnode_size, GFP_NOFS);
-	new_tnodes = yaffs_malloc(n_tnodes * dev->tnode_size);
+	new_tnodes = kmalloc(n_tnodes * dev->tnode_size, GFP_NOFS);
 	mem = (u8 *) new_tnodes;
 
 	if (!new_tnodes) {
@@ -143,8 +139,7 @@ static int yaffs_create_tnodes(struct yaffs_dev *dev, int n_tnodes)
 	 * NB If we can't add this to the management list it isn't fatal
 	 * but it just means we can't free this bunch of tnodes later.
 	 */
-//	tnl = kmalloc(sizeof(struct yaffs_tnode_list), GFP_NOFS);
-	tnl = yaffs_malloc(sizeof(struct yaffs_tnode_list));
+	tnl = kmalloc(sizeof(struct yaffs_tnode_list), GFP_NOFS);
 	if (!tnl) {
 		yaffs_trace(YAFFS_TRACE_ERROR,
 			"Could not add tnodes to management list");
@@ -234,8 +229,8 @@ static void yaffs_deinit_raw_objs(struct yaffs_dev *dev)
 
 	while (allocator->allocated_obj_list) {
 		tmp = allocator->allocated_obj_list->next;
-		yaffs_free(allocator->allocated_obj_list->objects);
-		yaffs_free(allocator->allocated_obj_list);
+		kfree(allocator->allocated_obj_list->objects);
+		kfree(allocator->allocated_obj_list);
 		allocator->allocated_obj_list = tmp;
 	}
 
@@ -260,15 +255,13 @@ static int yaffs_create_free_objs(struct yaffs_dev *dev, int n_obj)
 		return YAFFS_OK;
 
 	/* make these things */
-// 	new_objs = kmalloc(n_obj * sizeof(struct yaffs_obj), GFP_NOFS);
-// 	list = kmalloc(sizeof(struct yaffs_obj_list), GFP_NOFS);
-	new_objs = yaffs_malloc(n_obj * sizeof(struct yaffs_obj));
-	list = yaffs_malloc(sizeof(struct yaffs_obj_list));
+	new_objs = kmalloc(n_obj * sizeof(struct yaffs_obj), GFP_NOFS);
+	list = kmalloc(sizeof(struct yaffs_obj_list), GFP_NOFS);
 
 	if (!new_objs || !list) {
-		yaffs_free(new_objs);
+		kfree(new_objs);
 		new_objs = NULL;
-		yaffs_free(list);
+		kfree(list);
 		list = NULL;
 		yaffs_trace(YAFFS_TRACE_ALLOCATE,
 			"Could not allocate more objects");
@@ -341,7 +334,7 @@ void yaffs_deinit_raw_tnodes_and_objs(struct yaffs_dev *dev)
 
 	yaffs_deinit_raw_tnodes(dev);
 	yaffs_deinit_raw_objs(dev);
-	yaffs_free(dev->allocator);
+	kfree(dev->allocator);
 	dev->allocator = NULL;
 }
 
@@ -354,8 +347,7 @@ void yaffs_init_raw_tnodes_and_objs(struct yaffs_dev *dev)
 		return;
 	}
 
-// 	allocator = kmalloc(sizeof(struct yaffs_allocator), GFP_NOFS);
-	allocator = yaffs_malloc(sizeof(struct yaffs_allocator));
+	allocator = kmalloc(sizeof(struct yaffs_allocator), GFP_NOFS);
 	if (allocator) {
 		dev->allocator = allocator;
 		yaffs_init_raw_tnodes(dev);

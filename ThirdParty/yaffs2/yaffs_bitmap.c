@@ -13,17 +13,11 @@
 
 #include "yaffs_bitmap.h"
 #include "yaffs_trace.h"
-
-#include "asm\bitops.h"
-#include "linux\bitops.h"
-
-extern void sysprintf(char *pcStr,...);
-
 /*
  * Chunk bitmap manipulations
  */
 
-static __inline u8 *yaffs_block_bits(struct yaffs_dev *dev, int blk)
+static inline u8 *yaffs_block_bits(struct yaffs_dev *dev, int blk)
 {
 	if (blk < dev->internal_start_block || blk > dev->internal_end_block) {
 		yaffs_trace(YAFFS_TRACE_ERROR,

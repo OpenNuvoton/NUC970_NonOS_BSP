@@ -27,14 +27,7 @@
 //#define ED_debug   sysprintf
 #define ED_debug(...)
 
-#ifdef __ICCARM__
-#pragma data_alignment=256
-uint8_t _hcca_mem[256];
-#endif
-
-#ifdef __ARMCC_VERSION
-__align(256) uint8_t  _hcca_mem[256];
-#endif
+uint8_t  _hcca_mem[256] __attribute__((aligned(256)));
 
 HCCA_T  *_hcca;
 
@@ -135,7 +128,7 @@ static void init_hcca_int_table()
                     if (ed_p == _Ied[i])
                         break;                   /* already chained by previous visit     */
 
-                    if (ed_p->NextED == NULL)    /* reach end of list?                    */
+                    if (ed_p->NextED == 0)       /* reach end of list?                    */
                     {
                         ed_p->NextED = (uint32_t)_Ied[i];
                         break;
@@ -557,7 +550,7 @@ static int ohci_bulk_xfer(UTR_T *utr)
         else
         {
             td_p = td_list;
-            while (td_p->NextTD != NULL)
+            while (td_p->NextTD != 0)
                 td_p = (TD_T *)td_p->NextTD;
             td_p->NextTD = (uint32_t)td;
         }
@@ -775,13 +768,13 @@ static int ohci_iso_xfer(UTR_T *utr)
     utr->status = 0;
     DISABLE_OHCI_IRQ();
 
-    if ((ed->HeadP & ~0x3) == NULL)
+    if ((ed->HeadP & ~0x3) == 0)
         ed->HeadP = (ed->HeadP & 0x2) | (uint32_t)td_list;   /* keep toggleCarry bit      */
     else
     {
         /* find the tail of TDs under this ED */
         td = (TD_T *)(ed->HeadP & ~0x3);
-        while (td->NextTD != NULL)
+        while (td->NextTD != 0)
         {
             td = (TD_T *)td->NextTD;
         }

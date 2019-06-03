@@ -1,8 +1,7 @@
 /*
  * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
  *
- * Copyright (C) 2002-2011 Aleph One Ltd.
- *   for Toby Churchill Ltd and Brightstar Engineering
+ * Copyright (C) 2002-2018 Aleph One Ltd.
  *
  * Created by Charles Manning <charles@aleph1.co.uk>
  *
@@ -30,7 +29,16 @@
 #define NAME_MAX	256
 #endif
 
+//#define YAFFS_MAX_FILE_SIZE \
+//	( (sizeof(Y_LOFF_T) < 8) ? YAFFS_MAX_FILE_SIZE_32 : (0x800000000LL - 1) )
+
 #define YAFFS_MAX_FILE_SIZE (0x800000000LL - 1)
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 
 struct yaffs_dirent {
@@ -54,7 +62,7 @@ struct yaffs_stat {
 	int		st_uid;		/* user ID of owner */
 	int		st_gid;		/* group ID of owner */
 	unsigned	st_rdev;	/* device type (if inode device) */
-	loff_t		st_size;	/* total size, in bytes */
+	Y_LOFF_T		st_size;	/* total size, in bytes */
 	unsigned long	st_blksize;	/* blocksize for filesystem I/O */
 	unsigned long	st_blocks;	/* number of blocks allocated */
 #ifdef CONFIG_YAFFS_WINCE
@@ -75,6 +83,7 @@ struct yaffs_utimbuf {
 	unsigned long modtime;
 };
 
+/* Normal POSIX-style API functions */
 
 int yaffs_open(const YCHAR *path, int oflag, int mode) ;
 
@@ -87,18 +96,22 @@ int yaffs_access(const YCHAR *path, int amode);
 
 int yaffs_dup(int fd);
 
+int yaffs_fgetfl(int fd, int *flags);
+
 int yaffs_read(int fd, void *buf, unsigned int nbyte) ;
 int yaffs_write(int fd, const void *buf, unsigned int nbyte) ;
 
-int yaffs_pread(int fd, void *buf, unsigned int nbyte, loff_t offset);
-int yaffs_pwrite(int fd, const void *buf, unsigned int nbyte, loff_t offset);
+int yaffs_pread(int fd, void *buf, unsigned int nbyte, Y_LOFF_T offset);
+int yaffs_pwrite(int fd, const void *buf, unsigned int nbyte, Y_LOFF_T offset);
 
-loff_t yaffs_lseek(int fd, loff_t offset, int whence) ;
+Y_LOFF_T yaffs_lseek(int fd, Y_LOFF_T offset, int whence);
 
-int yaffs_truncate(const YCHAR *path, loff_t new_size);
-int yaffs_ftruncate(int fd, loff_t new_size);
+int yaffs_truncate(const YCHAR *path, Y_LOFF_T new_size);
+int yaffs_ftruncate(int fd, Y_LOFF_T new_size);
 
-int yaffs_unlink(const YCHAR *path) ;
+int yaffs_unlink(const YCHAR *path);
+int yaffs_funlink(int fd);
+
 int yaffs_rename(const YCHAR *oldPath, const YCHAR *newPath) ;
 
 int yaffs_stat(const YCHAR *path, struct yaffs_stat *buf) ;
@@ -131,20 +144,6 @@ int yaffs_listxattr(const char *path, char *list, int size);
 int yaffs_llistxattr(const char *path, char *list, int size);
 int yaffs_flistxattr(int fd, char *list, int size);
 
-
-#ifdef CONFIG_YAFFS_WINCE
-
-int yaffs_set_wince_times(int fd,
-			const unsigned *wctime,
-			const unsigned *watime,
-			const unsigned *wmtime);
-int yaffs_get_wince_times(int fd,
-			unsigned *wctime,
-			unsigned *watime,
-			unsigned *wmtime);
-
-#endif
-
 int yaffs_chmod(const YCHAR *path, mode_t mode);
 int yaffs_fchmod(int fd, mode_t mode);
 
@@ -158,14 +157,23 @@ int yaffs_closedir(yaffs_DIR *dirp) ;
 
 int yaffs_mount(const YCHAR *path) ;
 int yaffs_mount2(const YCHAR *path, int read_only);
-int yaffs_mount_common(const YCHAR *path, int read_only, int skip_checkpt);
+int yaffs_mount3(const YCHAR *path, int read_only, int skip_checkpt);
 
 int yaffs_unmount(const YCHAR *path) ;
 int yaffs_unmount2(const YCHAR *path, int force);
 int yaffs_remount(const YCHAR *path, int force, int read_only);
 
+int yaffs_format(const YCHAR *path,
+		int unmount_flag,
+		int force_unmount_flag,
+		int remount_flag);
 
-int yaffs_sync(const YCHAR *path) ;
+/*
+ * yaffs_sync() does a full sync, including checkpoint.
+ * yaffs_sync_files() just flushes the cache and does not write a checkpoint.
+ */
+int yaffs_sync(const YCHAR *path);
+int yaffs_sync_files(const YCHAR *path) ;
 
 int yaffs_symlink(const YCHAR *oldpath, const YCHAR *newpath);
 int yaffs_readlink(const YCHAR *path, YCHAR *buf, int bufsiz);
@@ -173,12 +181,139 @@ int yaffs_readlink(const YCHAR *path, YCHAR *buf, int bufsiz);
 int yaffs_link(const YCHAR *oldpath, const YCHAR *newpath);
 int yaffs_mknod(const YCHAR *pathname, mode_t mode, dev_t dev);
 
-loff_t yaffs_freespace(const YCHAR *path);
-loff_t yaffs_totalspace(const YCHAR *path);
+Y_LOFF_T yaffs_freespace(const YCHAR *path);
+Y_LOFF_T yaffs_totalspace(const YCHAR *path);
 
+/* Function variants that use a relative directory */
+struct yaffs_obj;
+int yaffs_open_sharing_reldir(struct yaffs_obj *reldir, const YCHAR *path, int oflag, int mode, int sharing);
+int yaffs_open_reldir(struct yaffs_obj *reldir,const YCHAR *path, int oflag, int mode);
+int yaffs_truncate_reldir(struct yaffs_obj *reldir, const YCHAR *path, Y_LOFF_T new_size);
+int yaffs_unlink_reldir(struct yaffs_obj *reldir, const YCHAR *path);
+int yaffs_rename_reldir(struct yaffs_obj *reldir,
+			const YCHAR *oldPath, const YCHAR *newPath);
+int yaffs_stat_reldir(struct yaffs_obj *reldir, const YCHAR *path, struct yaffs_stat *buf);
+int yaffs_lstat_reldir(struct yaffs_obj *reldir, const YCHAR *path, struct yaffs_stat *buf);
+int yaffs_utime_reldir(struct yaffs_obj *reldir, const YCHAR *path, const struct yaffs_utimbuf *buf);
+int yaffs_setxattr_reldir(struct yaffs_obj *reldir, const YCHAR *path,
+			const char *name, const void *data, int size, int flags);
+int yaffs_lsetxattr_reldir(struct yaffs_obj *reldir, const YCHAR *path,
+			const char *name, const void *data, int size, int flags);
+int yaffs_getxattr_reldir(struct yaffs_obj *reldir, const YCHAR *path,
+			const char *name, void *data, int size);
+int yaffs_lgetxattr_reldir(struct yaffs_obj *reldir, const YCHAR *path,
+			const char *name, void *data, int size);
+int yaffs_listxattr_reldir(struct yaffs_obj *reldir, const YCHAR *path,
+			char *data, int size);
+int yaffs_llistxattr_reldir(struct yaffs_obj *reldir, const YCHAR *path,
+			char *data, int size);
+int yaffs_removexattr_reldir(struct yaffs_obj *reldir, const YCHAR *path,
+			const char *name);
+int yaffs_lremovexattr_reldir(struct yaffs_obj *reldir, const YCHAR *path,
+			const char *name);
+int yaffs_access_reldir(struct yaffs_obj *reldir, const YCHAR *path, int amode);
+int yaffs_chmod_reldir(struct yaffs_obj *reldir, const YCHAR *path, mode_t mode);
+int yaffs_mkdir_reldir(struct yaffs_obj *reldir, const YCHAR *path, mode_t mode);
+int yaffs_rmdir_reldir(struct yaffs_obj *reldir, const YCHAR *path);
+yaffs_DIR *yaffs_opendir_reldir(struct yaffs_obj *reldir, const YCHAR *dirname);
+int yaffs_symlink_reldir(struct yaffs_obj *reldir,
+			const YCHAR *oldpath, const YCHAR *newpath);
+int yaffs_readlink_reldir(struct yaffs_obj *reldir,const YCHAR *path,
+			YCHAR *buf, int bufsiz);
+int yaffs_link_reldir(struct yaffs_obj *reldir,
+			const YCHAR *oldpath, const YCHAR *linkpath);
+int yaffs_mknod_reldir(struct yaffs_obj *reldir, const YCHAR *pathname,
+		     mode_t mode, dev_t dev);
+
+/* Function variants that use a relative device */
+struct yaffs_dev;
+int yaffs_mount_reldev(struct yaffs_dev *dev);
+int yaffs_open_sharing_reldev(struct yaffs_dev *dev, const YCHAR *path, int oflag, int mode, int sharing);
+int yaffs_open_reldev(struct yaffs_dev *dev,const YCHAR *path, int oflag, int mode);
+int yaffs_truncate_reldev(struct yaffs_dev *dev, const YCHAR *path, Y_LOFF_T new_size);
+int yaffs_unlink_reldev(struct yaffs_dev *dev, const YCHAR *path);
+int yaffs_rename_reldev(struct yaffs_dev *dev,
+			const YCHAR *oldPath, const YCHAR *newPath);
+int yaffs_stat_reldev(struct yaffs_dev *dev, const YCHAR *path, struct yaffs_stat *buf);
+int yaffs_lstat_reldev(struct yaffs_dev *dev, const YCHAR *path, struct yaffs_stat *buf);
+int yaffs_utime_reldev(struct yaffs_dev *dev, const YCHAR *path, const struct yaffs_utimbuf *buf);
+int yaffs_setxattr_reldev(struct yaffs_dev *dev, const YCHAR *path,
+			const char *name, const void *data, int size, int flags);
+int yaffs_lsetxattr_reldev(struct yaffs_dev *dev, const YCHAR *path,
+			const char *name, const void *data, int size, int flags);
+int yaffs_getxattr_reldev(struct yaffs_dev *dev, const YCHAR *path,
+			const char *name, void *data, int size);
+int yaffs_lgetxattr_reldev(struct yaffs_dev *dev, const YCHAR *path,
+			const char *name, void *data, int size);
+int yaffs_listxattr_reldev(struct yaffs_dev *dev, const YCHAR *path,
+			char *data, int size);
+int yaffs_llistxattr_reldev(struct yaffs_dev *dev, const YCHAR *path,
+			char *data, int size);
+int yaffs_removexattr_reldev(struct yaffs_dev *dev, const YCHAR *path,
+			const char *name);
+int yaffs_lremovexattr_reldev(struct yaffs_dev *dev, const YCHAR *path,
+			const char *name);
+int yaffs_access_reldev(struct yaffs_dev *dev, const YCHAR *path, int amode);
+int yaffs_chmod_reldev(struct yaffs_dev *dev, const YCHAR *path, mode_t mode);
+int yaffs_mkdir_reldev(struct yaffs_dev *dev, const YCHAR *path, mode_t mode);
+int yaffs_rmdir_reldev(struct yaffs_dev *dev, const YCHAR *path);
+yaffs_DIR *yaffs_opendir_reldev(struct yaffs_dev *dev, const YCHAR *dirname);
+int yaffs_symlink_reldev(struct yaffs_dev *dev,
+			const YCHAR *oldpath, const YCHAR *newpath);
+int yaffs_readlink_reldev(struct yaffs_dev *dev, const YCHAR *path,
+			YCHAR *buf, int bufsiz);
+int yaffs_link_reldev(struct yaffs_dev *dev,
+			const YCHAR *oldpath, const YCHAR *linkpath);
+int yaffs_mknod_reldev(struct yaffs_dev *dev, const YCHAR *pathname,
+		     mode_t mode, dev_t dev_val);
+Y_LOFF_T yaffs_freespace_reldev(struct yaffs_dev *dev);
+Y_LOFF_T yaffs_totalspace_reldev(struct yaffs_dev *dev);
+
+/*
+ * yaffs_sync_reldev() does a full sync, including checkpoint.
+ * yaffs_sync_files_reldev() just flushes the cache and does not write a checkpoint.
+ */
+int yaffs_sync_reldev(struct yaffs_dev *dev);
+int yaffs_sync_files_reldev(struct yaffs_dev *dev);
+
+int yaffs_unmount_reldev(struct yaffs_dev *dev);
+int yaffs_unmount2_reldev(struct yaffs_dev *dev, int force);
+int yaffs_remount_reldev(struct yaffs_dev *dev, int force, int read_only);
+
+/*
+ *  Non standard function to get at objects.
+ */
+struct yaffs_obj * yaffs_get_obj_from_fd(int handle);
+
+/* Some non-standard functions to use fds to access directories */
+struct yaffs_dirent *yaffs_readdir_fd(int fd);
+void yaffs_rewinddir_fd(int fd);
+
+/* Non-standard functions to pump garbage collection. */
+int yaffs_do_background_gc(const YCHAR *path, int urgency);
+int yaffs_do_background_gc_reldev(struct yaffs_dev *dev, int urgency);
+
+/* Non-standard functions to get usage info */
 int yaffs_inodecount(const YCHAR *path);
 
 int yaffs_n_handles(const YCHAR *path);
+
+int yaffs_n_handles_reldir(struct yaffs_obj *reldir, const YCHAR *path);
+int yaffs_dump_dev_reldir(struct yaffs_obj *reldir, const YCHAR *path);
+int yaffs_n_handles_reldev(struct yaffs_dev *dev, const YCHAR *path);
+int yaffs_dump_dev_reldev(struct yaffs_dev *dev, const YCHAR *path);
+
+#ifdef CONFIG_YAFFS_WINCE
+int yaffs_set_wince_times(int fd,
+			const unsigned *wctime,
+			const unsigned *watime,
+			const unsigned *wmtime);
+int yaffs_get_wince_times(int fd,
+			unsigned *wctime,
+			unsigned *watime,
+			unsigned *wmtime);
+#endif
+
 
 #define YAFFS_SHARE_READ  1
 #define YAFFS_SHARE_WRITE 2
@@ -206,4 +341,11 @@ int yaffs_set_error(int error);
 /* Trace control functions */
 unsigned  yaffs_set_trace(unsigned tm);
 unsigned  yaffs_get_trace(void);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif

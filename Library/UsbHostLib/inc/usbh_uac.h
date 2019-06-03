@@ -15,7 +15,7 @@
 
 #include "usb.h"
 #include "usbh_lib.h"
-#include "..\src_uac\uac.h"
+#include "../src_uac/uac.h"
 
 /** @addtogroup NUC970_Library NUC970 Library
   @{

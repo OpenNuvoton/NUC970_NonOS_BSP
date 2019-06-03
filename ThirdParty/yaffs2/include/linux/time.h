@@ -2,6 +2,7 @@
 #define _LINUX_TIME_H
 
 #include <linux/types.h>
+extern int sprintf(char * __restrict /*s*/, const char * __restrict /*format*/, ...) __attribute__((__nonnull__(1,2)));
 
 #define _DEFUN(a,b,c) a(c)
 #define _CONST const
@@ -45,7 +46,7 @@ struct tm {
 # endif
 };
 
-static __inline char *
+static inline char *
 _DEFUN (asctime_r, (tim_p, result),
 	_CONST struct tm *tim_p _AND
 	char *result)
@@ -66,7 +67,7 @@ _DEFUN (asctime_r, (tim_p, result),
     return result;
 }
 
-static __inline struct tm *
+static inline struct tm *
 _DEFUN (localtime_r, (tim_p, res),
 	_CONST time_t * tim_p _AND
 	struct tm *res)
@@ -145,7 +146,7 @@ _DEFUN (localtime_r, (tim_p, res),
     return (res);
 }
 
-static __inline char *
+static inline char *
 _DEFUN (ctime_r, (tim_p, result),
 	_CONST time_t * tim_p _AND
 	char * result)

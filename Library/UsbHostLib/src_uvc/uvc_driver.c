@@ -39,7 +39,7 @@ extern int uvc_parse_streaming_interface(UVC_DEV_T *vdev, IFACE_T *iface);
 extern int usbh_uvc_probe_control(UVC_DEV_T *vdev, uint8_t req, UVC_CTRL_PARAM_T *param);
 
 
-__align(32)  uint8_t  g_uvc_buff_pool[UVC_MAX_DEVICE][UVC_UTR_PER_STREAM * UVC_UTR_INBUF_SIZE];
+uint8_t  g_uvc_buff_pool[UVC_MAX_DEVICE][UVC_UTR_PER_STREAM * UVC_UTR_INBUF_SIZE] __attribute__((aligned(32)));
 static uint8_t g_uvc_buff_used[UVC_MAX_DEVICE];
 
 static UVC_DEV_T *g_vdev_list = NULL;

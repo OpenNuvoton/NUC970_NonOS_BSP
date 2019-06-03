@@ -42,11 +42,11 @@ unsigned char volatile _sd_SDDataReady = FALSE;
 unsigned char *_sd_pSDHCBuffer;
 unsigned int gSDHReferenceClock;
 
-#if defined (__CC_ARM)
-__align(4096) unsigned char _sd_ucSDHCBuffer[512];
-#elif defined ( __ICCARM__ ) /*!< IAR Compiler */
+#ifdef __ICCARM__
 #pragma data_alignment = 4096
 unsigned char _sd_ucSDHCBuffer[512];
+#else
+unsigned char _sd_ucSDHCBuffer[512] __attribute__((aligned(4096)));
 #endif
 
 int sd0_ok = 0;

@@ -574,7 +574,7 @@ int usbh_set_interface(IFACE_T *iface, uint16_t alt_setting)
 
     ret = usbh_ctrl_xfer(iface->udev, REQ_TYPE_OUT | REQ_TYPE_STD_DEV | REQ_TYPE_TO_IFACE,
                          USB_REQ_SET_INTERFACE, alt_setting, iface->if_num, 0,
-                         NULL, &xfer_len, 100);
+                         NULL, &xfer_len, 500);
     if (ret == 0)
         iface->aif = aif;                   /* change active alternative setting          */
     return ret;

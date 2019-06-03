@@ -5,14 +5,13 @@
  *
  * Copyright (C) 2012 Marek Vasut <marex@denx.de>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
+
+#ifndef __LINKER_LISTS_H__
+#define __LINKER_LISTS_H__
+
+#include <linux/compiler.h>
 
 /*
  * There is no use in including this from ASM files, but that happens
@@ -24,23 +23,23 @@
 
 /**
  * A linker list is constructed by grouping together linker input
- * sections, each containning one entry of the list. Each input section
+ * sections, each containing one entry of the list. Each input section
  * contains a constant initialized variable which holds the entry's
  * content. Linker list input sections are constructed from the list
  * and entry names, plus a prefix which allows grouping all lists
  * together. Assuming _list and _entry are the list and entry names,
  * then the corresponding input section name is
  *
- *   _u_boot_list + _2_ + @_list + _2_ + @_entry
+ *   .u_boot_list_ + 2_ + @_list + _2_ + @_entry
  *
  * and the C variable name is
  *
- *   .u_boot_list_ + 2_ + @_list + _2_ + @_entry
+ *   _u_boot_list + _2_ + @_list + _2_ + @_entry
  *
  * This ensures uniqueness for both input section and C variable name.
  *
  * Note that the names differ only in the first character, "." for the
- * setion and "_" for the variable, so that the linker cannot confuse
+ * section and "_" for the variable, so that the linker cannot confuse
  * section and symbol names. From now on, both names will be referred
  * to as
  *
@@ -84,7 +83,7 @@
  * global list name ("outer"); iterators for only a sub-list should use
  * the full sub-list name ("outer_2_inner").
  *
- *  Here is an example of the sections generated from a global list
+ * Here is an example of the sections generated from a global list
  * named "drivers", two sub-lists named "i2c" and "pci", and iterators
  * defined for the whole list and each sub-list:
  *
@@ -103,8 +102,15 @@
  *   %u_boot_list_2_drivers_3
  */
 
-#ifndef __LINKER_LISTS_H__
-#define __LINKER_LISTS_H__
+/**
+ * llsym() - Access a linker-generated array entry
+ * @_type:	Data type of the entry
+ * @_name:	Name of the entry
+ * @_list:	name of the list. Should contain only characters allowed
+ *		in a C variable name!
+ */
+#define llsym(_type, _name, _list) \
+		((_type *)&_u_boot_list_2_##_list##_2_##_name)
 
 /**
  * ll_entry_declare() - Declare linker-generated array entry
@@ -136,13 +142,34 @@
  *    the inner sections are present in the array.
  *
  * Example:
- * ll_entry_declare(struct my_sub_cmd, my_sub_cmd, cmd_sub, cmd.sub) = {
+ * ll_entry_declare(struct my_sub_cmd, my_sub_cmd, cmd_sub) = {
  *         .x = 3,
  *         .y = 4,
  * };
  */
 #define ll_entry_declare(_type, _name, _list)				\
 	_type _u_boot_list_2_##_list##_2_##_name __aligned(4)		\
+			__attribute__((unused,				\
+			section(".u_boot_list_2_"#_list"_2_"#_name)))
+
+/**
+ * ll_entry_declare_list() - Declare a list of link-generated array entries
+ * @_type:	Data type of each entry
+ * @_name:	Name of the entry
+ * @_list:	name of the list. Should contain only characters allowed
+ *		in a C variable name!
+ *
+ * This is like ll_entry_declare() but creates multiple entries. It should
+ * be assigned to an array.
+ *
+ * ll_entry_declare_list(struct my_sub_cmd, my_sub_cmd, cmd_sub) = {
+ *	{ .x = 3, .y = 4 },
+ *	{ .x = 8, .y = 2 },
+ *	{ .x = 1, .y = 7 }
+ * };
+ */
+#define ll_entry_declare_list(_type, _name, _list)			\
+	_type _u_boot_list_2_##_list##_2_##_name[] __aligned(4)		\
 			__attribute__((unused,				\
 			section(".u_boot_list_2_"#_list"_2_"#_name)))
 
@@ -195,7 +222,7 @@
  */
 #define ll_entry_end(_type, _list)					\
 ({									\
-	static char end[0] __aligned(4) __attribute__((unused,	\
+	static char end[0] __aligned(4) __attribute__((unused,		\
 		section(".u_boot_list_2_"#_list"_3")));			\
 	(_type *)&end;							\
 })
@@ -213,7 +240,7 @@
  * const unsigned int count = ll_entry_count(struct my_sub_cmd, cmd_sub);
  * struct my_sub_cmd *msc = ll_entry_start(struct my_sub_cmd, cmd_sub);
  * for (i = 0; i < count; i++, msc++)
- *         printf("Entry %i, x=%i y=%i\n", i, msc->x, msc->y);
+ *         sysprintf("Entry %i, x=%i y=%i\n", i, msc->x, msc->y);
  */
 #define ll_entry_count(_type, _list)					\
 	({								\
@@ -229,12 +256,12 @@
  * @_name:	Name of the entry
  * @_list:	Name of the list in which this entry is placed
  *
- * This function returns a pointer to a particular entry in LG-array
- * identified by the subsection of u_boot_list where the entry resides
+ * This function returns a pointer to a particular entry in linker-generated
+ * array identified by the subsection of u_boot_list where the entry resides
  * and it's name.
  *
  * Example:
- * ll_entry_declare(struct my_sub_cmd, my_sub_cmd, cmd_sub, cmd.sub) = {
+ * ll_entry_declare(struct my_sub_cmd, my_sub_cmd, cmd_sub) = {
  *         .x = 3,
  *         .y = 4,
  * };
@@ -245,7 +272,7 @@
 	({								\
 		extern _type _u_boot_list_2_##_list##_2_##_name;	\
 		_type *_ll_result =					\
-			&_u_boot_list_2_##_list##_2_##_name;	\
+			&_u_boot_list_2_##_list##_2_##_name;		\
 		_ll_result;						\
 	})
 
@@ -270,7 +297,7 @@
 })
 
 /**
- * ll_entry_end() - Point after last entry of last linker-generated array
+ * ll_end() - Point after last entry of last linker-generated array
  * @_type:	Data type of the entry
  *
  * This function returns (_type *) pointer after the very last entry of
@@ -284,7 +311,7 @@
  */
 #define ll_end(_type)							\
 ({									\
-	static char end[0] __aligned(4) __attribute__((unused,	\
+	static char end[0] __aligned(4) __attribute__((unused,		\
 		section(".u_boot_list_3")));				\
 	(_type *)&end;							\
 })

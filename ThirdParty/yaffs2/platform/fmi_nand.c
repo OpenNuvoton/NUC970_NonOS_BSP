@@ -2,34 +2,30 @@
  * @file     fmi_nand.c
  * @version  V1.00
  * $Revision: 1 $
- * $Date: 15/05/28 5:17p $
- * @brief    NUC970 FMI NAND driver source file
+ * $Date: 18/08/05 5:17p $
+ * @brief    NuMicro ARM9 FMI NAND driver source file
  *
  * @note
- * Copyright (C) 2015 Nuvoton Technology Corp. All rights reserved.
+ * Copyright (C) 2018 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #include <string.h>
 #include "nand.h"
 #include "nuc970.h"
 #include "sys.h"
 
-/** @addtogroup NUC970_Device_Driver NUC970 Device Driver
+/** @addtogroup Standard_Driver Standard Driver
   @{
 */
 
-/** @addtogroup NUC970_FMI_NAND_Driver FMI NAND Driver
+/** @addtogroup NAND_Driver NAND Driver
   @{
 */
 
-
-/** @addtogroup NUC970_FMI_NAND_EXPORTED_FUNCTIONS FMI NAND Exported Functions
+/** @addtogroup NAND_EXPORTED_CONSTANTS NAND Exported Constants
   @{
 */
 /// @cond HIDDEN_SYMBOLS
 
-
-extern void sysPutString(char *string);
-extern void sysprintf(char* pcStr,...);
 
 #define NAND_EN     0x08
 #define READYBUSY   (0x01 << 18)
@@ -57,17 +53,17 @@ extern void sysprintf(char* pcStr,...);
 #define BCH_T24   0x00040000
 
 
-struct nuc970_nand_info {
+struct nuvoton_nand_info {
     struct nand_hw_control  controller;
     struct mtd_info         mtd;
     struct nand_chip        chip;
     int                     eBCHAlgo;
     int                     m_i32SMRASize;
 };
-struct nuc970_nand_info g_nuc970_nand;
-struct nuc970_nand_info *nuc970_nand;
+struct nuvoton_nand_info g_nuvoton_nand;
+struct nuvoton_nand_info *nuvoton_nand;
 
-static struct nand_ecclayout nuc970_nand_oob;
+static struct nand_ecclayout nuvoton_nand_oob;
 
 static const int g_i32BCHAlgoIdx[5] = { BCH_T4, BCH_T8, BCH_T12, BCH_T15, BCH_T24 };
 static const int g_i32ParityNum[4][5] = {
@@ -79,11 +75,13 @@ static const int g_i32ParityNum[4][5] = {
 
 void udelay(unsigned int tick)
 {
-    int volatile start;
+    int volatile start, tmp;
     start = sysGetTicks(TIMER0);
     while(1)
-        if ((sysGetTicks(TIMER0) - start) > tick)
+    {
+        if ((tmp = sysGetTicks(TIMER0) - start) > tick)
             break;
+    }
 }
 
 unsigned int get_timer(unsigned int tick)
@@ -91,7 +89,7 @@ unsigned int get_timer(unsigned int tick)
     return (sysGetTicks(TIMER0) - tick);
 }
 
-static void nuc970_layout_oob_table ( struct nand_ecclayout* pNandOOBTbl, int oobsize , int eccbytes )
+static void nuvoton_layout_oob_table ( struct nand_ecclayout* pNandOOBTbl, int oobsize , int eccbytes )
 {
     pNandOOBTbl->eccbytes = eccbytes;
 
@@ -103,7 +101,7 @@ static void nuc970_layout_oob_table ( struct nand_ecclayout* pNandOOBTbl, int oo
 }
 
 
-static void nuc970_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
+static void nuvoton_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 {
     struct nand_chip *chip = mtd->priv;
 
@@ -124,19 +122,19 @@ static void nuc970_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 
 
 /* select chip */
-static void nuc970_nand_select_chip(struct mtd_info *mtd, int chip)
+static void nuvoton_nand_select_chip(struct mtd_info *mtd, int chip)
 {
     outpw(REG_NANDCTL, (inpw(REG_NANDCTL)&(~0x06000000))|0x04000000);
 }
 
 
-static int nuc970_dev_ready(struct mtd_info *mtd)
+static int nuvoton_dev_ready(struct mtd_info *mtd)
 {
     return ((inpw(REG_NANDINTSTS) & READYBUSY) ? 1 : 0);
 }
 
 
-static void nuc970_nand_command(struct mtd_info *mtd, unsigned int command, int column, int page_addr)
+static void nuvoton_nand_command(struct mtd_info *mtd, unsigned int command, int column, int page_addr)
 {
     register struct nand_chip *chip = mtd->priv;
     int volatile i;
@@ -208,27 +206,29 @@ static void nuc970_nand_command(struct mtd_info *mtd, unsigned int command, int 
         }
     }
 
+    if ( chip->chip_delay )
+        for (i=0; i<chip->chip_delay; i++);
     while (!(inpw(REG_NANDINTSTS) & READYBUSY)) ;
 
 }
 
 /*
- * nuc970_nand_read_byte - read a byte from NAND controller into buffer
+ * nuvoton_nand_read_byte - read a byte from NAND controller into buffer
  * @mtd: MTD device structure
  */
-static unsigned char nuc970_nand_read_byte(struct mtd_info *mtd)
+static unsigned char nuvoton_nand_read_byte(struct mtd_info *mtd)
 {
     return ((unsigned char)inpw(REG_NANDDATA));
 }
 
 /*
- * nuc970_nand_write_buf - write data from buffer into NAND controller
+ * nuvoton_nand_write_buf - write data from buffer into NAND controller
  * @mtd: MTD device structure
  * @buf: virtual address in RAM of source
  * @len: number of data bytes to be transferred
  */
 
-static void nuc970_nand_write_buf(struct mtd_info *mtd, const unsigned char *buf, int len)
+static void nuvoton_nand_write_buf(struct mtd_info *mtd, const unsigned char *buf, int len)
 {
     int i;
 
@@ -237,12 +237,12 @@ static void nuc970_nand_write_buf(struct mtd_info *mtd, const unsigned char *buf
 }
 
 /*
- * nuc970_nand_read_buf - read data from NAND controller into buffer
+ * nuvoton_nand_read_buf - read data from NAND controller into buffer
  * @mtd: MTD device structure
  * @buf: virtual address in RAM of source
  * @len: number of data bytes to be transferred
  */
-static void nuc970_nand_read_buf(struct mtd_info *mtd, unsigned char *buf, int len)
+static void nuvoton_nand_read_buf(struct mtd_info *mtd, unsigned char *buf, int len)
 {
     int i;
 
@@ -254,7 +254,7 @@ static void nuc970_nand_read_buf(struct mtd_info *mtd, unsigned char *buf, int l
 /*
  * Enable HW ECC : unused on most chips
  */
-void nuc970_nand_enable_hwecc(struct mtd_info *mtd, int mode)
+void nuvoton_nand_enable_hwecc(struct mtd_info *mtd, int mode)
 {
 }
 
@@ -265,7 +265,7 @@ void nuc970_nand_enable_hwecc(struct mtd_info *mtd, int mode)
  * dat:        raw data (unused)
  * ecc_code:   buffer for ECC
  */
-static int nuc970_nand_calculate_ecc(struct mtd_info *mtd, const u_char *dat, u_char *ecc_code)
+static int nuvoton_nand_calculate_ecc(struct mtd_info *mtd, const u_char *dat, u_char *ecc_code)
 {
     return 0;
 }
@@ -278,7 +278,7 @@ static int nuc970_nand_calculate_ecc(struct mtd_info *mtd, const u_char *dat, u_
  * read_ecc:   ECC from the chip (unused)
  * isnull:     unused
  */
-static int nuc970_nand_correct_data(struct mtd_info *mtd, u_char *dat,
+static int nuvoton_nand_correct_data(struct mtd_info *mtd, u_char *dat,
                      u_char *read_ecc, u_char *calc_ecc)
 {
     return 0;
@@ -465,9 +465,9 @@ int fmiSMCorrectData (struct mtd_info *mtd, unsigned long uDAddr )
 }
 
 
-static __inline int _nuc970_nand_dma_transfer(struct mtd_info *mtd, const u_char *addr, unsigned int len, int is_write)
+static __inline int _nuvoton_nand_dma_transfer(struct mtd_info *mtd, const u_char *addr, unsigned int len, int is_write)
 {
-    struct nuc970_nand_info *nand = nuc970_nand;
+    struct nuvoton_nand_info *nand = nuvoton_nand;
 
     // For save, wait DMAC to ready
     while ( inpw(REG_FMI_DMACTL) & 0x200 );
@@ -564,50 +564,52 @@ static __inline int _nuc970_nand_dma_transfer(struct mtd_info *mtd, const u_char
  * @chip:       nand chip info structure
  * @buf:        data buffer
  */
-static void nuc970_nand_write_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip, const uint8_t *buf)
+static int nuvoton_nand_write_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip, const uint8_t *buf, int oob_required, int page)
 {
     uint8_t *ecc_calc = chip->buffers->ecccalc;
     uint32_t hweccbytes=chip->ecc.layout->eccbytes;
     register char * ptr=(char *)REG_NANDRA0;
 
-    //debug("nuc970_nand_write_page_hwecc\n");
+    //debug("nuvoton_nand_write_page_hwecc\n");
     memset ( (void*)ptr, 0xFF, mtd->oobsize );
     memcpy ( (void*)ptr, (void*)chip->oob_poi,  mtd->oobsize - chip->ecc.total );
 
-    _nuc970_nand_dma_transfer( mtd, buf, mtd->writesize , 0x1);
+    _nuvoton_nand_dma_transfer( mtd, buf, mtd->writesize , 0x1);
 
     // Copy parity code in SMRA to calc
     memcpy ( (void*)ecc_calc,  (void*)( REG_NANDRA0 + ( mtd->oobsize - chip->ecc.total ) ), chip->ecc.total );
 
     // Copy parity code in calc to oob_poi
     memcpy ( (void*)(chip->oob_poi+hweccbytes), (void*)ecc_calc, chip->ecc.total);
+
+    return 0;
 }
 
 /**
- * nuc970_nand_read_page_hwecc_oob_first - hardware ecc based page write function
+ * nuvoton_nand_read_page_hwecc_oob_first - hardware ecc based page write function
  * @mtd:        mtd info structure
  * @chip:       nand chip info structure
  * @buf:        buffer to store read data
  * @page:       page number to read
  */
-static int nuc970_nand_read_page_hwecc_oob_first(struct mtd_info *mtd, struct nand_chip *chip, uint8_t *buf, int page)
+static int nuvoton_nand_read_page_hwecc_oob_first(struct mtd_info *mtd, struct nand_chip *chip, uint8_t *buf, int oob_required, int page)
 {
     int eccsize = chip->ecc.size;
     uint8_t *p = buf;
     char * ptr= (char *)REG_NANDRA0;
     int volatile i;
 
-    //debug("nuc970_nand_read_page_hwecc_oob_first\n");
+    //debug("nuvoton_nand_read_page_hwecc_oob_first\n");
     /* At first, read the OOB area  */
-    nuc970_nand_command(mtd, NAND_CMD_READOOB, 0, page);
-    nuc970_nand_read_buf(mtd, chip->oob_poi, mtd->oobsize);
+    nuvoton_nand_command(mtd, NAND_CMD_READOOB, 0, page);
+    nuvoton_nand_read_buf(mtd, chip->oob_poi, mtd->oobsize);
 
     // Second, copy OOB data to SMRA for page read
     memcpy ( (void*)ptr, (void*)chip->oob_poi, mtd->oobsize );
 
     // Third, read data from nand
-    nuc970_nand_command(mtd, NAND_CMD_READ0, 0, page);
-    _nuc970_nand_dma_transfer(mtd, p, eccsize, 0x0);
+    nuvoton_nand_command(mtd, NAND_CMD_READ0, 0, page);
+    _nuvoton_nand_dma_transfer(mtd, p, eccsize, 0x0);
 
     // Fouth, restore OOB data from SMRA
     memcpy ( (void*)chip->oob_poi, (void*)ptr, mtd->oobsize );
@@ -616,28 +618,25 @@ static int nuc970_nand_read_page_hwecc_oob_first(struct mtd_info *mtd, struct na
 }
 
 /**
- * nuc970_nand_read_oob_hwecc - [REPLACABLE] the most common OOB data read function
+ * nuvoton_nand_read_oob_hwecc - [REPLACABLE] the most common OOB data read function
  * @mtd:        mtd info structure
  * @chip:       nand chip info structure
  * @page:       page number to read
  * @sndcmd:     flag whether to issue read command or not
  */
-static int nuc970_nand_read_oob_hwecc(struct mtd_info *mtd, struct nand_chip *chip, int page, int sndcmd)
+static int nuvoton_nand_read_oob_hwecc(struct mtd_info *mtd, struct nand_chip *chip, int page)
 {
     char * ptr=(char *)REG_NANDRA0;
 
     /* At first, read the OOB area  */
-    if ( sndcmd ) {
-        nuc970_nand_command(mtd, NAND_CMD_READOOB, 0, page);
-        sndcmd = 0;
-    }
+    nuvoton_nand_command(mtd, NAND_CMD_READOOB, 0, page);
 
-    nuc970_nand_read_buf(mtd, chip->oob_poi, mtd->oobsize);
+    nuvoton_nand_read_buf(mtd, chip->oob_poi, mtd->oobsize);
 
     // Second, copy OOB data to SMRA for page read
     memcpy ( (void*)ptr, (void*)chip->oob_poi, mtd->oobsize );
 
-    return sndcmd;
+    return 0;
 }
 
 
@@ -646,14 +645,14 @@ int board_nand_init(struct nand_chip *nand)
 {
     struct mtd_info *mtd;
 
-    nuc970_nand = &g_nuc970_nand;
-    memset((void*)nuc970_nand,0,sizeof(struct nuc970_nand_info));
+    nuvoton_nand = &g_nuvoton_nand;
+    memset((void*)nuvoton_nand,0,sizeof(struct nuvoton_nand_info));
 	
-    if (!nuc970_nand)
+    if (!nuvoton_nand)
         return -1;
 
-    mtd=&nuc970_nand->mtd;
-    nuc970_nand->chip.controller = &nuc970_nand->controller;
+    mtd=&nuvoton_nand->mtd;
+    nuvoton_nand->chip.controller = &nuvoton_nand->controller;
 
     /* initialize nand_chip data structure */
     nand->IO_ADDR_R = (void *)REG_NANDDATA;
@@ -662,26 +661,28 @@ int board_nand_init(struct nand_chip *nand)
     /* read_buf and write_buf are default */
     /* read_byte and write_byte are default */
     /* hwcontrol always must be implemented */
-    nand->cmd_ctrl = nuc970_hwcontrol;
-    nand->cmdfunc = nuc970_nand_command;
-    nand->dev_ready = nuc970_dev_ready;
-    nand->select_chip = nuc970_nand_select_chip;
+    nand->cmd_ctrl = nuvoton_hwcontrol;
+    nand->cmdfunc = nuvoton_nand_command;
+    nand->dev_ready = nuvoton_dev_ready;
+    nand->select_chip = nuvoton_nand_select_chip;
 
-    nand->read_byte = nuc970_nand_read_byte;
-    nand->write_buf = nuc970_nand_write_buf;
-    nand->read_buf = nuc970_nand_read_buf;
+    nand->read_byte = nuvoton_nand_read_byte;
+    nand->write_buf = nuvoton_nand_write_buf;
+    nand->read_buf = nuvoton_nand_read_buf;
     nand->chip_delay = 50;
 
-    nand->controller = &nuc970_nand->controller;
+    nand->controller = &nuvoton_nand->controller;
 
     nand->ecc.mode      = NAND_ECC_HW_OOB_FIRST;
-    nand->ecc.hwctl     = nuc970_nand_enable_hwecc;
-    nand->ecc.calculate = nuc970_nand_calculate_ecc;
-    nand->ecc.correct   = nuc970_nand_correct_data;
-    nand->ecc.write_page= nuc970_nand_write_page_hwecc;
-    nand->ecc.read_page = nuc970_nand_read_page_hwecc_oob_first;
-    nand->ecc.read_oob  = nuc970_nand_read_oob_hwecc;
-    nand->ecc.layout    = &nuc970_nand_oob;
+    nand->ecc.hwctl     = nuvoton_nand_enable_hwecc;
+    nand->ecc.calculate = nuvoton_nand_calculate_ecc;
+    nand->ecc.correct   = nuvoton_nand_correct_data;
+    nand->ecc.write_page= nuvoton_nand_write_page_hwecc;
+    nand->ecc.read_page = nuvoton_nand_read_page_hwecc_oob_first;
+    nand->ecc.read_oob  = nuvoton_nand_read_oob_hwecc;
+    nand->ecc.layout    = &nuvoton_nand_oob;
+    nand->ecc.strength  = 4;
+    mtd = nand_to_mtd(nand);
 
     mtd->priv = nand;
 
@@ -716,7 +717,7 @@ int board_nand_init(struct nand_chip *nand)
 
     /* Detect NAND chips */
     /* first scan to find the device and get the page size */
-    if (nand_scan_ident(&(nuc970_nand->mtd), 1, NULL)) {
+    if (nand_scan_ident(mtd, 1, NULL)) {
         sysprintf("NAND Flash not found !\n");
         return -1;
     }
@@ -725,37 +726,82 @@ int board_nand_init(struct nand_chip *nand)
     switch (mtd->writesize) {
         case 2048:
             outpw(REG_NANDCTL, (inpw(REG_NANDCTL)&(~0x30000)) + 0x10000);
-            nuc970_nand->eBCHAlgo = 0; /* T4 */
-            nuc970_layout_oob_table ( &nuc970_nand_oob, mtd->oobsize, g_i32ParityNum[1][nuc970_nand->eBCHAlgo] );
+            nuvoton_nand->eBCHAlgo = 0; /* T4 */
+            nuvoton_layout_oob_table ( &nuvoton_nand_oob, mtd->oobsize, g_i32ParityNum[1][nuvoton_nand->eBCHAlgo] );
             break;
 
         case 4096:
             outpw(REG_NANDCTL, (inpw(REG_NANDCTL)&(~0x30000)) + 0x20000);
-            nuc970_nand->eBCHAlgo = 1; /* T8 */
-            nuc970_layout_oob_table ( &nuc970_nand_oob, mtd->oobsize, g_i32ParityNum[2][nuc970_nand->eBCHAlgo] );
+            nuvoton_nand->eBCHAlgo = 1; /* T8 */
+            nuvoton_layout_oob_table ( &nuvoton_nand_oob, mtd->oobsize, g_i32ParityNum[2][nuvoton_nand->eBCHAlgo] );
             break;
 
         case 8192:
             outpw(REG_NANDCTL, (inpw(REG_NANDCTL)&(~0x30000)) + 0x30000);
-            nuc970_nand->eBCHAlgo = 2; /* T12 */
-            nuc970_layout_oob_table ( &nuc970_nand_oob, mtd->oobsize, g_i32ParityNum[3][nuc970_nand->eBCHAlgo] );
+            nuvoton_nand->eBCHAlgo = 2; /* T12 */
+            nuvoton_layout_oob_table ( &nuvoton_nand_oob, mtd->oobsize, g_i32ParityNum[3][nuvoton_nand->eBCHAlgo] );
             break;
 
-        /* Not support now. */
-        case 512:
-
         default:
-            sysprintf("NUC970 NAND CONTROLLER IS NOT SUPPORT THE PAGE SIZE. (%d, %d)\n", mtd->writesize, mtd->oobsize );
+            sysprintf("NUVOTON NAND CONTROLLER IS NOT SUPPORT THE PAGE SIZE. (%d, %d)\n", mtd->writesize, mtd->oobsize );
     }
 
-    nuc970_nand->m_i32SMRASize  = mtd->oobsize;
-    nand->ecc.bytes = nuc970_nand_oob.eccbytes;
+    /* check power on setting */
+    if ((inpw(REG_SYS_PWRON) & 0x300) != 0x300)
+    {
+        switch (inpw(REG_SYS_PWRON) & 0x300)
+        {
+            case 0x000:
+                nuvoton_nand->eBCHAlgo = 2;
+                break;
+            case 0x100:
+                nuvoton_nand->eBCHAlgo = 3;
+                break;
+            case 0x200:
+                nuvoton_nand->eBCHAlgo = 4;
+                break;
+            default:
+                sysprintf("wrong ECC power-on-setting\n");
+        }
+    }
+    if ((inpw(REG_SYS_PWRON) & 0xc0) != 0xc0)
+    {
+        switch (inpw(REG_SYS_PWRON) & 0xc0) 
+        {
+            case 0x00:
+                mtd->writesize = 2048;
+                outpw(REG_NANDCTL, (inpw(REG_NANDCTL)&(~0x30000)) + 0x10000);
+                mtd->oobsize = g_i32ParityNum[0][nuvoton_nand->eBCHAlgo] + 8;
+                nuvoton_layout_oob_table( &nuvoton_nand_oob, mtd->oobsize, g_i32ParityNum[1][nuvoton_nand->eBCHAlgo] );
+                break;
+
+            case 0x40:
+                mtd->writesize = 4096;
+                outpw(REG_NANDCTL, (inpw(REG_NANDCTL)&(~0x30000)) + 0x20000);
+                mtd->oobsize = g_i32ParityNum[1][nuvoton_nand->eBCHAlgo] + 8;
+                nuvoton_layout_oob_table ( &nuvoton_nand_oob, mtd->oobsize, g_i32ParityNum[2][nuvoton_nand->eBCHAlgo] );
+                break;
+
+            case 0x80:
+                mtd->writesize = 8192;
+                outpw(REG_NANDCTL, (inpw(REG_NANDCTL)&(~0x30000)) + 0x30000);
+                mtd->oobsize = g_i32ParityNum[2][nuvoton_nand->eBCHAlgo] + 8;
+                nuvoton_layout_oob_table ( &nuvoton_nand_oob, mtd->oobsize, g_i32ParityNum[3][nuvoton_nand->eBCHAlgo] );
+                break;
+
+            default:
+                sysprintf("wrong NAND page power-on-setting\n");
+        }
+    }
+    nuvoton_nand->m_i32SMRASize  = mtd->oobsize;
+    nand->ecc.bytes = nuvoton_nand_oob.eccbytes;
     nand->ecc.size  = mtd->writesize;
 
     nand->options = 0;
+    nand->bbt_options = (NAND_BBT_USE_FLASH | NAND_BBT_NO_OOB);
 
     // Redundant area size
-    outpw(REG_NANDRACTL, nuc970_nand->m_i32SMRASize);
+    outpw(REG_NANDRACTL, nuvoton_nand->m_i32SMRASize);
 
     // Protect redundant 3 bytes
     // because we need to implement write_oob function to partial data to oob available area.
@@ -765,7 +811,7 @@ int board_nand_init(struct nand_chip *nand)
     // To read/write the ECC parity codes automatically from/to NAND Flash after data area field written.
     outpw(REG_NANDCTL, inpw(REG_NANDCTL) | 0x10);
     // Set BCH algorithm
-    outpw(REG_NANDCTL, (inpw(REG_NANDCTL) & (~0x007C0000)) | g_i32BCHAlgoIdx[nuc970_nand->eBCHAlgo]);
+    outpw(REG_NANDCTL, (inpw(REG_NANDCTL) & (~0x007C0000)) | g_i32BCHAlgoIdx[nuvoton_nand->eBCHAlgo]);
     // Enable H/W ECC, ECC parity check enable bit during read page
     outpw(REG_NANDCTL, inpw(REG_NANDCTL) | 0x00800080);
 
@@ -775,13 +821,13 @@ int board_nand_init(struct nand_chip *nand)
 /// @endcond HIDDEN_SYMBOLS
 
 
-/*@}*/ /* end of group NUC970_FMI_NAND_EXPORTED_FUNCTIONS */
+/*@}*/ /* end of group NAND_EXPORTED_FUNCTIONS */
 
-/*@}*/ /* end of group NUC970_FMI_NAND_Driver */
+/*@}*/ /* end of group NAND_Driver */
 
-/*@}*/ /* end of group NUC970_Device_Driver */
+/*@}*/ /* end of group Standard_Driver */
 
-/*** (C) COPYRIGHT 2015 Nuvoton Technology Corp. ***/
+/*** (C) COPYRIGHT 2018 Nuvoton Technology Corp. ***/
 
 
 

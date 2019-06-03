@@ -38,12 +38,7 @@ typedef struct USB_mhdr
     uint32_t  reserved;
 }  USB_MHDR_T;
 
-#ifdef __ICCARM__
-#pragma data_alignment=USB_MEM_BLOCK_SIZE
-uint8_t  _USBMemoryPool[USB_MEMORY_POOL_SIZE];
-#else
-__align(USB_MEM_BLOCK_SIZE) uint8_t  _USBMemoryPool[USB_MEMORY_POOL_SIZE];
-#endif
+uint8_t  _USBMemoryPool[USB_MEMORY_POOL_SIZE] __attribute__((aligned(USB_MEM_BLOCK_SIZE)));
 
 
 static USB_MHDR_T  *_pCurrent;

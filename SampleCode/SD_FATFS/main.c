@@ -29,7 +29,12 @@ char Line[256];             			/* Console input buffer */
 char Lfname[512];
 #endif
 
-__align(32) BYTE Buff_Pool[BUFF_SIZE] ;       /* Working buffer */
+#ifdef __ICCARM__
+#pragma data_alignment = 32
+BYTE Buff_Pool[BUFF_SIZE];       /* Working buffer */
+#else
+BYTE Buff_Pool[BUFF_SIZE] __attribute__((aligned(32)));       /* Working buffer */
+#endif
 
 BYTE  *Buff;
 

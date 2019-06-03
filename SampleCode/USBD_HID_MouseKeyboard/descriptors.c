@@ -11,7 +11,7 @@
 #define __DESCRIPTORS_C__
 
 /*!<Includes */
-#include "NUC970.h"
+#include "nuc970.h"
 #include "usbd.h"
 #include "hid_mousekeyboard.h"
 
@@ -20,7 +20,7 @@
 #pragma data_alignment=4
 uint8_t HID_MouseReportDescriptor[] = {
 #else
-__align(4) uint8_t HID_MouseReportDescriptor[] = {
+uint8_t HID_MouseReportDescriptor[]  __attribute__((aligned(4))) = {
 #endif
     0x05, 0x01,     /* Usage Page(Generic Desktop Controls) */
     0x09, 0x02,     /* Usage(Mouse) */
@@ -56,7 +56,7 @@ __align(4) uint8_t HID_MouseReportDescriptor[] = {
 #pragma data_alignment=4
 uint8_t HID_KeyboardReportDescriptor[] = {
 #else
-__align(4) uint8_t HID_KeyboardReportDescriptor[] = {
+uint8_t HID_KeyboardReportDescriptor[]  __attribute__((aligned(4))) = {
 #endif
     0x05, 0x01,     /* Usage Page(Generic Desktop Controls) */
     0x09, 0x06,     /* Usage(Keyboard) */
@@ -99,7 +99,7 @@ __align(4) uint8_t HID_KeyboardReportDescriptor[] = {
 #pragma data_alignment=4
 uint8_t gu8DeviceDescriptor[] = {
 #else
-__align(4) uint8_t gu8DeviceDescriptor[] = {
+uint8_t gu8DeviceDescriptor[] __attribute__((aligned(4))) = {
 #endif
     LEN_DEVICE,     /* bLength */
     DESC_DEVICE,    /* bDescriptorType */
@@ -126,7 +126,7 @@ __align(4) uint8_t gu8DeviceDescriptor[] = {
 #pragma data_alignment=4
 uint8_t gu8QualifierDescriptor[] = {
 #else
-__align(4) uint8_t gu8QualifierDescriptor[] = {
+uint8_t gu8QualifierDescriptor[] __attribute__((aligned(4))) = {
 #endif
     LEN_QUALIFIER,  /* bLength */
     DESC_QUALIFIER, /* bDescriptorType */
@@ -144,7 +144,7 @@ __align(4) uint8_t gu8QualifierDescriptor[] = {
 #pragma data_alignment=4
 uint8_t gu8ConfigDescriptor[] = {
 #else
-__align(4) uint8_t gu8ConfigDescriptor[] = {
+uint8_t gu8ConfigDescriptor[] __attribute__((aligned(4))) = {
 #endif
     LEN_CONFIG,     /* bLength */
     DESC_CONFIG,    /* bDescriptorType */
@@ -227,7 +227,7 @@ __align(4) uint8_t gu8ConfigDescriptor[] = {
 #pragma data_alignment=4
 uint8_t gu8OtherConfigDescriptor[] = {
 #else
-__align(4) uint8_t gu8OtherConfigDescriptor[] = {
+uint8_t gu8OtherConfigDescriptor[] __attribute__((aligned(4))) = {
 #endif
     LEN_CONFIG,     /* bLength */
     DESC_CONFIG,    /* bDescriptorType */
@@ -311,7 +311,7 @@ __align(4) uint8_t gu8OtherConfigDescriptor[] = {
 #pragma data_alignment=4
 uint8_t gu8StringLang[4] = {
 #else
-__align(4) uint8_t gu8StringLang[4] = {
+uint8_t gu8StringLang[4] __attribute__((aligned(4))) = {
 #endif
     4,              /* bLength */
     DESC_STRING,    /* bDescriptorType */
@@ -323,7 +323,7 @@ __align(4) uint8_t gu8StringLang[4] = {
 #pragma data_alignment=4
 uint8_t gu8VendorStringDesc[] = {
 #else
-__align(4) uint8_t gu8VendorStringDesc[] = {
+uint8_t gu8VendorStringDesc[] __attribute__((aligned(4))) = {
 #endif
     16,
     DESC_STRING,
@@ -335,7 +335,7 @@ __align(4) uint8_t gu8VendorStringDesc[] = {
 #pragma data_alignment=4
 uint8_t gu8ProductStringDesc[] = {
 #else
-__align(4) uint8_t gu8ProductStringDesc[] = {
+uint8_t gu8ProductStringDesc[] __attribute__((aligned(4))) = {
 #endif
     22,
     DESC_STRING,
@@ -346,13 +346,13 @@ uint8_t *gpu8UsbString[4] = {
     gu8StringLang,
     gu8VendorStringDesc,
     gu8ProductStringDesc,
-    NULL,
+    0,
 };
 
 uint8_t *gu8UsbHidReport[3] = {
     HID_MouseReportDescriptor,
     HID_KeyboardReportDescriptor,
-    NULL,
+    0,
 };
 
 uint32_t gu32UsbHidReportLen[3] = {
