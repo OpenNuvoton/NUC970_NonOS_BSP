@@ -402,7 +402,6 @@ int uvc_parse_streaming_interface(UVC_DEV_T *vdev, IFACE_T *iface)
             ifd = (DESC_IF_T *)bptr;  /* must */
             break;
 
-#if 0
         case VS_FRAME_UNCOMPRESSED:
             vsu_frame = (DESC_VSU_FRAME_T *)ifd_vs_hdr;
             UVC_DBGMSG("VS Interface VS_FRAME_UNCOMPRESSED\n");
@@ -413,7 +412,6 @@ int uvc_parse_streaming_interface(UVC_DEV_T *vdev, IFACE_T *iface)
             UVC_DBGMSG("    dwMaxBitRate: 0x%x\n", vsu_frame->dwMaxBitRate);
             UVC_DBGMSG("    dwDefaultFrameInterval:  0x%x\n", vsu_frame->dwDefaultFrameInterval);
             break;
-#endif
 
         case VS_FORMAT_MJPEG:
             mjpg_format = (DESC_MJPG_FORMAT_T *)ifd_vs_hdr;
@@ -466,7 +464,6 @@ int uvc_parse_streaming_interface(UVC_DEV_T *vdev, IFACE_T *iface)
             ifd = (DESC_IF_T *)bptr;  /* must */
             break;
 
-#if 0
         case VS_FRAME_MJPEG:
             mjpg_frame = (DESC_MJPG_FRAME_T *)ifd_vs_hdr;
             UVC_DBGMSG("VS Interface VS_FRAME_MJPEG\n");
@@ -477,7 +474,7 @@ int uvc_parse_streaming_interface(UVC_DEV_T *vdev, IFACE_T *iface)
             UVC_DBGMSG("    dwMaxBitRate: 0x%x\n", mjpg_frame->dwMaxBitRate);
             UVC_DBGMSG("    dwDefaultFrameInterval:  0x%x\n", mjpg_frame->dwDefaultFrameInterval);
             break;
-#endif
+
         case VS_OUTPUT_HEADER:
         case VS_UNDEFINED:
         case VC_INPUT_TERMINAL:

@@ -47,7 +47,7 @@
                                                unconditionally reclaim iTD/isTD scheduled
                                                in just elapsed EHCI_ISO_RCLM_RANGE ms.    */
 
-#define MAX_DESC_BUFF_SIZE     1024         /* To hold the configuration descriptor, USB 
+#define MAX_DESC_BUFF_SIZE     4096         /* To hold the configuration descriptor, USB 
                                                core will allocate a buffer with this size
                                                for each connected device. USB core does 
                                                not release it until device disconnected.  */
@@ -61,7 +61,7 @@
                                           limited.  */
 
 #define MAX_UDEV_DRIVER        8       /*!< Maximum number of registered drivers                      */
-#define MAX_ALT_PER_IFACE      8       /*!< maximum number of alternative interfaces per interface    */
+#define MAX_ALT_PER_IFACE      12      /*!< maximum number of alternative interfaces per interface    */
 #define MAX_EP_PER_IFACE       8       /*!< maximum number of endpoints per interface                 */
 #define MAX_HUB_DEVICE         8       /*!< Maximum number of hub devices                             */
 

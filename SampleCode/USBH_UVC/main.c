@@ -26,8 +26,11 @@
 
 #define SELECT_MJPEG
 
-#define SELECT_RES_WIDTH     640
-#define SELECT_RES_HEIGHT    480
+#define SELECT_RES_WIDTH     640  // 1920
+#define SELECT_RES_HEIGHT    480  // 1080
+
+#define OSD_WIDTH            640
+#define OSD_HEIGHT           480
 
 #define IMAGE_MAX_SIZE       (640*480*2)
 
@@ -138,7 +141,7 @@ static void init_lcd(void)
     }
 
     // Set OSD position and display size
-    vpostOSDSetWindow(80, 0, SELECT_RES_WIDTH, SELECT_RES_HEIGHT);
+    vpostOSDSetWindow(80, 0, OSD_WIDTH, OSD_HEIGHT);
 
     vpostSetOSDSrc(OSD_SRC_YCBCR422);
 
@@ -179,7 +182,7 @@ void Decode_JPEG_Image(UINT8 *image_buf, int image_len)
 
     /* Wait for complete */
     if (jpegWait())
-        ;  // sysprintf(".");
+        sysprintf("\tDecode OK.\n");
     else
         sysprintf("\tJPEG Decode Error!!\n");
 }
@@ -567,6 +570,7 @@ int32_t main(void)
         case '5':
             if (snapshot_len == 0)
                 break;
+            sysprintf("[0x%x] ~ [0x%x]\n", (int)snapshot_buff, (int)snapshot_buff + snapshot_len);
             Decode_JPEG_Image(snapshot_buff, snapshot_len);
             post_snapshot_time = get_ticks();
             break;
