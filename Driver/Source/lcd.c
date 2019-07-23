@@ -116,23 +116,6 @@ static uint32_t shift_pointer(uint32_t ptr, uint32_t align)
     return ptr;
 }
 
-static void vpostIntHandler(void)
-{
-    /* clear VPOST interrupt state */
-    uint32_t uintstatus;
-
-    uintstatus = inpw(REG_LCM_INT_CS);
-    if (uintstatus & VPOSTB_UNDERRUN_INT)
-    {
-        outpw(REG_LCM_INT_CS,inpw(REG_LCM_INT_CS) | VPOSTB_UNDERRUN_INT);
-        sysprintf("LCD under run error!!\n");
-    }
-    else if (uintstatus & VPOSTB_BUS_ERROR_INT)
-    {
-        outpw(REG_LCM_INT_CS,inpw(REG_LCM_INT_CS) | VPOSTB_BUS_ERROR_INT);
-        sysprintf("LCD bus error!!\n");
-    }
-}
 /// @endcond /* HIDDEN_SYMBOLS */
 
 /**
@@ -162,11 +145,6 @@ void vpostLCMInit(uint32_t u32DisplayPanelID)
     outpw(REG_LCM_CRTC_HSYNC,   curDisplayDev.u32Reg_CRTCHSYNC);
     outpw(REG_LCM_CRTC_VR,      curDisplayDev.u32Reg_CRTCVR);
 
-    sysInstallISR(IRQ_LEVEL_1, LCD_IRQn, (PVOID)vpostIntHandler);
-    sysEnableInterrupt(LCD_IRQn);
-
-    outpw(REG_LCM_DCCS, inpw(REG_LCM_DCCS) | VPOSTB_DISP_INT_EN);
-    outpw(REG_LCM_INT_CS, inpw(REG_LCM_INT_CS) | VPOSTB_UNDERRUN_EN);
 }
 
 /**
@@ -179,7 +157,6 @@ void vpostLCMDeinit(void)
     // disable lcd engine clock
     outpw(REG_CLK_HCLKEN, inpw(REG_CLK_HCLKEN) & ~(1<<25));
 
-    sysDisableInterrupt(LCD_IRQn);
 }
 
 /**
