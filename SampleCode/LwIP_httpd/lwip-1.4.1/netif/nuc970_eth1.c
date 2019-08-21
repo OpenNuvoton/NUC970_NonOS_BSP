@@ -255,12 +255,12 @@ static void chk_link(void)
         if (!plugged) {
             plugged = 1;
             reset_phy();
-            outpw(REG_EMAC0_MCMDR, inpw(REG_EMAC0_MCMDR) | 0x101);
+            outpw(REG_EMAC1_MCMDR, inpw(REG_EMAC1_MCMDR) | 0x101);
         }
     } else {
         if (plugged) {
             plugged = 0;
-            outpw(REG_EMAC0_MCMDR, inpw(REG_EMAC0_MCMDR) & ~0x101);
+            outpw(REG_EMAC1_MCMDR, inpw(REG_EMAC1_MCMDR) & ~0x101);
         }
     }
 }
