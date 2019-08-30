@@ -23,8 +23,14 @@
 // use master or slave mode
 #define MASTER_MODE
 
+#ifdef __ICCARM__
+#pragma data_alignment = 32
 static uint32_t u32PlayBuf[BUF_LENGTH];
 static uint32_t u32RecBuf[BUF_LENGTH];
+#else
+static uint32_t u32PlayBuf[BUF_LENGTH] __attribute__((aligned(32)));;
+static uint32_t u32RecBuf[BUF_LENGTH] __attribute__((aligned(32)));;
+#endif
 
 static uint32_t volatile u32BuffIdx=0;
 static uint32_t *pbuf, *rbuf;

@@ -28,7 +28,7 @@ uint32_t au32MyAESIV[4] =
 };
 
 
-uint8_t au8InputData_Pool[] __attribute__((aligned(4))) =
+uint8_t au8InputData_Pool[] __attribute__((aligned(32))) =
 {
     0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,
     0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
@@ -36,7 +36,7 @@ uint8_t au8InputData_Pool[] __attribute__((aligned(4))) =
 uint8_t  *au8InputData;
 
 
-uint8_t au8OutputData_Pool[1024] __attribute__((aligned(4)));
+uint8_t au8OutputData_Pool[1024] __attribute__((aligned(32)));
 uint8_t  *au8OutputData;
 
 

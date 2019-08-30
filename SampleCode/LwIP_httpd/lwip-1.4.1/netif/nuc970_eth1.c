@@ -40,8 +40,8 @@
 static struct eth_descriptor rx_desc[RX_DESCRIPTOR_NUM];
 static struct eth_descriptor tx_desc[TX_DESCRIPTOR_NUM];
 #else
-static struct eth_descriptor rx_desc[RX_DESCRIPTOR_NUM] __attribute__ ((aligned(4)));
-static struct eth_descriptor tx_desc[TX_DESCRIPTOR_NUM] __attribute__ ((aligned(4)));
+static struct eth_descriptor rx_desc[RX_DESCRIPTOR_NUM] __attribute__ ((aligned(32)));
+static struct eth_descriptor tx_desc[TX_DESCRIPTOR_NUM] __attribute__ ((aligned(32)));
 #endif
 static struct eth_descriptor volatile *cur_tx_desc_ptr, *cur_rx_desc_ptr, *fin_tx_desc_ptr;
 
