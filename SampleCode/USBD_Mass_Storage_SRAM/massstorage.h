@@ -13,7 +13,7 @@
 
 /* Define the vendor id and product id */
 #define USBD_VID        0x0416
-#define USBD_PID        0x0470
+#define USBD_PID        0x0970
 
 /* Define DMA Maximum Transfer length */
 #define USBD_MAX_DMA_LEN    0x1000
@@ -41,7 +41,7 @@
 #define BULK_OUT_EP_NUM     0x02
 
 /* Define Descriptor information */
-#define USBD_SELF_POWERED               0
+#define USBD_SELF_POWERED               1
 #define USBD_REMOTE_WAKEUP              0
 #define USBD_MAX_POWER                  50  /* The unit is in 2mA. ex: 50 * 2mA = 100mA */
 
@@ -64,7 +64,10 @@
 #define UFI_READ_FORMAT_CAPACITY                0x23
 #define UFI_READ_CAPACITY                       0x25
 #define UFI_READ_10                             0x28
+#define UFI_READ_12                             0xA8
+#define UFI_READ_16                             0x9E
 #define UFI_WRITE_10                            0x2A
+#define UFI_WRITE_12                            0xAA
 #define UFI_VERIFY_10                           0x2F
 #define UFI_MODE_SELECT_10                      0x55
 #define UFI_MODE_SENSE_10                       0x5A
@@ -117,12 +120,12 @@ void MSC_RequestSense(void);
 void MSC_ReadFormatCapacity(void);
 void MSC_ReadCapacity(void);
 void MSC_ModeSense10(void);
-void MSC_ReceiveCBW(uint32_t u32Buf);
+void MSC_ReceiveCBW(uint32_t u32Buf, uint32_t u32Len);
 void MSC_ProcessCmd(void);
 void MSC_ActiveDMA(uint32_t u32Addr, uint32_t u32Len);
 void MSC_BulkOut(uint32_t u32Addr, uint32_t u32Len);
 void MSC_BulkIn(uint32_t u32Addr, uint32_t u32Len);
-void MSC_AckCmd(uint32_t u32Residue);
+void MSC_AckCmd(void);
 
 void MSC_ReadMedia(uint32_t addr, uint32_t size, uint8_t *buffer);
 void MSC_WriteMedia(uint32_t addr, uint32_t size, uint8_t *buffer);
