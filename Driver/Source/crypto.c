@@ -53,7 +53,7 @@ void PRNG_Open(uint32_t u32KeySize, uint32_t u32SeedReload, uint32_t u32Seed)
         CRPT->PRNG_SEED = u32Seed;
 
     CRPT->PRNG_CTL =  (u32KeySize << CRPT_PRNG_CTL_KEYSZ_Pos) |
-                        (u32SeedReload << CRPT_PRNG_CTL_SEEDRLD_Pos);
+                      (u32SeedReload << CRPT_PRNG_CTL_SEEDRLD_Pos);
 }
 
 /**
@@ -108,10 +108,10 @@ void AES_Open(uint32_t u32Channel, uint32_t u32EncDec,
               uint32_t u32OpMode, uint32_t u32KeySize, uint32_t u32SwapType)
 {
     CRPT->AES_CTL = (u32Channel << CRPT_AES_CTL_CHANNEL_Pos) |
-                      (u32EncDec << CRPT_AES_CTL_ENCRPT_Pos) |
-                      (u32OpMode << CRPT_AES_CTL_OPMODE_Pos) |
-                      (u32KeySize << CRPT_AES_CTL_KEYSZ_Pos) |
-                      (u32SwapType << CRPT_AES_CTL_OUTSWAP_Pos);
+                    (u32EncDec << CRPT_AES_CTL_ENCRPT_Pos) |
+                    (u32OpMode << CRPT_AES_CTL_OPMODE_Pos) |
+                    (u32KeySize << CRPT_AES_CTL_KEYSZ_Pos) |
+                    (u32SwapType << CRPT_AES_CTL_OUTSWAP_Pos);
     g_AES_CTL[u32Channel] = CRPT->AES_CTL;
 }
 
@@ -207,9 +207,11 @@ void AES_SetDMATransfer(uint32_t u32Channel, uint32_t u32SrcAddr,
 void TDES_Open(uint32_t u32Channel, uint32_t u32EncDec, uint32_t u32OpMode, uint32_t u32SwapType)
 {
     g_TDES_CTL[u32Channel] = (u32Channel << CRPT_TDES_CTL_CHANNEL_Pos) |
-                       (u32EncDec << CRPT_TDES_CTL_ENCRPT_Pos) |
-                       u32OpMode |
-                       (u32SwapType << CRPT_TDES_CTL_BLKSWAP_Pos);
+                             (u32EncDec << CRPT_TDES_CTL_ENCRPT_Pos) |
+                             u32OpMode |
+                             (u32SwapType << CRPT_TDES_CTL_BLKSWAP_Pos);
+    if (g_TDES_CTL[u32Channel] & CRPT_TDES_CTL_TMODE_Msk)
+        g_TDES_CTL[u32Channel] |= CRPT_TDES_CTL_3KEYS_Msk;
 }
 
 /**
@@ -236,11 +238,14 @@ void TDES_Start(int32_t u32Channel, uint32_t u32DMAMode)
 void TDES_SetKey(uint32_t u32Channel, uint8_t au8Keys[3][8])
 {
     int         i;
-    uint8_t     *pu8TKey;
+    uint8_t     *pu8Key;
+    uint32_t    *pu32TKey;
 
-    pu8TKey = (uint8_t *)((uint32_t)&CRPT->TDES0_KEY1H + (0x40 * u32Channel));
-    for (i = 0; i < 3; i++, pu8TKey+=8)
-        memcpy(pu8TKey, &au8Keys[i][0], 8);
+    pu8Key = (uint8_t *)au8Keys;
+    pu32TKey = (uint32_t *)((uint32_t)&CRPT->TDES0_KEY1H + (0x40 * u32Channel));
+    for (i = 0; i < 6; i++) {
+        pu32TKey[i] = (pu8Key[i*4]<<24) | (pu8Key[i*4+1]<<16) | (pu8Key[i*4+2]<<8) | pu8Key[i*4+3];
+    }
 }
 
 /**
@@ -292,13 +297,12 @@ void TDES_SetDMATransfer(uint32_t u32Channel, uint32_t u32SrcAddr,
 void SHA_Open(uint32_t u32OpMode, uint32_t u32SwapType, int hmac_key_len)
 {
     CRPT->HMAC_CTL = (u32OpMode << CRPT_HMAC_CTL_OPMODE_Pos) |
-                      (u32SwapType << CRPT_HMAC_CTL_OUTSWAP_Pos);
-                      
-    if (hmac_key_len > 0)
-    {
-    	CRPT->HMAC_KEYCNT = hmac_key_len;
-    	CRPT->HMAC_CTL |= CRPT_HMAC_CTL_HMACEN_Msk;
-	}
+                     (u32SwapType << CRPT_HMAC_CTL_OUTSWAP_Pos);
+
+    if (hmac_key_len > 0) {
+        CRPT->HMAC_KEYCNT = hmac_key_len;
+        CRPT->HMAC_CTL |= CRPT_HMAC_CTL_HMACEN_Msk;
+    }
 }
 
 
