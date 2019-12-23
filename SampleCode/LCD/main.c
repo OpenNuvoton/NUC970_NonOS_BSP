@@ -31,96 +31,102 @@ __attribute__((aligned(32))) uint32_t u32CursorBuf[512];
 __align(32) uint32_t u32CursorBuf[512];
 #endif
 int32_t main(void)
-{	
-	uint8_t *u8FrameBufPtr, *u8OSDFrameBufPtr, i;    
+{
+    uint8_t *u8FrameBufPtr, *u8OSDFrameBufPtr, i;
 
-	outpw(REG_CLK_HCLKEN, 0x0527);
-	outpw(REG_CLK_PCLKEN0, 0);
-	outpw(REG_CLK_PCLKEN1, 0);
+    outpw(REG_CLK_HCLKEN, 0x0527);
+    outpw(REG_CLK_PCLKEN0, 0);
+    outpw(REG_CLK_PCLKEN1, 0);
 
-	sysDisableCache();
+    sysDisableCache();
     sysFlushCache(I_D_CACHE);
     sysEnableCache(CACHE_WRITE_BACK);
     sysInitializeUART();
 
-	// Configure multi-function pin for LCD interface
+    // Configure multi-function pin for LCD interface
     //GPG6 (CLK), GPG7 (HSYNC)
-	outpw(REG_SYS_GPG_MFPL, (inpw(REG_SYS_GPG_MFPL)& ~0xFF000000) | 0x22000000);
-	//GPG8 (VSYNC), GPG9 (DEN)
-	outpw(REG_SYS_GPG_MFPH, (inpw(REG_SYS_GPG_MFPH)& ~0xFF) | 0x22);
-    
-	//DATA pin
-	//GPA0 ~ GPA7 (DATA0~7)
+    outpw(REG_SYS_GPG_MFPL, (inpw(REG_SYS_GPG_MFPL)& ~0xFF000000) | 0x22000000);
+    //GPG8 (VSYNC), GPG9 (DEN)
+    outpw(REG_SYS_GPG_MFPH, (inpw(REG_SYS_GPG_MFPH)& ~0xFF) | 0x22);
+
+    //DATA pin
+    //GPA0 ~ GPA7 (DATA0~7)
     outpw(REG_SYS_GPA_MFPL, 0x22222222);
-	//GPA8 ~ GPA15 (DATA8~15)	
+    //GPA8 ~ GPA15 (DATA8~15)
     outpw(REG_SYS_GPA_MFPH, 0x22222222);
-	//GPD8~D15 (DATA16~23)
-    outpw(REG_SYS_GPD_MFPH, (inpw(REG_SYS_GPD_MFPH)& ~0xFFFFFFFF) | 0x22222222);
-    
-	// LCD clock is selected from UPLL and divide to 20MHz
-	outpw(REG_CLK_DIVCTL1, (inpw(REG_CLK_DIVCTL1) & ~0xff1f) | 0xe18);		
-    
-	// Init LCD interface for E50A2V1 LCD module
-	vpostLCMInit(DIS_PANEL_E50A2V1);
-	// Set scale to 1:1
-	vpostVAScalingCtrl(1, 0, 1, 0, VA_SCALE_INTERPOLATION);
-	
-	// Set display color depth
+    //GPD8~D15 (DATA16~23)
 #ifdef DISPLAY_RGB888
-	vpostSetVASrc(VA_SRC_RGB888);
-#else	
+    outpw(REG_SYS_GPD_MFPH, (inpw(REG_SYS_GPD_MFPH)& ~0xFFFFFFFF) | 0x22222222);
+#endif
+
+    // LCD clock is selected from UPLL and divide to 20MHz
+    outpw(REG_CLK_DIVCTL1, (inpw(REG_CLK_DIVCTL1) & ~0xff1f) | 0xe18);
+
+    // Init LCD interface for E50A2V1 LCD module
+#ifdef DISPLAY_RGB888
+    vpostLCMInit(DIS_PANEL_E50A2V1);
+#else
+    vpostLCMInit(DIS_PANEL_E50A2V1_RGB565);
+#endif
+    // Set scale to 1:1
+    vpostVAScalingCtrl(1, 0, 1, 0, VA_SCALE_INTERPOLATION);
+
+    // Set display color depth
+#ifdef DISPLAY_RGB888
+    vpostSetVASrc(VA_SRC_RGB888);
+#else
     vpostSetVASrc(VA_SRC_RGB565);
 #endif
-	
-	// Get pointer of video frame buffer
+
+    // Get pointer of video frame buffer
     // Note: before get pointer of frame buffer, must set display color depth first
-	u8FrameBufPtr = vpostGetFrameBuffer();
+    u8FrameBufPtr = vpostGetFrameBuffer();
     if(u8FrameBufPtr == NULL)
-	{
-		sysprintf("Get buffer error !!\n");
-		return 0;
-	}
-    
-	// Set OSD position and display size
+    {
+        sysprintf("Get buffer error !!\n");
+        return 0;
+    }
+
+    // Set OSD position and display size
     vpostOSDSetWindow(240, 120, 320, 240);
-	
-	// Set OSD color depth
+
+    // Set OSD color depth
 #ifdef DISPLAY_RGB888
     vpostSetOSDSrc(OSD_SRC_RGB888);
 #else
     vpostSetOSDSrc(OSD_SRC_RGB565);
 #endif
-	// Get pointer of OSD frame buffer 
+    // Get pointer of OSD frame buffer
     // Note: before get pointer of frame buffer, must set display size and display color depth first
     u8OSDFrameBufPtr = vpostGetOSDBuffer();
-	if(u8OSDFrameBufPtr == NULL)
-	{
-		sysprintf("Get OSD buffer error !!\n");
-		return 0;
-	}
-	
-	// Set scale to 1:1
+    if(u8OSDFrameBufPtr == NULL)
+    {
+        sysprintf("Get OSD buffer error !!\n");
+        return 0;
+    }
+
+    // Set scale to 1:1
     vpostOSDScalingCtrl(1, 0, 0);
-	
-	// Configure overlay function of OSD to display OSD image 
+
+    // Configure overlay function of OSD to display OSD image
     vpostOSDSetOverlay(DISPLAY_OSD, DISPLAY_OSD, 0);
-	
-	// Enable color key function
+
+    // Enable color key function
     vpostOSDSetColKey(0, 0, 0);
-        
+
     // Prepare image
 #ifdef DISPLAY_RGB888
-	memcpy((void *)u8FrameBufPtr, (void *)&video_img[0], 800*480*4);
+    memcpy((void *)u8FrameBufPtr, (void *)&video_img[0], 800*480*4);
     memcpy((void *)u8OSDFrameBufPtr, (void *)&osd_img[0], 320*240*4);
 #else
     memcpy((void *)u8FrameBufPtr, (void *)&video_img[0], 800*480*2);
     memcpy((void *)u8OSDFrameBufPtr, (void *)&osd_img[0], 320*240*2);
 #endif
-    
-	// Prepare hardware cursor image (color bar)
+
+    // Prepare hardware cursor image (color bar)
     for (i=0;i<16;i++)
     {
-    	u32CursorBuf[i] = 0x00;
+        u32CursorBuf[i] = 0x00;
         u32CursorBuf[i+16*1] = 0x55555555;
         u32CursorBuf[i+16*2] = 0xaaaaaaaa;
         u32CursorBuf[i+16*3] = 0xffffffff;
@@ -153,16 +159,16 @@ int32_t main(void)
         u32CursorBuf[i+16*30] = 0xaaaaaaaa;
         u32CursorBuf[i+16*31] = 0xffffffff;
     }
-    
-	// Start video and OSD
-	vpostVAStartTrigger();
-	vpostOSDEnable();
-    
-	// Start hardware cursor
-	vpostHCInit(u32CursorBuf, HC_MODE0);
-    // Set hardware cursor position	
-	vpostHCPosCtrl(50, 50);
-    
+
+    // Start video and OSD
+    vpostVAStartTrigger();
+    vpostOSDEnable();
+
+    // Start hardware cursor
+    vpostHCInit(u32CursorBuf, HC_MODE0);
+    // Set hardware cursor position
+    vpostHCPosCtrl(50, 50);
+
     while(1);
 }
 /*** (C) COPYRIGHT 2015 Nuvoton Technology Corp. ***/
