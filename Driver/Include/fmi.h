@@ -193,10 +193,10 @@
 #define EMMC_CRC_ERROR        (EMMC_ERR_ID|0x18)    /*!< FMI Error - crc err \hideinitializer */
 #define EMMC_CMD8_ERROR       (EMMC_ERR_ID|0x19)    /*!< FMI Error - CMD8 err \hideinitializer */
 
-#define SD_FREQ         25000      /*!< output 25MHz to SD  \hideinitializer */
-#define SDHC_FREQ       50000      /*!< output 50MHz to SDH  \hideinitializer */
-#define MMC_FREQ        20000      /*!< output 20MHz to MMC  \hideinitializer */
-#define EMMC_FREQ       26000      /*!< output 26MHz to eMMC  \hideinitializer */
+#define SD_FREQ         25000      /*!< Unit: kHz. Output 25MHz to SD  \hideinitializer */
+#define SDHC_FREQ       50000      /*!< Unit: kHz. Output 50MHz to SDH  \hideinitializer */
+#define MMC_FREQ        20000      /*!< Unit: kHz. Output 20MHz to MMC  \hideinitializer */
+#define EMMC_FREQ       26000      /*!< Unit: kHz. Output 26MHz to eMMC  \hideinitializer */
 
 /*@}*/ /* end of group NUC970_FMI_EXPORTED_CONSTANTS */
 

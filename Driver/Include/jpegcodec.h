@@ -31,7 +31,7 @@
 */
 
 #define E_FAIL		0             /*!< JPEG function Error */
-#define E_SUCCESS	1             /*!< JPEG function Success */  
+#define E_SUCCESS	1             /*!< JPEG function Success */
 #define E_JPEG_INVALID_PARAM 2    /*!< Input invalid paramater */
 #define E_JPEG_TIMEOUT	3         /*!< JPEG function Time-out */
 
@@ -48,12 +48,12 @@
 //(PLANAR_ON | PDHTAB | DHEND)
 #define JPEG_DEC_PRIMARY_PLANAR_YUV		0x8021  /*!< JPEG decode output Primary Planar YUV */
 //(PDHTAB | DHEND)
-#define JPEG_DEC_PRIMARY_PACKET_YUV422	0x0021  /*!< JPEG decode output Primary Packet YUV422 */ 
+#define JPEG_DEC_PRIMARY_PACKET_YUV422	0x0021  /*!< JPEG decode output Primary Packet YUV422 */
 
 //(PDHTAB | DHEND | ORDER)
 #define JPEG_DEC_PRIMARY_PACKET_RGB555	0x04021  /*!< JPEG decode output Primary Packet RGB555 */
 //(PDHTAB | DHEND | RGB555_565 | ORDER )
-#define JPEG_DEC_PRIMARY_PACKET_RGB565	0x06021  /*!< JPEG decode output Primary Packet RGB565 */ 
+#define JPEG_DEC_PRIMARY_PACKET_RGB565	0x06021  /*!< JPEG decode output Primary Packet RGB565 */
 
 //(PDHTAB | DHEND | ORDER)
 #define JPEG_DEC_PRIMARY_PACKET_RGB555R1	0x404021  /*!< JPEG decode output Primary Packet RGB555R1 */
@@ -164,8 +164,8 @@ typedef struct{
 	UINT32	width;			/*!< Image Width */
     UINT32	height;			/*!< Image High */
 	UINT32	jpeg_width;		/*!< JPEG decode width*/
-    UINT32	jpeg_height;	/*!< JPEG devode high*/        
-    UINT32	stride;			/*!< Stride for decode*/    
+    UINT32	jpeg_height;	/*!< JPEG decode high*/
+    UINT32	stride;			/*!< Stride for decode*/
     /*encode information*/
     UINT32	bufferend;     /*!< Encode buffer */
     UINT32	image_size[2]; /*!< Image size after encoded*/

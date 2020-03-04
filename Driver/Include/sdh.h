@@ -239,8 +239,8 @@
 #define SD_CRC_ERROR        (SD_ERR_ID|0x18)    /*!< SDH Error - crc err \hideinitializer */
 #define SD_CMD8_ERROR       (SD_ERR_ID|0x19)    /*!< SDH Error - CMD8 err \hideinitializer */
 
-#define SD_FREQ         25000   /*!< output 25MHz to SD  \hideinitializer */
-#define SDHC_FREQ       50000   /*!< output 50MHz to SDH \hideinitializer */
+#define SD_FREQ         25000   /*!< Unit: kHz. Output 25MHz to SD  \hideinitializer */
+#define SDHC_FREQ       50000   /*!< Unit: kHz. Output 50MHz to SDH \hideinitializer */
 
 #define SD_PORT0        (1 << 0)  /*!< Card select SD0 \hideinitializer */
 #define SD_PORT1        (1 << 2)  /*!< Card select SD1 \hideinitializer */

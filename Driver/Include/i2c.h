@@ -37,7 +37,7 @@ extern "C"
 #define I2C_NUMBER				2
 #define I2C_MAX_BUF_LEN			450
 
-#define I2C_INPUT_CLOCK			75000           /* 33 000 KHz */
+#define I2C_INPUT_CLOCK			75000           /* Unit: kHz */
 
 /*-----------------------------------------*/
 /* global interface variables declarations */
