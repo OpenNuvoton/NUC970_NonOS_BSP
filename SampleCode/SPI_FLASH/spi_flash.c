@@ -123,7 +123,7 @@ void SpiFlash_NormalPageProgram(uint32_t StartAddress, uint8_t *u8DataBuffer)
     while(spiGetBusyStatus(0));
 
     // write data
-    for(i=0; i<255; i++) {
+    for(i=0; i<256; i++) {
         spiWrite(0, 0, u8DataBuffer[i]);
         spiIoctl(0, SPI_IOC_TRIGGER, 0, 0);
         while(spiGetBusyStatus(0));
