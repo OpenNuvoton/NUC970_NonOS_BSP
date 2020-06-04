@@ -27,6 +27,8 @@ static const uint8_t symKeysUp[] = { '_', '+', '{', '}', '|', '~', ':', '"', '~'
 static const uint8_t symKeysLo[] = { '-', '=', '[', ']', '\\', ' ', ';', '\'', '`', ',', '.', '/' };
 static const uint8_t padKeys[] = { '/', '*', '-', '+', 0x13 };
 
+uint8_t  dma_buff_pool[8] __attribute__((aligned(32)));
+
 
 void  print_key(uint8_t mod, uint8_t key)
 {
@@ -114,6 +116,9 @@ uint8_t  update_locking_keys(HID_DEV_T *hdev, uint8_t key)
 {
     uint8_t   old_LED;
     int       ret;
+    uint8_t   *data_buff;
+
+    data_buff = (uint8_t *)((uint32_t)dma_buff_pool | 0x80000000);   // get non-cachable buffer address
 
     old_LED = g_kbd_dev.bLED;
 
@@ -132,7 +137,8 @@ uint8_t  update_locking_keys(HID_DEV_T *hdev, uint8_t key)
 
     if (g_kbd_dev.bLED != old_LED)
     {
-        ret = usbh_hid_set_report(hdev, 2, 0, &g_kbd_dev.bLED, 1);
+        data_buff[0] = g_kbd_dev.bLED;
+        ret = usbh_hid_set_report(hdev, 2, 0, data_buff, 1);
         if (ret < 0)
             sysprintf("usbh_hid_set_report failed - %d\n", ret);
         return ret;
