@@ -3,6 +3,7 @@
  * @version  V1.00
  * @brief    NUC970 MCU USB Host CDC library core
  *
+ * SPDX-License-Identifier: Apache-2.0
  * @copyright (C) 2019 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 

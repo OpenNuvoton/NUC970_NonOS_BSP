@@ -6,6 +6,7 @@
 * @brief    NUC970 JPEG driver source file
 *
 * @note
+* SPDX-License-Identifier: Apache-2.0
 * Copyright (C) 2015 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 #include <stdio.h>

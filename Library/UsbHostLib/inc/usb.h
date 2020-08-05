@@ -3,6 +3,7 @@
  * @version  V1.00
  * @brief    USB Host library header file.
  * @note
+ * SPDX-License-Identifier: Apache-2.0
  * Copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
 

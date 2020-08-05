@@ -1,5 +1,6 @@
 /*
  * standalone.c - minimal bootstrap for C library
+ * SPDX-License-Identifier: Apache-2.0
  * Copyright (C) 2000 ARM Limited.
  * All rights reserved.
  */

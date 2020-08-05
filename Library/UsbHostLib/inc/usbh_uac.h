@@ -6,6 +6,7 @@
  * @brief    USB Host UAC class driver header file.
  *
  * @note
+ * SPDX-License-Identifier: Apache-2.0
  * Copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #ifndef  _USBH_UAC_H_

@@ -6,6 +6,7 @@
  * @brief   USB Host library EHCI (USB 2.0) host controller driver.
  *
  * @note
+ * SPDX-License-Identifier: Apache-2.0
  * Copyright (C) 2017 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 

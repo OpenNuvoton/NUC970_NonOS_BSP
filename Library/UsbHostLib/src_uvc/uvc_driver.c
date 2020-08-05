@@ -5,6 +5,7 @@
  * $Date: 15/06/12 10:12a $
  * @brief    NUC970 MCU USB Host Video Class driver
  *
+ * SPDX-License-Identifier: Apache-2.0
  * Copyright (C) 2018 Nuvoton Technology Corp. All rights reserved.
 *****************************************************************************/
 
