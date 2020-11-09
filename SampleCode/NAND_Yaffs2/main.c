@@ -81,7 +81,7 @@ int main(void)
 	sysInvalidCache();
 	sysSetMMUMappingMethod(MMU_DIRECT_MAPPING);
 	sysEnableCache(CACHE_WRITE_THROUGH);
-    sysStartTimer(TIMER0, 100, PERIODIC_MODE);
+    sysStartTimer(TIMER0, 1000, PERIODIC_MODE);
 
     FMI_Init();
     nand_init();
