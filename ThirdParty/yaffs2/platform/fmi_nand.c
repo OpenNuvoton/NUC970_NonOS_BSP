@@ -771,21 +771,21 @@ int board_nand_init(struct nand_chip *nand)
             case 0x00:
                 mtd->writesize = 2048;
                 outpw(REG_NANDCTL, (inpw(REG_NANDCTL)&(~0x30000)) + 0x10000);
-                mtd->oobsize = g_i32ParityNum[0][nuvoton_nand->eBCHAlgo] + 8;
+                mtd->oobsize = g_i32ParityNum[1][nuvoton_nand->eBCHAlgo] + 8;
                 nuvoton_layout_oob_table( &nuvoton_nand_oob, mtd->oobsize, g_i32ParityNum[1][nuvoton_nand->eBCHAlgo] );
                 break;
 
             case 0x40:
                 mtd->writesize = 4096;
                 outpw(REG_NANDCTL, (inpw(REG_NANDCTL)&(~0x30000)) + 0x20000);
-                mtd->oobsize = g_i32ParityNum[1][nuvoton_nand->eBCHAlgo] + 8;
+                mtd->oobsize = g_i32ParityNum[2][nuvoton_nand->eBCHAlgo] + 8;
                 nuvoton_layout_oob_table ( &nuvoton_nand_oob, mtd->oobsize, g_i32ParityNum[2][nuvoton_nand->eBCHAlgo] );
                 break;
 
             case 0x80:
                 mtd->writesize = 8192;
                 outpw(REG_NANDCTL, (inpw(REG_NANDCTL)&(~0x30000)) + 0x30000);
-                mtd->oobsize = g_i32ParityNum[2][nuvoton_nand->eBCHAlgo] + 8;
+                mtd->oobsize = g_i32ParityNum[3][nuvoton_nand->eBCHAlgo] + 8;
                 nuvoton_layout_oob_table ( &nuvoton_nand_oob, mtd->oobsize, g_i32ParityNum[3][nuvoton_nand->eBCHAlgo] );
                 break;
 
