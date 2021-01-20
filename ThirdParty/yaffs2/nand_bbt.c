@@ -1097,6 +1097,7 @@ static int nand_scan_bbt(struct mtd_info *mtd, struct nand_bbt_descr *bd)
 	this->bbt = yaffs_malloc(len);
 	if (!this->bbt)
 		return -ENOMEM;
+	memset((void*)this->bbt,0,len);
 
 	/*
 	 * If no primary table decriptor is given, scan the device to build a
