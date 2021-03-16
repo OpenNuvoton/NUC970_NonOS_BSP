@@ -607,6 +607,7 @@ int32_t usbh_hid_start_int_write(HID_DEV_T *hdev, uint8_t ep_addr, HID_IW_FUNC *
     if (ret < 0)
     {
         HID_DBGMSG("Error - failed to submit interrupt read request (%d)", ret);
+        usbh_free_mem(utr->buff, utr->data_len);
         free_utr(utr);
         return HID_RET_IO_ERR;
     }
