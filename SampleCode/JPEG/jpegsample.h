@@ -30,7 +30,7 @@ extern PUINT8 g_pu8DecFrameBuffer; /* The buffer for decoding output */
 
 extern PUINT8 g_pu8DecFrameBuffer; /* The buffer for decoding output */
 #if defined ( __GNUC__ ) && !(__CC_ARM)
-    __attribute__((aligned(32))) UINT8 g_au8BitstreamBuffer[];
+    __attribute__((aligned(32))) extern UINT8 g_au8BitstreamBuffer[];
 #else
     extern UINT8 __align(32) g_au8BitstreamBuffer[];    /* The buffer for encoding output */
 #endif
@@ -39,7 +39,7 @@ extern PUINT8 g_pu8DecFrameBuffer; /* The buffer for decoding output */
 /*  Decode Input Wait parameter                                          */
 /*-----------------------------------------------------------------------*/
 #if defined ( __GNUC__ ) && !(__CC_ARM)
-    __attribute__((aligned(32))) UINT8 g_au8DecInputWaitBuffer[];
+    __attribute__((aligned(32))) extern UINT8 g_au8DecInputWaitBuffer[];
 #else
     extern UINT8 __align(32) g_au8DecInputWaitBuffer[]; /* Buffer for Decode Input Wait */
 #endif
