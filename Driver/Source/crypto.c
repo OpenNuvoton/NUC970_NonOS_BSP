@@ -347,6 +347,8 @@ void SHA_Read(uint32_t u32Digest[])
         wcnt = 5;
     else if (i == SHA_MODE_SHA224)
         wcnt = 7;
+    else if (i == SHA_MODE_SHA256)
+        wcnt = 8;
     else if (i == SHA_MODE_SHA384)
         wcnt = 12;
     else
