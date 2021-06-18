@@ -453,7 +453,8 @@ int fmiSMCorrectData (struct mtd_info *mtd, unsigned long uDAddr )
                     uErrorCnt = (uStatus >> 2) & 0x1F;
                     fmiSM_CorrectData_BCH(jj*4+ii, uErrorCnt, (u8 *)uDAddr);
 
-                    break;
+                    uStatus >>= 8;
+                    continue;
                 } else // uncorrectable error or ECC error
                 {
                     return -1;
