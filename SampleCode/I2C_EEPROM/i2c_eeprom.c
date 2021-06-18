@@ -38,8 +38,14 @@ int32_t main(void)
     sysEnableCache(CACHE_WRITE_BACK);
     sysInitializeUART();
 	
+	/* Enable GPIO clock */
+	outpw(REG_CLK_PCLKEN0, (inpw(REG_CLK_PCLKEN0) | 0x8));
+	
 	/* Configure multi function pins to I2C0 */
 	outpw(REG_SYS_GPG_MFPL, (inpw(REG_SYS_GPG_MFPL) & ~0xff) | 0x88);
+	
+	/* I2C clock pin enable schmitt trigger */
+	outpw(REG_GPIOG_ISEN, (inpw(REG_GPIOG_ISEN) | 0x3));
 	
 	/* initialize test data */
 	for(i = 0 ; i < TXSIZE ; i++)
