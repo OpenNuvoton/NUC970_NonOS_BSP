@@ -93,8 +93,7 @@ void USBD_Open(S_USBD_INFO_T *param, CLASS_REQ pfnClassReq, SET_INTERFACE_REQ pf
         if (USBD->EP[EPA].EPMPS == 0x20)
             break;
     }
-    /* Force SE0, and then clear it to connect*/
-    USBD_SET_SE0();
+    USBD->OPER &= ~USBD_OPER_HISPDEN_Msk;   /* full-speed */
 }
 
 /**
@@ -106,6 +105,7 @@ void USBD_Open(S_USBD_INFO_T *param, CLASS_REQ pfnClassReq, SET_INTERFACE_REQ pf
  */
 void USBD_Start(void)
 {
+    USBD->OPER = USBD_OPER_HISPDEN_Msk;   /* high-speed */
     USBD_CLR_SE0();
 }
 

@@ -322,6 +322,9 @@ void VCOM_Init(void)
     USBD_ENABLE_CEP_INT(USBD_CEPINTEN_SETUPPKIEN_Msk|USBD_CEPINTEN_STSDONEIEN_Msk);
 
     VCOM_InitForHighSpeed();
+
+    /* Start transaction */
+    USBD_Start();
 }
 
 

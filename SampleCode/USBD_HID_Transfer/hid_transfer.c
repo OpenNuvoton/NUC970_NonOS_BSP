@@ -370,6 +370,9 @@ void HID_Init(void)
     USBD_ENABLE_CEP_INT(USBD_CEPINTEN_SETUPPKIEN_Msk|USBD_CEPINTEN_STSDONEIEN_Msk);
 
     HID_InitForHighSpeed();
+
+    /* Start transaction */
+    USBD_Start();
 }
 
 void HID_ClassRequest(void)

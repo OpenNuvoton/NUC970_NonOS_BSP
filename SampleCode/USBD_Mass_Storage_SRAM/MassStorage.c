@@ -384,6 +384,9 @@ void MSC_Init(void)
 
     MSC_InitForHighSpeed();
 
+    /* Start transaction */
+    USBD_Start();
+
     g_sCSW.dCSWSignature = CSW_SIGNATURE;
     g_TotalSectors = 60;
     g_u32MassBase = 0x80300000;

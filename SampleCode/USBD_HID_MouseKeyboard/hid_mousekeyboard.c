@@ -292,6 +292,9 @@ void HID_Init(void)
     USBD_SET_MAX_PAYLOAD(EPB, EPB_MAX_PKT_SIZE);
     USBD_ConfigEp(EPB, INT_IN_EP_NUM_KB, USB_EP_CFG_TYPE_INT, USB_EP_CFG_DIR_IN);
 
+    /* Start transaction */
+    USBD_Start();
+
     /* start to IN data */
     g_u8EPAReady = 1;
     g_u8EPBReady = 1;

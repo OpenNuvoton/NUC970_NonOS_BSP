@@ -20,16 +20,16 @@ extern void USBD_IRQHandler(void);
 /*---------------------------------------------------------------------------------------------------------*/
 int32_t main (void)
 {
-	sysInitializeUART();
+    sysInitializeUART();
     sysprintf("\n");
     sysprintf("========================================\n");
     sysprintf("     NUC970 USB HID Mouse/ Keyboard     \n");
     sysprintf("========================================\n");
 
-	sysDisableCache();
-	sysInvalidCache();
-	sysSetMMUMappingMethod(MMU_DIRECT_MAPPING);
-	sysEnableCache(CACHE_WRITE_BACK);
+    sysDisableCache();
+    sysInvalidCache();
+    sysSetMMUMappingMethod(MMU_DIRECT_MAPPING);
+    sysEnableCache(CACHE_WRITE_BACK);
 
     sysInstallISR(HIGH_LEVEL_SENSITIVE|IRQ_LEVEL_1, USBD_IRQn, (PVOID)USBD_IRQHandler);
     /* enable CPSR I bit */
@@ -41,9 +41,7 @@ int32_t main (void)
     /* Endpoint configuration */
     HID_Init();
 
-	sysEnableInterrupt(USBD_IRQn);
-    /* Start transaction */
-    USBD_Start();
+    sysEnableInterrupt(USBD_IRQn);
 
     while(1) {
         HID_UpdateMouseData();
