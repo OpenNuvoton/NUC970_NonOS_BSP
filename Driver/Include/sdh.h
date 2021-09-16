@@ -257,7 +257,8 @@
 
 /** \brief  Structure type of inserted Card information.
  */
-typedef struct SD_info_t {
+typedef struct SD_info_t
+{
     unsigned int    CardType;       /*!< SDHC, SD, or MMC */
     unsigned int    RCA;            /*!< relative card address */
     unsigned char   IsCardInsert;   /*!< card insert state */
