@@ -71,5 +71,9 @@ SECTIONS
     . = ALIGN(8);
     end = .;
   } > RAM
+
+  PROVIDE_HIDDEN (__exidx_start = .);
+  .ARM.exidx : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) }
+  PROVIDE_HIDDEN (__exidx_end = .);
 }
 
