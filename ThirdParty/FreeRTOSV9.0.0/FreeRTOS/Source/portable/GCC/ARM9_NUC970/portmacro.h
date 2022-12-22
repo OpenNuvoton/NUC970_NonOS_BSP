@@ -258,12 +258,6 @@ extern void vPortExitCritical( void );
 #define portEXIT_CRITICAL()			vPortExitCritical();
 /*-----------------------------------------------------------*/
 
-/* Compiler specifics. */
-#define inline
-#define register
-#define portNOP()	__asm{ NOP }
-/*-----------------------------------------------------------*/
-
 /* Task function macros as described on the FreeRTOS.org WEB site. */
 #define portTASK_FUNCTION_PROTO( vFunction, pvParameters )	void vFunction( void *pvParameters )
 #define portTASK_FUNCTION( vFunction, pvParameters )	void vFunction( void *pvParameters )
