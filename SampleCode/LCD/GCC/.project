@@ -128,7 +128,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1557216260475</id>
+			<id>1682581327870</id>
 			<name>Driver/Driver</name>
 			<type>5</type>
 			<matcher>
@@ -137,7 +137,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1557216260475</id>
+			<id>1682581327878</id>
 			<name>Driver/Driver</name>
 			<type>5</type>
 			<matcher>
@@ -146,7 +146,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1557216260492</id>
+			<id>1682581327886</id>
 			<name>Driver/Driver</name>
 			<type>5</type>
 			<matcher>
@@ -155,7 +155,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1557216260492</id>
+			<id>1682581327895</id>
 			<name>Driver/Driver</name>
 			<type>5</type>
 			<matcher>
@@ -164,7 +164,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1557216260508</id>
+			<id>1682581327904</id>
 			<name>Driver/Driver</name>
 			<type>5</type>
 			<matcher>
@@ -173,7 +173,7 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1557216260508</id>
+			<id>1682581327913</id>
 			<name>Driver/Driver</name>
 			<type>5</type>
 			<matcher>
@@ -182,12 +182,21 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1557216260523</id>
+			<id>1682581327921</id>
 			<name>Driver/Driver</name>
 			<type>5</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
 				<arguments>1.0-name-matches-false-false-lcd.c</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1682581327932</id>
+			<name>Driver/Driver</name>
+			<type>5</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-etimer.c</arguments>
 			</matcher>
 		</filter>
 	</filteredResources>

@@ -14,9 +14,10 @@
 #include "nuc970.h"
 #include "sys.h"
 #include "lcd.h"
+#include "etimer.h"
 
-#define DISPLAY_RGB565
-//#define DISPLAY_RGB888
+//#define DISPLAY_RGB565
+#define DISPLAY_RGB888
 
 #ifdef DISPLAY_RGB888
 #include "image_rgb888.dat"
@@ -30,6 +31,32 @@ __attribute__((aligned(32))) uint32_t u32CursorBuf[512];
 #else
 __align(32) uint32_t u32CursorBuf[512];
 #endif
+
+void ETMR0_IRQHandler(void)
+{
+    static uint32_t sec = 1;
+    // Clear timer interrupt flag
+    ETIMER_ClearIntFlag(0);
+    // Change the weighting of mixing the data of video and OSD streams
+    vpostVAStopTrigger();
+    vpostOSDSetOverlay(DISPLAY_SYNTHESIZED, DISPLAY_SYNTHESIZED, sec++ % 8);
+    vpostVAStartTrigger();
+    vpostOSDEnable();
+}
+
+void ETIMER_Init(void)
+{
+    // Enable ETIMER0 engine clock
+    outpw(REG_CLK_PCLKEN0, inpw(REG_CLK_PCLKEN0) | (1 << 4));
+    // Set timer frequency to 1HZ
+    ETIMER_Open(0, ETIMER_PERIODIC_MODE, 1);
+    // Enable timer interrupt
+    ETIMER_EnableInt(0);
+    sysInstallISR(HIGH_LEVEL_SENSITIVE | IRQ_LEVEL_1, ETMR0_IRQn, (PVOID)ETMR0_IRQHandler);
+    sysSetLocalInterrupt(ENABLE_IRQ);
+    sysEnableInterrupt(ETMR0_IRQn);
+}
+
 int32_t main(void)
 {
     uint8_t *u8FrameBufPtr, *u8OSDFrameBufPtr, i;
@@ -168,6 +195,10 @@ int32_t main(void)
     vpostHCInit(u32CursorBuf, HC_MODE0);
     // Set hardware cursor position
     vpostHCPosCtrl(50, 50);
+
+    // Start timer
+    ETIMER_Init();
+    ETIMER_Start(0);
 
     while(1);
 }

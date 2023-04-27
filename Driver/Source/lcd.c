@@ -610,8 +610,8 @@ void vpostHCPosCtrl(uint32_t u32CursorX, uint32_t u32CursorY)
   */
 void vpostOSDSetOverlay(uint8_t u8OSDDisplayMatch, uint8_t u8OSDDisplayUnMatch, uint8_t u8OSDSynW)
 {
-    /* clear OCR0 and OCR1 */
-    outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY)&0xfffffff0);
+    /* clear OCR0, OCR1 and VA_SYNW */
+    outpw(REG_LCM_OSD_OVERLAY,inpw(REG_LCM_OSD_OVERLAY)&0xffffff00);
 
     /* match condition */
     if (u8OSDDisplayMatch != 0)
