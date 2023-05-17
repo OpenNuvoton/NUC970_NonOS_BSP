@@ -32,8 +32,8 @@ extern "C"
 
 /// @cond HIDDEN_SYMBOLS
 typedef struct {
-    UINT32    PatternA;
-    UINT32    PatternB;
+	UINT32    PatternA;
+	UINT32    PatternB;
 } MONOPATTERN;
 
 #define COLOR_KEY 0x6496c8
@@ -161,6 +161,7 @@ void ge2dHostBlt_Write(int x, int y, int width, int height, void *buf);
 void ge2dHostBlt_Read(int x, int y, int width, int height, void *buf);
 void ge2dHostBlt_Sprite(int x, int y, int width, int height, void *buf);
 void ge2dRotation(int srcx, int srcy, int destx, int desty, int width, int height, int ctl);
+void ge2dImageScaling(int srcx, int srcy, int destx, int desty, int width, int height, int vsf_n, int hsf_n, int up);
 void ge2dSpriteBlt_Screen(int destx, int desty, int sprite_width, int sprite_height, void *buf);
 void ge2dSpriteBltx_Screen(int x, int y, int sprite_sx, int sprite_sy, int width, int height, int sprite_width, int sprite_height, void *buf);
 void ge2dSpriteBlt_ScreenRop(int x, int y, int sprite_width, int sprite_height, void *buf, int rop);

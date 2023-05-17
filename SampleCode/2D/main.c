@@ -39,6 +39,14 @@ UINT8 picRGB56564x80[] = {
 
 const int ColorTbl[3]= {0xff0000, 0x00ff00, 0x0000ff};
 
+void delay_ticks(int ticks)
+{
+	uint32_t  t0;
+
+	t0 = sysGetTicks(TIMER0);
+	while (sysGetTicks(TIMER0) - t0 < ticks);
+}
+
 void GE_Rotate(void)
 {
     int idx=0;
@@ -400,12 +408,38 @@ void GE_ScreenToScreenBLT(void)
     ge2dBitblt_ScreenToScreen(0, 0, 50, 50, 40, 40);
 }
 
+void GE_Blit_Scaling(void)
+{
+    int  i;
+    void *_ColorSrcBufferPtr2;
+
+    _ColorSrcBufferPtr2 = malloc(800*480*2);
+
+    memcpy((void *)_ColorSrcBufferPtr2, (void *)picRGB565160x120, 160*120*2);
+    ge2dSpriteBlt_Screen(0, 0, 160, 120, _ColorSrcBufferPtr2);
+
+	/* down-scaling */
+	for (i = 1; i < 255; i++)
+	{
+		sysprintf("Down scaling x %d/255\n", i);
+		ge2dImageScaling(0, 0, 160, 120, 160, 120, i, i, 0);
+	}
+
+	/* down-scaling */
+	for (i = 0; i < 255; i++)
+	{
+		sysprintf("Up scaling x %d/255\n", i + 255);
+		ge2dImageScaling(0, 0, 160, 120, 160, 120, i, i, 1);
+	}
+    free(_ColorSrcBufferPtr2);
+}
+
 void GE_FontBLT(void)
 {
 	ge2dFont_PutString(10,50, "8x8 font",0xff0000, 0xff, MODE_TRANSPARENT, F8x8);
 	ge2dFont_PutString(100,50,"nuvoton...", 0xff0000, 0xff, MODE_OPAQUE, F8x8);
  	ge2dFont_PutString(100,80,"NUVOTON", 0xff00, 0xff, MODE_TRANSPARENT, F8x8);
- 	
+
  	ge2dFont_PutString(100,100,"nuvoton...", 0xff0000, 0xff, MODE_OPAQUE, F8x16);
 	ge2dFont_PutString(10,100, "8x16 font", 0xff00, 0xff, MODE_TRANSPARENT, F8x16);
  	ge2dFont_PutString(100,130,"NUVOTON", 0xff00, 0xff, MODE_TRANSPARENT, F8x16);
@@ -424,6 +458,10 @@ int32_t main(void)
     sysFlushCache(I_D_CACHE);
     sysEnableCache(CACHE_WRITE_BACK);
     sysInitializeUART();
+
+    /*--- init timer ---*/
+    sysSetTimerReferenceClock (TIMER0, 12000000);
+    sysStartTimer(TIMER0, 100, PERIODIC_MODE);
 
     // Configure multi-function pin for LCD interface
     //GPG6 (CLK), GPG7 (HSYNC)
@@ -486,6 +524,8 @@ int32_t main(void)
         switch(item) {
         case 1: /* BitBlt Test */
             GE_ScreenToScreenBLT();
+            delay_ticks(100);
+            GE_Blit_Scaling();
             break;
 
         case 2: /* Solid Fill */
@@ -519,7 +559,7 @@ int32_t main(void)
         case 9: /* Rotate */
             GE_Rotate();
             break;
-        
+
         case 0: /* Font */
             GE_FontBLT();
             break;

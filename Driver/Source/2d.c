@@ -2174,6 +2174,83 @@ void ge2dRotation(int srcx, int srcy, int destx, int desty, int width, int heigh
 }
 
 /**
+  * @brief Captured the specified photo data from display memory, then displayed on display memory by up/down scaling
+  * @param[in] srcx source x position
+  * @param[in] srcy source y position
+  * @param[in] destx destination x position
+  * @param[in] desty destination y position
+  * @param[in] width is display width
+  * @param[in] height is display height
+  * @param[in] vsf_n is vertical N scaling factor. M is always be 255.
+  * @param[in] hsf_n is horizontal N scaling factor. M is always be 255.
+  * @param[in] up is up scaling if not zero, and is down scaling if 0.
+  * @return none
+  */
+void ge2dImageScaling(int srcx, int srcy, int destx, int desty, int width, int height, int vsf_n, int hsf_n, int up)
+{
+    UINT32 cmd32, dest_start, src_start, dimension, pitch;
+    void *tmpscreen,*orig_dest_start00;
+
+    tmpscreen = (void *)malloc(width*height*GFX_BPP/8);
+
+#ifdef DEBUG
+    sysprintf("rotation_image()\n");
+    sysprintf("(%d,%d)=>(%d,%d)\n", srcx, srcy, destx, desty);
+    sysprintf("width=%d height=%d\n", width, height);
+#endif
+
+    memset(tmpscreen,0,width*height*GFX_BPP/8);
+
+    orig_dest_start00 = (void *)inpw(REG_GE2D_XYDORG);
+    outpw(REG_GE2D_XYDORG, (int)tmpscreen);   //captured photo to another position
+    outpw(REG_GE2D_XYSORG, (int)GFX_START_ADDR);
+
+    ge2dBitblt_SourceToDestination(srcx,srcy,0,0,width,height,GFX_WIDTH,width);
+
+    src_start = dest_start = dimension = cmd32 = pitch = 0;
+
+    outpw(REG_GE2D_XYDORG, (int)orig_dest_start00);
+    outpw(REG_GE2D_XYSORG, (int)tmpscreen);
+
+    pitch = GFX_WIDTH << 16 | width;
+    outpw(REG_GE2D_SDPITCH, pitch);
+
+    src_start = 0 << 16 | 0;  // captured photo at (0,0) position
+    outpw(REG_GE2D_SRCSPA, src_start);
+
+    dest_start = desty << 16 | destx;
+    outpw(REG_GE2D_DSTSPA, dest_start);
+
+    dimension = height << 16 | width;
+    outpw(REG_GE2D_RTGLSZ, dimension);
+
+	outpw(REG_GE2D_TCNTVHSF, (vsf_n << 24) | (hsf_n << 8) | 0xff00ff);
+
+	cmd32 = 0xcc030000;
+    if (up)
+    	cmd32 |= (1 << 18);
+
+    if (_ClipEnable) {
+        cmd32 |= 0x00000200;
+        if (_OutsideClip) {
+            cmd32 |= 0x00000100;
+        }
+        outpw(REG_GE2D_CTL, cmd32);
+        outpw(REG_GE2D_CLPBTL, _ClipTL);
+        outpw(REG_GE2D_CLPBBR, _ClipBR);
+    }
+
+    /* set rotation reference point xy register, then nothing happened */
+    outpw(REG_GE2D_CTL, cmd32);
+
+    outpw(REG_GE2D_TRG, 1);
+    while ((inpw(REG_GE2D_INTSTS)&0x01)==0); // wait for command complete
+    outpw(REG_GE2D_INTSTS, 1); // clear interrupt status
+
+    free(tmpscreen);
+}
+
+/**
   * @brief OffScreen-to-OnScreen SpriteBlt with SRCCOPY.
   * @param[in] destx destination x position
   * @param[in] desty destination y position
@@ -2824,7 +2901,7 @@ void ge2dFont_PutChar(int x, int y, char asc_code, int fore_color, int back_colo
     fore_color32 = make_color(fore_color);
     back_color32 = make_color(back_color);
 
-    cmd32 = 0xcc430080; 
+    cmd32 = 0xcc430080;
 
     if (draw_mode==MODE_TRANSPARENT)
     {
@@ -2856,8 +2933,8 @@ void ge2dFont_PutChar(int x, int y, char asc_code, int fore_color, int back_colo
     else /* F8x8 */
     {
         fptr = (UINT8 *)&FontData8[asc_code][0];
-        src_pitch = 32; 
-        width = 32;  
+        src_pitch = 32;
+        width = 32;
         height = 8;
         ptr8 = (UINT8 *)&temp_buf[0];
         for (idx=0; idx<8; idx++)
@@ -2876,13 +2953,13 @@ void ge2dFont_PutChar(int x, int y, char asc_code, int fore_color, int back_colo
     outpw(REG_GE2D_SDPITCH, pitch);
 
     outpw(REG_GE2D_XYSORG, (int)fptr);
-    outpw(REG_GE2D_SRCSPA, 0); // always start from (0,0)    
+    outpw(REG_GE2D_SRCSPA, 0); // always start from (0,0)
 
     dest_start = y << 16 | x;
     outpw(REG_GE2D_DSTSPA, dest_start);
 
     dest_dimension = height << 16 | width;
-    outpw(REG_GE2D_RTGLSZ, dest_dimension);  
+    outpw(REG_GE2D_RTGLSZ, dest_dimension);
 
     outpw(REG_GE2D_TRG, 1);
     while ((inpw(REG_GE2D_INTSTS)&0x01)==0); // wait for command complete
@@ -2902,16 +2979,16 @@ void ge2dFont_PutChar(int x, int y, char asc_code, int fore_color, int back_colo
   */
 void ge2dFont_PutString(int x, int y, char *str, int fore_color, int back_color, int draw_mode, int font_id)
 {
-    char *ptr;  
+    char *ptr;
     int idx, sx;
 
-    ptr =	str; 
+    ptr =	str;
     sx = x;
     for (idx=0; idx<strlen(str); idx++)
     {
         ge2dFont_PutChar(sx, y, *ptr++, fore_color, back_color, draw_mode, font_id);
         sx += 8;	//char width
-    }  
+    }
 }
 /*@}*/ /* end of group NUC970_GE2D_EXPORTED_FUNCTIONS */
 
