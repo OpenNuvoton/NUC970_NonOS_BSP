@@ -16,6 +16,7 @@
 
 extern int InitNT99141_VGA(void);
 extern int InitNT99050_VGA(void);
+extern int InitHM1055_VGA(void);
 extern CAPDEV_T CAP;
 CAPDEV_T* pCAP;
 
@@ -174,6 +175,7 @@ int main(void)
     sysprintf(" CAP library demo code                                \n"); 
     sysprintf(" [1] NT99141 VGA                                      \n");
     sysprintf(" [2] NT99050 VGA                                      \n");
+    sysprintf(" [3] HM1055 VGA                                       \n");
     sysprintf("======================================================\n");
     u32Item = sysGetChar();
     switch(u32Item)
@@ -185,6 +187,10 @@ int main(void)
       case '2':
         pCAP->Open(36000);
         InitNT99050_VGA();
+        break;
+      case '3':
+        pCAP->Open(36000);
+        InitHM1055_VGA();
         break;
       default:
         break;
