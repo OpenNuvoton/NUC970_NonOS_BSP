@@ -82,19 +82,14 @@ int32_t main(void)
     //GPA8 ~ GPA15 (DATA8~15)
     outpw(REG_SYS_GPA_MFPH, 0x22222222);
     //GPD8~D15 (DATA16~23)
-#ifdef DISPLAY_RGB888
     outpw(REG_SYS_GPD_MFPH, (inpw(REG_SYS_GPD_MFPH)& ~0xFFFFFFFF) | 0x22222222);
-#endif
 
     // LCD clock is selected from UPLL and divide to 20MHz
     outpw(REG_CLK_DIVCTL1, (inpw(REG_CLK_DIVCTL1) & ~0xff1f) | 0xe18);
 
     // Init LCD interface for E50A2V1 LCD module
-#ifdef DISPLAY_RGB888
     vpostLCMInit(DIS_PANEL_E50A2V1);
-#else
-    vpostLCMInit(DIS_PANEL_E50A2V1_RGB565);
-#endif
+
     // Set scale to 1:1
     vpostVAScalingCtrl(1, 0, 1, 0, VA_SCALE_INTERPOLATION);
 
