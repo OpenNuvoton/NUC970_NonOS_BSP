@@ -114,7 +114,8 @@ static void get_max_lun(MSC_T *msc)
 {
     UDEV_T    *udev = msc->iface->udev;
     uint32_t  read_len;
-    uint8_t   buff[2], *nbuff;
+    uint8_t   buff[2] = { 0, 0 };
+    uint8_t   *nbuff;
     int       ret;
 
     msc->max_lun = 0;
@@ -124,7 +125,7 @@ static void get_max_lun(MSC_T *msc)
     /* Issue GET MAXLUN MSC class command to get the maximum lun number                   */
     /*------------------------------------------------------------------------------------*/
     ret = usbh_ctrl_xfer(udev, REQ_TYPE_IN | REQ_TYPE_CLASS_DEV | REQ_TYPE_TO_IFACE,
-                         0xFE, 0, 0, 1, nbuff, &read_len, 200);
+                         0xFE, 0, msc->iface->if_num, 1, nbuff, &read_len, 200);
     if (ret < 0)
     {
         msc_debug_msg("Get Max Lun command failed! Assign 0...\n");
