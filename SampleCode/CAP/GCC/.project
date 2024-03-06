@@ -50,6 +50,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/main.c</locationURI>
 		</link>
 		<link>
+			<name>Src/sensor_hm1055.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/sensor_hm1055.c</locationURI>
+		</link>
+		<link>
 			<name>Src/sensor_nt99050.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/sensor_nt99050.c</locationURI>
