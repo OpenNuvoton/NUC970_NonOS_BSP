@@ -21,10 +21,7 @@
 
 #define AUDIO_IN_BUFSIZ             8192
 
-uint8_t   au_in_buff[AUDIO_IN_BUFSIZ] __attribute__((aligned(32)));
-
 uint32_t  g_buff_pool[1024] __attribute__((aligned(32)));
-
 
 HID_DEV_T   *g_hid_list[CONFIG_HID_MAX_DEV];
 
