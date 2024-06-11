@@ -41,4 +41,8 @@ lst/
 *.rar
 !ThirdParty/FATFS/doc/img/mkfatimg.zip
 !SampleCode/CRYPTO_SHA_MTP/image.bin
+!Loader/eMMC/u-boot.bin
+!Loader/NAND/u-boot.bin
+!Loader/NAND/u-boot-spl.bin
+!Loader/SPI/u-boot.bin
 
