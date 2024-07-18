@@ -414,6 +414,7 @@ void i2sSetSampleRate(uint32_t u32SourceClockRate, uint32_t u32SampleRate, uint3
 
     u32MCLK = (u32SampleRate*256);
     u32MCLKDiv = u32SourceClockRate / u32MCLK;
+    if (u32MCLKDiv == 0) u32MCLKDiv++;
     outpw(REG_ACTL_I2SCON, (inpw(REG_ACTL_I2SCON) & ~0x000F0000) | (u32MCLKDiv-1) << 16);
 
     u32BCLKDiv = u32MCLK / (u32SampleRate*u32DataBit*u32Channel);
@@ -433,6 +434,7 @@ void i2sSetMCLKFrequency(uint32_t u32SourceClockRate, uint32_t u32SampleRate)
 
     u32MCLK = (u32SampleRate*256);
     u32MCLKDiv = u32SourceClockRate / u32MCLK;
+    if (u32MCLKDiv == 0) u32MCLKDiv++;
     outpw(REG_ACTL_I2SCON, (inpw(REG_ACTL_I2SCON) & ~0x000F0000) | (u32MCLKDiv-1) << 16);
 }
 

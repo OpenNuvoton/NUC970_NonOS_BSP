@@ -71,6 +71,14 @@ typedef char TCHAR;
 
 #endif
 
+/* Type of file size variables */
+
+#if _FS_EXFAT
+typedef QWORD FSIZE_t;
+#else
+typedef DWORD FSIZE_t;
+#endif
+
 
 
 /* File system object structure (FATFS) */

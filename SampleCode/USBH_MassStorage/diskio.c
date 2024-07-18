@@ -26,7 +26,8 @@
 #define USBH_DRIVE_4    7        /* USB Mass Storage */
 
 
-static BYTE  fatfs_win_buff_pool[_MAX_SS] __attribute__((aligned(32)));       /* FATFS window buffer is cachable. Must not use it directly. */
+#define DISK_BUFFER_SIZE    (32*1024)
+static BYTE  fatfs_win_buff_pool[DISK_BUFFER_SIZE] __attribute__((aligned(32)));       /* FATFS window buffer is cachable. Must not use it directly. */
 BYTE  *fatfs_win_buff;
 
 
@@ -75,7 +76,7 @@ DRESULT disk_read (
     {
         /* Disk read buffer is not non-cachable buffer. Use my non-cachable to do disk read. */
         sec_size = 512; // usbh_umas_disk_sector_size(pdrv);
-        if (count * sec_size > _MAX_SS)
+        if (count * sec_size > DISK_BUFFER_SIZE)
             return RES_ERROR;
 
         fatfs_win_buff = (BYTE *)((unsigned int)fatfs_win_buff_pool | 0x80000000);
@@ -121,7 +122,7 @@ DRESULT disk_write (
     {
         /* Disk write buffer is not non-cachable buffer. Use my non-cachable to do disk write. */
         sec_size = 512;  //usbh_umas_disk_sector_size(pdrv);
-        if (count * sec_size > _MAX_SS)
+        if (count * sec_size > DISK_BUFFER_SIZE)
             return RES_ERROR;
 
         fatfs_win_buff = (BYTE *)((unsigned int)fatfs_win_buff_pool | 0x80000000);
