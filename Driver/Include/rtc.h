@@ -447,6 +447,31 @@ typedef struct
 }RTC_TIME_DATA_T;
 
 /**
+  * @brief RTC Spare Register index definitions.
+  */
+typedef enum
+{
+    RTC_SPR0,      	   /*!< Spare register 0  */
+    RTC_SPR1,          /*!< Spare register 1  */
+    RTC_SPR2,          /*!< Spare register 2  */
+    RTC_SPR3,          /*!< Spare register 3  */
+    RTC_SPR4,          /*!< Spare register 4  */
+    RTC_SPR5,          /*!< Spare register 5  */
+    RTC_SPR6,          /*!< Spare register 6  */
+    RTC_SPR7,          /*!< Spare register 7  */
+    RTC_SPR8,          /*!< Spare register 8  */
+    RTC_SPR9,          /*!< Spare register 9  */
+    RTC_SPR10,         /*!< Spare register 10 */
+    RTC_SPR11,         /*!< Spare register 11 */
+    RTC_SPR12,         /*!< Spare register 12 */
+    RTC_SPR13,         /*!< Spare register 13 */
+    RTC_SPR14,         /*!< Spare register 14 */
+    RTC_SPR15,         /*!< Spare register 15 */
+
+    RTC_SPR_MAX        /*!< Number of spare registers (not a valid index) */
+} RTC_SPARE_REG_E;
+
+/**
   * @brief  RTC define Tick Struct
   */
 typedef struct
@@ -461,14 +486,16 @@ typedef struct
   @{
 */
 
-UINT32 RTC_Init(void);   
+UINT32 RTC_Init(void);
 UINT32 RTC_Open(RTC_TIME_DATA_T *sPt);
 UINT32 RTC_Ioctl(INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1);
 UINT32 RTC_Read(E_RTC_TIME_SELECT eTime, RTC_TIME_DATA_T *sPt);
 UINT32 RTC_Write(E_RTC_TIME_SELECT eTime, RTC_TIME_DATA_T *sPt);
 UINT32 RTC_DoFrequencyCompensation(INT32 i32FrequencyX100);
-UINT32 RTC_WriteEnable (BOOL bEnable);
+UINT32 RTC_AccessEnable (BOOL bEnable);
 UINT32 RTC_Close(void);
+UINT32 RTC_WriteSpareRegister(RTC_SPARE_REG_E eReg, uint32_t u32Data);
+UINT32 RTC_ReadSpareRegister(RTC_SPARE_REG_E eReg, uint32_t *pu32Data);
 void RTC_EnableClock(BOOL bEnable);
 
 /*@}*/ /* end of group NUC970_RTC_EXPORTED_FUNCTIONS */

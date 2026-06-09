@@ -71,7 +71,7 @@ static void RTC_ISR (void)
 
     if (u32RegINTSTS & RTC_TICK_INT)                                     /* tick interrupt occurred */
     {
-        RTC_WriteEnable(1);
+        RTC_AccessEnable(1);
         outp32(REG_RTC_INTSTS, RTC_TICK_INT);
         RTC_Check();
 
@@ -85,7 +85,7 @@ static void RTC_ISR (void)
     }
     if (u32RegINTSTS & RTC_ALARM_INT)                                    /* absolute alarm interrupt occurred */
     {
-        RTC_WriteEnable(1);
+        RTC_AccessEnable(1);
         outp32(REG_RTC_INTSTS, RTC_ALARM_INT);
         RTC_Check();
 
@@ -96,7 +96,7 @@ static void RTC_ISR (void)
     }
     if (u32RegINTSTS & RTC_RELATIVE_ALARM_INT)                            /* relative alarm interrupt occurred */
     {
-        RTC_WriteEnable(1);
+        RTC_AccessEnable(1);
         outp32(REG_RTC_INTSTS, RTC_RELATIVE_ALARM_INT);
         RTC_Check();
 
@@ -111,7 +111,7 @@ static void RTC_ISR (void)
     }
     if (u32RegINTSTS & RTC_PSWI_INT)                                        /* power key interrupt occurred */
     {
-        RTC_WriteEnable(1);
+        RTC_AccessEnable(1);
         outp32(REG_RTC_INTSTS, RTC_PSWI_INT);
         RTC_Check();
 
@@ -153,7 +153,7 @@ UINT32 RTC_DoFrequencyCompensation(INT32 i32FrequencyX100)
 
     u32Reg = (uint32_t)((i32RegInt << 8) | i32RegFra);
 
-    RTC_WriteEnable(1);
+    RTC_AccessEnable(1);
     outp32(REG_RTC_FREQADJ, u32Reg);
     RTC_Check();
 
@@ -170,7 +170,7 @@ UINT32 RTC_DoFrequencyCompensation(INT32 i32FrequencyX100)
   * @retval     E_RTC_SUCCESS   Success
   *
   */
-UINT32 RTC_WriteEnable (BOOL bEnable)
+UINT32 RTC_AccessEnable (BOOL bEnable)
 {
     INT32 volatile i32i;
 
@@ -359,7 +359,7 @@ UINT32 RTC_Open (RTC_TIME_DATA_T *sPt)
     {
         g_chHourMode = RTC_CLOCK_12;
 
-        RTC_WriteEnable(1);
+        RTC_AccessEnable(1);
         outp32(REG_RTC_TIMEFMT, RTC_CLOCK_12);
         RTC_Check();
 
@@ -373,7 +373,7 @@ UINT32 RTC_Open (RTC_TIME_DATA_T *sPt)
     {
         g_chHourMode = RTC_CLOCK_24;
 
-        RTC_WriteEnable(1);
+        RTC_AccessEnable(1);
         outp32(REG_RTC_TIMEFMT, RTC_CLOCK_24);
         RTC_Check();
     }
@@ -393,7 +393,7 @@ UINT32 RTC_Open (RTC_TIME_DATA_T *sPt)
     u32Reg    |= g_u32loSec;
     g_u32Reg = u32Reg;
 
-    RTC_WriteEnable(1);
+    RTC_AccessEnable(1);
     outp32(REG_RTC_TIME, (UINT32)g_u32Reg);
     RTC_Check();
 
@@ -417,11 +417,11 @@ UINT32 RTC_Open (RTC_TIME_DATA_T *sPt)
     u32Reg    |= g_u32loDay;
     g_u32Reg = u32Reg;
 
-    RTC_WriteEnable(1);
+    RTC_AccessEnable(1);
     outp32 (REG_RTC_CAL, (UINT32)g_u32Reg);
     RTC_Check();
 
-    RTC_WriteEnable(1);
+    RTC_AccessEnable(1);
     outp32(REG_RTC_WEEKDAY, (UINT32)sPt->u32cDayOfWeek);
     RTC_Check();
 
@@ -668,7 +668,7 @@ UINT32 RTC_Write(E_RTC_TIME_SELECT eTime, RTC_TIME_DATA_T *sPt)
             {
                 g_chHourMode = RTC_CLOCK_12;
 
-                RTC_WriteEnable(1);
+                RTC_AccessEnable(1);
                 outp32(REG_RTC_TIMEFMT, RTC_CLOCK_12);
                 RTC_Check();
 
@@ -684,7 +684,7 @@ UINT32 RTC_Write(E_RTC_TIME_SELECT eTime, RTC_TIME_DATA_T *sPt)
             {
                 g_chHourMode = RTC_CLOCK_24;
 
-                RTC_WriteEnable(1);
+                RTC_AccessEnable(1);
                 outp32(REG_RTC_TIMEFMT, RTC_CLOCK_24);
                 RTC_Check();
 
@@ -705,7 +705,7 @@ UINT32 RTC_Write(E_RTC_TIME_SELECT eTime, RTC_TIME_DATA_T *sPt)
             u32Reg|= g_u32loSec;
             g_u32Reg = u32Reg;
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_TIME, (UINT32)g_u32Reg);
             RTC_Check();
 
@@ -724,11 +724,11 @@ UINT32 RTC_Write(E_RTC_TIME_SELECT eTime, RTC_TIME_DATA_T *sPt)
             u32Reg|= g_u32loDay;
             g_u32Reg = u32Reg;
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32 (REG_RTC_CAL, (UINT32)g_u32Reg);
             RTC_Check();
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_WEEKDAY,(UINT32) sPt->u32cDayOfWeek);
             RTC_Check();
 
@@ -745,7 +745,7 @@ UINT32 RTC_Write(E_RTC_TIME_SELECT eTime, RTC_TIME_DATA_T *sPt)
         }
         case RTC_ALARM_TIME:
         {
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_PWRCTL,inp32(REG_RTC_PWRCTL) & ~RTC_PWRCTL_ALARM_EN_Msk);
             RTC_Check();
 
@@ -774,7 +774,7 @@ UINT32 RTC_Write(E_RTC_TIME_SELECT eTime, RTC_TIME_DATA_T *sPt)
 
             g_u32Reg = u32Reg;
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_CALM, (UINT32)g_u32Reg);
             RTC_Check();
 
@@ -805,7 +805,7 @@ UINT32 RTC_Write(E_RTC_TIME_SELECT eTime, RTC_TIME_DATA_T *sPt)
 
             g_u32Reg = u32Reg;
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_TALM, (UINT32)g_u32Reg);
             RTC_Check();
 
@@ -829,7 +829,7 @@ UINT32 RTC_Write(E_RTC_TIME_SELECT eTime, RTC_TIME_DATA_T *sPt)
 
             RTC_Ioctl(0,RTC_IOC_ENABLE_INT,RTC_ALARM_INT,0);
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_PWRCTL,inp32(REG_RTC_PWRCTL) | RTC_PWRCTL_ALARM_EN_Msk);
             RTC_Check();
 
@@ -899,7 +899,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
                 return E_RTC_ERR_ENOTTY ;
             }
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_TICK, ptick->ucMode);
             RTC_Check();
 
@@ -952,7 +952,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
                 {
                     g_bIsEnableAlarmInt  = TRUE;
 
-                    RTC_WriteEnable(1);
+                    RTC_AccessEnable(1);
                     u32Tmp = inp32(REG_RTC_PWRCTL) | RTC_PWRCTL_ALARM_EN_Msk;
 
                     outp32(REG_RTC_PWRCTL, u32Tmp);
@@ -968,7 +968,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
                 {
                     g_bIsEnableAlarmInt  = TRUE;
 
-                    RTC_WriteEnable(1);
+                    RTC_AccessEnable(1);
                     u32Tmp = inp32(REG_RTC_PWRCTL) | RTC_PWRCTL_REL_ALARM_EN_Msk;
 
                     outp32(REG_RTC_PWRCTL, u32Tmp);
@@ -990,7 +990,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
                 }
             }
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_INTEN, u32Tmp);
             RTC_Check();
 
@@ -1005,7 +1005,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
                 {
                     g_bIsEnableTickInt   = FALSE;
 
-                    RTC_WriteEnable(1);
+                    RTC_AccessEnable(1);
                     u32Tmp = inp32(REG_RTC_INTEN) & (~RTC_TICK_INT);
 
                     outp32(REG_RTC_INTEN, u32Tmp);
@@ -1019,13 +1019,13 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
                 {
                     g_bIsEnableAlarmInt  = FALSE;
 
-                    RTC_WriteEnable(1);
+                    RTC_AccessEnable(1);
                     u32Tmp = inp32(REG_RTC_INTEN) & (~RTC_ALARM_INT);
 
                     outp32(REG_RTC_INTEN, u32Tmp);
                     RTC_Check();
 
-                    RTC_WriteEnable(1);
+                    RTC_AccessEnable(1);
                     u32Tmp = inp32(REG_RTC_PWRCTL) & ~RTC_PWRCTL_ALARM_EN_Msk;
 
                     outp32(REG_RTC_PWRCTL, u32Tmp);
@@ -1039,13 +1039,13 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
                 {
                     g_bIsEnableAlarmInt  = FALSE;
 
-                    RTC_WriteEnable(1);
+                    RTC_AccessEnable(1);
                     u32Tmp = inp32(REG_RTC_INTEN) & (~RTC_RELATIVE_ALARM_INT);
 
                     outp32(REG_RTC_INTEN, u32Tmp);
                     RTC_Check();
 
-                    RTC_WriteEnable(1);
+                    RTC_AccessEnable(1);
                     u32Tmp = inp32(REG_RTC_PWRCTL) & ~RTC_PWRCTL_REL_ALARM_EN_Msk;
 
                     outp32(REG_RTC_PWRCTL, u32Tmp);
@@ -1059,7 +1059,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
                 {
                     g_bIsEnableAlarmInt  = FALSE;
 
-                    RTC_WriteEnable(1);
+                    RTC_AccessEnable(1);
                     u32Tmp = inp32(REG_RTC_INTEN) & (~RTC_PSWI_INT);
 
                     outp32(REG_RTC_INTEN, u32Tmp);
@@ -1075,7 +1075,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
                     g_bIsEnableTickInt   = FALSE;
                     g_bIsEnableAlarmInt  = FALSE;
 
-                    RTC_WriteEnable(1);
+                    RTC_AccessEnable(1);
                     outp32(REG_RTC_INTEN, 0 );
                     outp32(REG_RTC_INTSTS, RTC_ALL_INT);
                     RTC_Check();
@@ -1103,7 +1103,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
         }
         case RTC_IOC_SET_POWER_ON:
         {
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             u32Tmp = inp32(REG_RTC_PWRCTL) | 0x01;
 
             outp32(REG_RTC_PWRCTL,u32Tmp);
@@ -1115,7 +1115,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
         }
         case RTC_IOC_SET_POWER_OFF:
         {
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_PWRCTL, (inp32(REG_RTC_PWRCTL) & ~0x01) | 2);
             RTC_Check();
 
@@ -1129,7 +1129,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
 
             u32Arg0 = u32Arg0 - 4;
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_PWRCTL, (inp32(REG_RTC_PWRCTL) & ~0xF000) | ((u32Arg0 & 0xF) << 12));
             RTC_Check();
 
@@ -1137,7 +1137,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
         }
         case RTC_IOC_ENABLE_HW_POWEROFF:
         {
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_PWRCTL, (inp32(REG_RTC_PWRCTL) | 0x04));
             RTC_Check();
 
@@ -1145,7 +1145,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
         }
         case RTC_IOC_DISABLE_HW_POWEROFF:
         {
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_PWRCTL, (inp32(REG_RTC_PWRCTL) & ~0x04));
             RTC_Check();
 
@@ -1168,7 +1168,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
         }
         case RTC_IOC_GET_POWERKEY_STATUS:
         {
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             if(inp32(REG_RTC_PWRCTL) & 0x80)
                 *(PUINT32)u32Arg0 = 1;
             else
@@ -1180,11 +1180,11 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
         {
             g_bIsEnableAlarmInt  = TRUE;
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             outp32(REG_RTC_PWRCTL,  (inp32(REG_RTC_PWRCTL) & ~0xFFF0010));
             RTC_Check();
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             u32Tmp = (inp32(REG_RTC_PWRCTL) & ~0xFFF0000)| ((u32Arg0 & 0xFFF) <<16) | RTC_PWRCTL_REL_ALARM_EN_Msk;
 
             outp32(REG_RTC_PWRCTL, u32Tmp);
@@ -1192,7 +1192,7 @@ UINT32 RTC_Ioctl (INT32 i32Num, E_RTC_CMD eCmd, UINT32 u32Arg0, UINT32 u32Arg1)
 
             g_bIsEnableAlarmInt  = TRUE;
 
-            RTC_WriteEnable(1);
+            RTC_AccessEnable(1);
             u32Tmp = inp32(REG_RTC_INTEN) | RTC_RELATIVE_ALARM_INT;
 
             outp32(REG_RTC_INTEN, u32Tmp);
@@ -1254,6 +1254,29 @@ void RTC_EnableClock(BOOL bEnable)
 
 }
 
+UINT32 RTC_WriteSpareRegister(RTC_SPARE_REG_E eReg, uint32_t u32Data)
+{
+    if (eReg >= RTC_SPR_MAX)
+        return E_RTC_ERR_ENOTTY;
+
+    RTC_AccessEnable(1);
+
+    outpw(REG_RTC_SPR0 + ((uint32_t)eReg << 2), u32Data);
+
+    return E_RTC_SUCCESS;
+}
+
+UINT32 RTC_ReadSpareRegister(RTC_SPARE_REG_E eReg, uint32_t *pu32Data)
+{
+    if ((eReg >= RTC_SPR_MAX) || (pu32Data == NULL))
+        return E_RTC_ERR_ENOTTY;
+
+    RTC_AccessEnable(1);
+
+    *pu32Data = inpw(REG_RTC_SPR0 + ((uint32_t)eReg << 2));
+
+    return E_RTC_SUCCESS;
+}
 
 
 /*@}*/ /* end of group NUC970_RTC_EXPORTED_FUNCTIONS */
